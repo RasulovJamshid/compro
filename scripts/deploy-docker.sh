@@ -115,15 +115,24 @@ print_success "PostgreSQL started"
 # Wait for postgres to be healthy
 print_info "Waiting for PostgreSQL to be ready..."
 sleep 5
-until $DOCKER_COMPOSE -f docker-compose.prod.yml exec -T postgres pg_isready -U prod_user > /dev/null 2>&1; do
-    echo "Waiting for database..."
+
+# Wait for postgres to accept connections (just check if server is up)
+MAX_TRIES=30
+TRIES=0
+until $DOCKER_COMPOSE -f docker-compose.prod.yml exec -T postgres pg_isready > /dev/null 2>&1; do
+    TRIES=$((TRIES+1))
+    if [ $TRIES -ge $MAX_TRIES ]; then
+        print_error "PostgreSQL failed to start after $MAX_TRIES attempts"
+        exit 1
+    fi
+    echo "Waiting for database... (attempt $TRIES/$MAX_TRIES)"
     sleep 2
 done
 print_success "PostgreSQL is ready"
 
 # Run database migrations
 print_info "Running database migrations..."
-$DOCKER_COMPOSE -f docker-compose.prod.yml run --rm backend npm run prisma:migrate
+$DOCKER_COMPOSE -f docker-compose.prod.yml run --rm backend npx prisma migrate deploy
 print_success "Migrations completed"
 
 # Start all containers
