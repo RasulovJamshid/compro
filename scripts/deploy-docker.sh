@@ -107,15 +107,29 @@ print_info "Building Docker images..."
 $DOCKER_COMPOSE -f docker-compose.prod.yml build --no-cache
 print_success "Images built"
 
+# Start postgres first
+print_info "Starting PostgreSQL database..."
+$DOCKER_COMPOSE -f docker-compose.prod.yml up -d postgres
+print_success "PostgreSQL started"
+
+# Wait for postgres to be healthy
+print_info "Waiting for PostgreSQL to be ready..."
+sleep 5
+until $DOCKER_COMPOSE -f docker-compose.prod.yml exec -T postgres pg_isready -U prod_user > /dev/null 2>&1; do
+    echo "Waiting for database..."
+    sleep 2
+done
+print_success "PostgreSQL is ready"
+
 # Run database migrations
 print_info "Running database migrations..."
 $DOCKER_COMPOSE -f docker-compose.prod.yml run --rm backend npm run prisma:migrate
 print_success "Migrations completed"
 
-# Start containers
-print_info "Starting containers..."
+# Start all containers
+print_info "Starting all containers..."
 $DOCKER_COMPOSE -f docker-compose.prod.yml up -d
-print_success "Containers started"
+print_success "All containers started"
 
 # Wait for services to be healthy
 print_info "Waiting for services to be healthy..."
