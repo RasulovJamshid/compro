@@ -48,15 +48,11 @@ async function bootstrap() {
         `https://www.${domain}`,          // WWW variant
         `https://api.${domain}`,          // API subdomain
         `https://dashboard.${domain}`,    // Dashboard subdomain
-        process.env.FRONTEND_URL,
-        process.env.DASHBOARD_URL,
       ]
     : [
         'http://localhost:3000',          // Local Frontend
         'http://localhost:3002',          // Local Dashboard
         `http://localhost:${port}`,       // Local API
-        process.env.FRONTEND_URL,
-        process.env.DASHBOARD_URL,
       ];
 
   app.enableCors({
