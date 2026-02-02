@@ -1,0 +1,89 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+*.log
+
+# Production
+build/
+dist/
+.next/
+out/
+
+# Environment (keep .env secret, but allow .env.example and .env.production template)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+!.env.production
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+
+# Database
+*.sqlite
+*.db
+
+# Archive files
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.bz2
+*.gz
+*.xz
+*.iso
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+*.tmp
+*~
+
+# Compressed files
+*.dmg
+*.pkg
+
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.lnk
+
+# Misc
+*.pem
+.vercel
+
+# Documentation - Exclude detailed guides, keep only essential docs
+# Keep: README.md, START_HERE.md, DOCKER_DEPLOYMENT_GUIDE.md
+DEPLOYMENT_GUIDE.md
+DEPLOYMENT_QUICK_REFERENCE.md
+DEPLOYMENT_CHECKLIST.md
+DEPLOYMENT_CONTROL_GUIDE.md
+DEPLOYMENT_METHODS_COMPARISON.md
+DEPLOYMENT_UPLOAD_GUIDE.md
+DEPLOYMENT_OVERVIEW.md
+CI_CD_SETUP_GUIDE.md
+SERVER_SETUP_COMPLETE_GUIDE.md
+DOCKER_SETUP_SUMMARY.md
+DOCKER_VS_PM2.md
+PATH_CHANGE_SUMMARY.md
+DOMAIN_CHANGE_SUMMARY.md
+DOCUMENTATION_INDEX.md

@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: realestate-db
+    restart: always
+    environment:
+      POSTGRES_DB: realestate
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - realestate-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: realestate-backend
+    restart: always
+    ports:
+      - "3001:3001"
+      - "5555:5555"  # Prisma Studio
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/realestate?schema=public
+      JWT_SECRET: your-secret-key-change-in-production
+      NODE_ENV: development
+      DEV_MODE: "true"  # Set to "false" in production to enable SMS
+      SMS_API_KEY: your-sms-api-key
+      SMS_API_URL: https://notify.eskiz.uz/api
+      PAYME_MERCHANT_ID: your-payme-merchant-id
+      CLICK_MERCHANT_ID: your-click-merchant-id
+      FRONTEND_URL: http://localhost:3000
+      DASHBOARD_URL: http://localhost:3002
+    depends_on:
+      - postgres
+    volumes:
+      - ./uploads:/app/uploads
+    networks:
+      - realestate-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: realestate-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_MAPBOX_TOKEN: your-mapbox-token
+    depends_on:
+      - backend
+    networks:
+      - realestate-network
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: realestate-dashboard
+    restart: always
+    ports:
+      - "3002:80"
+    environment:
+      VITE_API_URL: http://localhost:3001
+    depends_on:
+      - backend
+    networks:
+      - realestate-network
+
+volumes:
+  postgres_data:
+
+networks:
+  realestate-network:
+    driver: bridge

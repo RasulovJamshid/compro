@@ -1,0 +1,49 @@
+name: Deploy to compro.uz
+
+# CONTROL CI/CD BEHAVIOR:
+# - To disable auto-deploy: Comment out the "push" section below
+# - To enable manual-only: Keep only "workflow_dispatch"
+# - To enable auto-deploy: Keep both sections (current setup)
+
+on:
+  push:
+    branches:
+      - main          # Auto-deploy when pushing to main
+  workflow_dispatch:  # Manual trigger from GitHub Actions tab
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/compro
+            git pull origin main
+            bash scripts/deploy.sh
+      
+      - name: Notify on success
+        if: success()
+        run: |
+          echo "✅ Deployment to compro.uz completed successfully!"
+          echo "🌐 Site: https://compro.uz"
+          echo "📡 API: https://api.compro.uz"
+          echo "📊 Dashboard: https://dashboard.compro.uz"
+      
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Deployment failed! Check the logs above."

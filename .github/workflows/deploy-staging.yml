@@ -1,0 +1,33 @@
+# Optional: Staging environment deployment
+# Deploy to staging server on push to 'develop' branch
+
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Deploy to staging server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.STAGING_SERVER_HOST }}
+          username: ${{ secrets.STAGING_SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/staging.procom.uz
+            git pull origin develop
+            bash scripts/deploy.sh
+      
+      - name: Notify on success
+        if: success()
+        run: echo "✅ Staging deployment completed!"

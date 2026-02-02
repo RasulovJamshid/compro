@@ -1,0 +1,397 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  guest
+  free
+  premium
+  moderator
+  admin
+}
+
+enum PropertyType {
+  office
+  warehouse
+  shop
+  cafe_restaurant
+  industrial
+  salon
+  recreation
+  other
+}
+
+enum DealType {
+  rent
+  sale
+}
+
+enum PropertyStatus {
+  active
+  inactive
+  sold
+  rented
+  under_contract
+  pending
+}
+
+enum SubscriptionStatus {
+  active
+  expired
+  cancelled
+}
+
+model User {
+  id            String   @id @default(uuid())
+  phone         String   @unique
+  role          UserRole @default(free)
+  firstName     String?
+  lastName      String?
+  email         String?
+  company       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  subscriptions Subscription[]
+  savedProperties SavedProperty[]
+  savedSearches SavedSearch[]
+  propertyViews PropertyView[]
+  comparisons   PropertyComparison[]
+  inquiries     PropertyInquiry[]
+  reviews       Review[]
+  transactions  Transaction[]
+
+  @@map("users")
+}
+
+model Property {
+  id              String         @id @default(uuid())
+  title           String
+  description     String
+  propertyType    PropertyType
+  dealType        DealType
+  area            Float
+  price           Float
+  pricePerMonth   Float?
+  hasCommission   Boolean        @default(false)
+  
+  // Location
+  city            String
+  district        String
+  address         String?
+  latitude        Float
+  longitude       Float
+  
+  // Building details
+  floor           Int?
+  totalFloors     Int?
+  hasParking      Boolean        @default(false)
+  parkingSpaces   Int?
+  buildingClass   String?        // A, B, C
+  yearBuilt       Int?
+  yearRenovated   Int?
+  ceilingHeight   Float?
+  loadingDocks    Int?
+  zoning          String?
+  
+  // Financial (Halal-compliant)
+  pricePerSqm     Float?
+  operatingExpenses Float?
+  propertyTax     Float?
+  maintenanceFee  Float?
+  occupancyRate   Float?
+  
+  // Amenities
+  hvacType        String?
+  powerSupply     String?
+  securityFeatures String[]
+  amenities       String[]
+  
+  // Media
+  hasVideo        Boolean        @default(false)
+  hasTour360      Boolean        @default(false)
+  tour360Url      String?
+  
+  // Status
+  isVerified      Boolean        @default(false)
+  isTop           Boolean        @default(false)
+  isFeatured      Boolean        @default(false)
+  status          PropertyStatus @default(active)
+  
+  // Contact
+  contactName     String?
+  contactPhone    String?
+  contactEmail    String?
+  
+  // Stats
+  viewCount       Int            @default(0)
+  inquiryCount    Int            @default(0)
+  shareCount      Int            @default(0)
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  images          PropertyImage[]
+  videos          PropertyVideo[]
+  documents       PropertyDocument[]
+  savedBy         SavedProperty[]
+  views           PropertyView[]
+  priceHistory    PriceHistory[]
+  inquiries       PropertyInquiry[]
+  reviews         Review[]
+
+  @@map("properties")
+}
+
+model PropertyImage {
+  id              String   @id @default(uuid())
+  propertyId      String
+  url             String
+  thumbnailUrl    String?
+  watermarkedUrl  String?
+  isCover         Boolean  @default(false)
+  order           Int      @default(0)
+  createdAt       DateTime @default(now())
+  
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("property_images")
+}
+
+model PropertyVideo {
+  id              String   @id @default(uuid())
+  propertyId      String
+  url             String
+  thumbnailUrl    String?
+  title           String?
+  duration        Int      @default(0)
+  createdAt       DateTime @default(now())
+  
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("property_videos")
+}
+
+model SavedProperty {
+  id              String   @id @default(uuid())
+  userId          String
+  propertyId      String
+  createdAt       DateTime @default(now())
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, propertyId])
+  @@map("saved_properties")
+}
+
+model SubscriptionPlan {
+  id              String   @id @default(uuid())
+  code            String   @unique
+  name            String
+  description     String?
+  price           Float
+  durationDays    Int
+  features        String[]
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  subscriptions   Subscription[]
+
+  @@map("subscription_plans")
+}
+
+model Subscription {
+  id              String             @id @default(uuid())
+  userId          String
+  planId          String
+  status          SubscriptionStatus @default(active)
+  startDate       DateTime
+  endDate         DateTime
+  autoRenew       Boolean            @default(false)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan            SubscriptionPlan   @relation(fields: [planId], references: [id])
+  transactions    Transaction[]
+
+  @@map("subscriptions")
+}
+
+// New Crexi-like models
+
+model PropertyDocument {
+  id              String   @id @default(uuid())
+  propertyId      String
+  type            String   // brochure, floor_plan, site_plan, zoning, permit, inspection
+  title           String
+  url             String
+  fileSize        Int?
+  mimeType        String?
+  uploadedAt      DateTime @default(now())
+  uploadedBy      String?
+  
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("property_documents")
+}
+
+model SavedSearch {
+  id              String   @id @default(uuid())
+  userId          String
+  name            String
+  filters         Json
+  alertEnabled    Boolean  @default(false)
+  alertFrequency  String?  // instant, daily, weekly
+  lastAlertSent   DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("saved_searches")
+}
+
+model PropertyView {
+  id              String   @id @default(uuid())
+  propertyId      String
+  userId          String?
+  duration        Int?     // seconds
+  source          String?  // search, map, direct, email
+  ipAddress       String?
+  userAgent       String?
+  viewedAt        DateTime @default(now())
+  
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("property_views")
+}
+
+model PriceHistory {
+  id              String   @id @default(uuid())
+  propertyId      String
+  price           Float
+  pricePerMonth   Float?
+  pricePerSqm     Float?
+  reason          String?  // price_drop, price_increase, market_adjustment
+  changedAt       DateTime @default(now())
+  
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("price_history")
+}
+
+model PropertyComparison {
+  id              String   @id @default(uuid())
+  userId          String
+  name            String
+  propertyIds     String[]
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("property_comparisons")
+}
+
+model PropertyInquiry {
+  id              String   @id @default(uuid())
+  propertyId      String
+  userId          String
+  message         String
+  contactPreference String // email, phone, sms, whatsapp
+  status          String   @default("pending") // pending, contacted, responded, closed
+  response        String?
+  respondedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("property_inquiries")
+}
+
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+}
+
+model Review {
+  id              String       @id @default(uuid())
+  propertyId      String
+  userId          String
+  rating          Int          // 1-5
+  comment         String
+  status          ReviewStatus @default(pending)
+  moderatedBy     String?
+  moderatedAt     DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  property        Property     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("reviews")
+}
+
+enum TransactionStatus {
+  pending
+  completed
+  failed
+  refunded
+}
+
+enum PaymentMethod {
+  payme
+  click
+  uzum
+  card
+  cash
+}
+
+model Transaction {
+  id              String            @id @default(uuid())
+  userId          String
+  subscriptionId  String?
+  amount          Float
+  currency        String            @default("UZS")
+  status          TransactionStatus @default(pending)
+  paymentMethod   PaymentMethod
+  transactionId   String?           // External payment system transaction ID
+  description     String?
+  metadata        Json?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription    Subscription?     @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  
+  @@map("transactions")
+}
+
+model SystemSettings {
+  id              String   @id @default(uuid())
+  key             String   @unique
+  value           Json
+  category        String   // general, notifications, security, properties, payments
+  description     String?
+  updatedBy       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("system_settings")
+}
