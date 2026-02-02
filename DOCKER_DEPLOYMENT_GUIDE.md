@@ -27,6 +27,46 @@ Complete guide for deploying the Commercial Real Estate Platform using Docker in
 
 ---
 
+## 🏗️ Docker Architecture
+
+### Complete Containerization
+
+**Everything runs inside Docker**, including Nginx for SSL termination and reverse proxy.
+
+```
+Internet (Port 80/443)
+        ↓
+    Nginx Container (compro-nginx-prod)
+    - SSL Termination
+    - Reverse Proxy
+    - Static File Serving
+        ↓
+    ┌───┴────┬─────────┬──────────┐
+    ↓        ↓         ↓          ↓
+Frontend  Backend  Dashboard  PostgreSQL
+(3000)    (3001)    (80)       (5432)
+```
+
+### Docker Services
+
+| Service | Container Name | Purpose | Ports |
+|---------|---------------|---------|-------|
+| **nginx** | compro-nginx-prod | SSL, reverse proxy | 80, 443 (host) |
+| **backend** | compro-backend-prod | NestJS API | 3001 (internal) |
+| **frontend** | compro-frontend-prod | Next.js app | 3000 (internal) |
+| **dashboard** | compro-dashboard-prod | React admin | 80 (internal) |
+| **postgres** | compro-db-prod | Database | 5432 (internal) |
+
+### Key Features
+
+- ✅ **No host Nginx needed** - Nginx runs in container
+- ✅ **Internal networking** - Services communicate via Docker network
+- ✅ **SSL on host** - Certificates mounted from host filesystem
+- ✅ **Single command deploy** - `docker-compose up`
+- ✅ **Easy updates** - Just rebuild containers
+
+---
+
 ## 🚀 Quick Start
 
 ### On Server:
@@ -41,28 +81,38 @@ sudo usermod -aG docker $USER
 sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
-# 3. Clone project
+# 3. Log out and back in (for docker group)
+exit
+# SSH back in
+
+# 4. Clone project
 sudo mkdir -p /opt/compro
 sudo chown -R $USER:$USER /opt/compro
 cd /opt/compro
 git clone YOUR-REPO .
 
-# 4. Configure environment
+# 5. Configure environment
 cp .env.production .env
 nano .env  # Edit with your values
 
-# 5. Setup SSL
-sudo bash scripts/setup-ssl.sh
+# 6. Setup SSL certificates (one-time)
+sudo apt install -y certbot
+sudo certbot certonly --standalone \
+  -d compro.uz -d www.compro.uz \
+  -d api.compro.uz -d dashboard.compro.uz \
+  --email admin@compro.uz --agree-tos
 
-# 6. Configure Nginx
-sudo cp nginx/compro.uz.conf /etc/nginx/sites-available/compro.uz
-sudo ln -s /etc/nginx/sites-available/compro.uz /etc/nginx/sites-enabled/
-sudo nginx -t && sudo systemctl restart nginx
+# Create symlinks for easier access
+sudo ln -s /etc/letsencrypt/live/compro.uz/fullchain.pem /etc/ssl/certs/compro.uz.crt
+sudo ln -s /etc/letsencrypt/live/compro.uz/privkey.pem /etc/ssl/private/compro.uz.key
+sudo ln -s /etc/letsencrypt/live/compro.uz/chain.pem /etc/ssl/certs/ca-bundle.crt
 
-# 7. Deploy with Docker
+# 7. Deploy with Docker (includes Nginx!)
 chmod +x scripts/deploy-docker.sh
 bash scripts/deploy-docker.sh
 ```
+
+**Note:** Nginx now runs inside Docker! No need to install it separately on the host.
 
 ---
 
@@ -113,18 +163,7 @@ docker compose version
 # If available, use 'docker compose' instead of 'docker-compose'
 ```
 
-### Step 3: Install Nginx (for SSL termination)
-
-```bash
-# Install Nginx
-sudo apt install -y nginx
-
-# Start and enable
-sudo systemctl start nginx
-sudo systemctl enable nginx
-```
-
-### Step 4: Clone Project
+### Step 3: Clone Project
 
 ```bash
 # Create directory
@@ -139,7 +178,7 @@ git clone YOUR-REPO-URL .
 ls -la
 ```
 
-### Step 5: Configure Environment
+### Step 4: Configure Environment
 
 ```bash
 # Copy production template
@@ -173,44 +212,56 @@ CLICK_MERCHANT_ID=your-click-id
 NEXT_PUBLIC_MAPBOX_TOKEN=your-mapbox-token
 ```
 
-### Step 6: Setup SSL Certificates
+### Step 5: Setup SSL Certificates
+
+SSL certificates are managed on the host and mounted into the Nginx Docker container.
 
 ```bash
-# Make script executable
-chmod +x scripts/setup-ssl.sh
+# Install certbot
+sudo apt install -y certbot
 
-# Run SSL setup
-sudo bash scripts/setup-ssl.sh
+# Get SSL certificates for all domains
+sudo certbot certonly --standalone \
+  -d compro.uz -d www.compro.uz \
+  -d api.compro.uz -d dashboard.compro.uz \
+  --email admin@compro.uz --agree-tos --non-interactive
+
+# Create symlinks for easier access
+sudo ln -sf /etc/letsencrypt/live/compro.uz/fullchain.pem /etc/ssl/certs/compro.uz.crt
+sudo ln -sf /etc/letsencrypt/live/compro.uz/privkey.pem /etc/ssl/private/compro.uz.key
+sudo ln -sf /etc/letsencrypt/live/compro.uz/chain.pem /etc/ssl/certs/ca-bundle.crt
+
+# Verify certificates
+ls -la /etc/ssl/certs/compro.uz.crt
+ls -la /etc/ssl/private/compro.uz.key
 ```
 
-### Step 7: Configure Nginx
-
+**Note:** Certbot needs port 80 free. If you're re-deploying, stop the Nginx container first:
 ```bash
-# Copy Nginx configuration
-sudo cp nginx/compro.uz.conf /etc/nginx/sites-available/compro.uz
-
-# Create symbolic link
-sudo ln -s /etc/nginx/sites-available/compro.uz /etc/nginx/sites-enabled/compro.uz
-
-# Remove default site
-sudo rm /etc/nginx/sites-enabled/default
-
-# Test configuration
-sudo nginx -t
-
-# Restart Nginx
-sudo systemctl restart nginx
+docker-compose -f docker-compose.prod.yml stop nginx
 ```
 
-### Step 8: Deploy with Docker
+### Step 6: Deploy with Docker
+
+This will deploy all services including Nginx inside Docker containers.
 
 ```bash
 # Make deployment script executable
 chmod +x scripts/deploy-docker.sh
 
-# Run deployment
+# Run deployment (includes Nginx, backend, frontend, dashboard, postgres)
 bash scripts/deploy-docker.sh
+
+# Check all containers are running
+docker-compose -f docker-compose.prod.yml ps
 ```
+
+**Services deployed:**
+- `compro-nginx-prod` - Nginx (SSL termination, reverse proxy)
+- `compro-backend-prod` - NestJS API
+- `compro-frontend-prod` - Next.js frontend
+- `compro-dashboard-prod` - React dashboard
+- `compro-db-prod` - PostgreSQL database
 
 ---
 
@@ -227,6 +278,7 @@ docker-compose -f docker-compose.prod.yml ps
 docker-compose -f docker-compose.prod.yml logs -f
 
 # Specific container
+docker-compose -f docker-compose.prod.yml logs -f nginx
 docker-compose -f docker-compose.prod.yml logs -f backend
 docker-compose -f docker-compose.prod.yml logs -f frontend
 docker-compose -f docker-compose.prod.yml logs -f dashboard
@@ -267,6 +319,27 @@ docker-compose -f docker-compose.prod.yml exec backend npm run prisma:migrate
 
 # Access database
 docker-compose -f docker-compose.prod.yml exec postgres psql -U prod_user -d realestate_prod
+
+# Access Nginx container
+docker-compose -f docker-compose.prod.yml exec nginx sh
+```
+
+### Nginx-Specific Commands
+```bash
+# Test Nginx configuration
+docker-compose -f docker-compose.prod.yml exec nginx nginx -t
+
+# Reload Nginx (without restart)
+docker-compose -f docker-compose.prod.yml exec nginx nginx -s reload
+
+# View Nginx access logs
+docker-compose -f docker-compose.prod.yml logs nginx | grep "GET\|POST"
+
+# View Nginx error logs
+docker-compose -f docker-compose.prod.yml logs nginx | grep "error"
+
+# Check Nginx version
+docker-compose -f docker-compose.prod.yml exec nginx nginx -v
 ```
 
 ### View Container Stats
@@ -541,20 +614,96 @@ jobs:
 
 ---
 
+## 🔐 SSL Certificate Renewal
+
+SSL certificates expire every 90 days and need to be renewed.
+
+### Manual Renewal
+
+```bash
+# Stop Nginx container to free port 80
+cd /opt/compro
+docker-compose -f docker-compose.prod.yml stop nginx
+
+# Renew certificates
+sudo certbot renew
+
+# Start Nginx container
+docker-compose -f docker-compose.prod.yml start nginx
+
+# Verify renewal
+sudo certbot certificates
+```
+
+### Automatic Renewal (Recommended)
+
+Create a renewal script:
+
+```bash
+# Create script
+sudo mkdir -p /opt/scripts
+sudo nano /opt/scripts/renew-ssl-docker.sh
+```
+
+Add this content:
+
+```bash
+#!/bin/bash
+# SSL Certificate Renewal Script for Dockerized Nginx
+
+cd /opt/compro
+
+# Stop Nginx to free port 80
+docker-compose -f docker-compose.prod.yml stop nginx
+
+# Renew certificates
+certbot renew --quiet
+
+# Start Nginx
+docker-compose -f docker-compose.prod.yml start nginx
+
+# Log renewal
+echo "$(date): SSL certificates renewed" >> /var/log/ssl-renewal.log
+```
+
+Make it executable and schedule:
+
+```bash
+# Make executable
+sudo chmod +x /opt/scripts/renew-ssl-docker.sh
+
+# Add to crontab (runs monthly on the 1st at 3 AM)
+sudo crontab -e
+
+# Add this line:
+0 3 1 * * /opt/scripts/renew-ssl-docker.sh
+```
+
+### Test Renewal
+
+```bash
+# Dry run (doesn't actually renew)
+sudo certbot renew --dry-run
+```
+
+---
+
 ## ✅ Deployment Checklist
 
 - [ ] Docker installed
 - [ ] Docker Compose installed
-- [ ] Nginx installed
-- [ ] DNS configured
+- [ ] DNS configured (A records for all subdomains)
 - [ ] Project cloned to `/opt/compro`
-- [ ] `.env` file configured
-- [ ] SSL certificates obtained
-- [ ] Nginx configured
-- [ ] Containers built and running
+- [ ] `.env` file configured with production values
+- [ ] SSL certificates obtained via certbot
+- [ ] SSL certificate symlinks created
+- [ ] All containers built and running
+- [ ] Nginx container healthy and serving traffic
 - [ ] All URLs accessible via HTTPS
+- [ ] SSL certificates valid (green padlock)
 - [ ] Database migrations completed
-- [ ] Health checks passing
+- [ ] Health checks passing for all services
+- [ ] SSL auto-renewal configured (optional)
 
 ---
 
