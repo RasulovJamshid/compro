@@ -15,12 +15,14 @@ export class SmsService {
   }
 
   async sendSms(phone: string, message: string): Promise<void> {
-    // In dev mode, just log the SMS instead of sending
-    if (this.devMode) {
-      console.log('📱 [DEV MODE] SMS would be sent:');
+    // Check if SMS service is explicitly enabled
+    const smsEnabled = this.configService.get('SMS_ENABLED') === 'true';
+
+    // If SMS is disabled (regardless of dev/prod mode), just log it
+    if (!smsEnabled) {
+      console.log('📱 [SMS DISABLED] SMS Code:');
       console.log(`   To: ${phone}`);
       console.log(`   Message: ${message}`);
-      console.log('   (SMS sending disabled in dev mode)');
       return;
     }
 
