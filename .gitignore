@@ -32,6 +32,12 @@ out/
 uploads/*
 !uploads/.gitkeep
 
+# SSL Certificates (never commit private keys!)
+ssl/
+*.key
+*.crt
+*.pem
+
 # Database
 *.sqlite
 *.db
