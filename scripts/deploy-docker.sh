@@ -114,21 +114,20 @@ print_success "PostgreSQL started"
 
 # Wait for postgres to be healthy
 print_info "Waiting for PostgreSQL to be ready..."
-sleep 5
-
-# Wait for postgres to accept connections (just check if server is up)
-MAX_TRIES=30
-TRIES=0
-until $DOCKER_COMPOSE -f docker-compose.prod.yml exec -T postgres pg_isready > /dev/null 2>&1; do
-    TRIES=$((TRIES+1))
-    if [ $TRIES -ge $MAX_TRIES ]; then
-        print_error "PostgreSQL failed to start after $MAX_TRIES attempts"
+for i in {1..30}; do
+    if docker inspect compro-db-prod --format='{{.State.Health.Status}}' 2>/dev/null | grep -q "healthy"; then
+        print_success "PostgreSQL is healthy"
+        break
+    fi
+    if [ $i -eq 30 ]; then
+        print_error "PostgreSQL failed to become healthy"
+        print_info "PostgreSQL logs:"
+        $DOCKER_COMPOSE -f docker-compose.prod.yml logs postgres
         exit 1
     fi
-    echo "Waiting for database... (attempt $TRIES/$MAX_TRIES)"
+    echo "Waiting for database to be healthy... (attempt $i/30)"
     sleep 2
 done
-print_success "PostgreSQL is ready"
 
 # Run database migrations
 print_info "Running database migrations..."
