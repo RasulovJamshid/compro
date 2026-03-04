@@ -1,0 +1,58 @@
+{
+  "Navigation": {
+    "home": "Главная",
+    "properties": "Объекты",
+    "map": "Поиск на карте",
+    "compare": "Сравнение",
+    "pricing": "Тарифы",
+    "login": "Войти"
+  },
+  "HomePage": {
+    "heroTitle": "Идеальное место для",
+    "heroHighlight": "вашего бизнеса",
+    "heroSubtitle": "Самая большая база коммерческой недвижимости в Узбекистане",
+    "searchPlaceholder": "Поиск по городу, району или адресу...",
+    "searchButton": "Найти объекты"
+  },
+  "Property": {
+    "dealType": "Тип сделки",
+    "rent": "Аренда",
+    "sale": "Продажа",
+    "propertyType": "Тип объекта",
+    "office": "Офис",
+    "warehouse": "Склад",
+    "shop": "Магазин",
+    "area": "Площадь",
+    "price": "Цена",
+    "details": "Детали",
+    "description": "Описание",
+    "features": "Характеристики",
+    "location": "Расположение"
+  },
+  "Filters": {
+    "title": "Фильтры",
+    "all": "Все",
+    "reset": "Сбросить",
+    "apply": "Применить",
+    "city": "Город",
+    "district": "Район",
+    "minArea": "Мин. площадь (м²)",
+    "maxArea": "Макс. площадь (м²)",
+    "minPrice": "Мин. цена",
+    "maxPrice": "Макс. цена",
+    "verifiedOnly": "Только проверенные",
+    "hasVideo": "С видео",
+    "hasTour360": "С 3D-туром",
+    "hasParking": "С парковкой",
+    "hasElevator": "Есть лифт"
+  },
+  "Common": {
+    "loading": "Загрузка...",
+    "error": "Произошла ошибка",
+    "retry": "Повторить",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "yes": "Да",
+    "no": "Нет"
+  }
+}

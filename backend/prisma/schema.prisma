@@ -101,6 +101,27 @@ model Property {
   ceilingHeight   Float?
   loadingDocks    Int?
   zoning          String?
+  propertyCondition String?      // new, excellent, good, needs_renovation
+  entranceType    String?        // separate, common, from_street
+  layoutType      String?        // open_plan, offices, mixed, warehouse
+  
+  // Legal & Documentation
+  ownershipType   String?        // private, state, leasehold
+  hasLegalIssues  Boolean        @default(false)
+  cadastralNumber String?
+  landArea        Float?         // Total land plot area in m²
+  
+  // Lease/Rental specific
+  minLeaseTerm    Int?           // Minimum lease term in months
+  maxLeaseTerm    Int?           // Maximum lease term in months
+  securityDeposit Float?         // Security deposit amount
+  prepaymentMonths Int?          // Required prepayment in months
+  
+  // Current tenant info (for investment properties)
+  isOccupied      Boolean        @default(false)
+  currentTenant   String?
+  leaseExpiryDate DateTime?
+  monthlyRent     Float?         // Current tenant's rent
   
   // Financial (Halal-compliant)
   pricePerSqm     Float?
@@ -109,9 +130,18 @@ model Property {
   maintenanceFee  Float?
   occupancyRate   Float?
   
-  // Amenities
+  // Amenities & Infrastructure
   hvacType        String?
   powerSupply     String?
+  powerCapacity   Float?         // kW
+  hasWater        Boolean        @default(true)
+  hasGas          Boolean        @default(false)
+  hasSewerage     Boolean        @default(true)
+  hasInternet     Boolean        @default(false)
+  internetSpeed   String?        // fiber, cable, dsl
+  hasFireSafety   Boolean        @default(false)
+  hasElevator     Boolean        @default(false)
+  elevatorCount   Int?
   securityFeatures String[]
   amenities       String[]
   
@@ -119,6 +149,7 @@ model Property {
   hasVideo        Boolean        @default(false)
   hasTour360      Boolean        @default(false)
   tour360Url      String?
+  virtualTourConfig Json?        // Configuration for react-photo-sphere-viewer VirtualTourPlugin
   
   // Status
   isVerified      Boolean        @default(false)

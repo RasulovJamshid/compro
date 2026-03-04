@@ -1,0 +1,58 @@
+{
+  "Navigation": {
+    "home": "Home",
+    "properties": "Properties",
+    "map": "Map Search",
+    "compare": "Compare",
+    "pricing": "Pricing",
+    "login": "Login"
+  },
+  "HomePage": {
+    "heroTitle": "The Perfect Place for",
+    "heroHighlight": "Your Business",
+    "heroSubtitle": "The largest database of commercial real estate in Uzbekistan",
+    "searchPlaceholder": "Search by city, district or address...",
+    "searchButton": "Find properties"
+  },
+  "Property": {
+    "dealType": "Deal Type",
+    "rent": "Rent",
+    "sale": "Sale",
+    "propertyType": "Property Type",
+    "office": "Office",
+    "warehouse": "Warehouse",
+    "shop": "Shop",
+    "area": "Area",
+    "price": "Price",
+    "details": "Details",
+    "description": "Description",
+    "features": "Features",
+    "location": "Location"
+  },
+  "Filters": {
+    "title": "Filters",
+    "all": "All",
+    "reset": "Reset",
+    "apply": "Apply",
+    "city": "City",
+    "district": "District",
+    "minArea": "Min Area (m²)",
+    "maxArea": "Max Area (m²)",
+    "minPrice": "Min Price",
+    "maxPrice": "Max Price",
+    "verifiedOnly": "Verified only",
+    "hasVideo": "With video",
+    "hasTour360": "With 3D Tour",
+    "hasParking": "With parking",
+    "hasElevator": "Has elevator"
+  },
+  "Common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Try again",
+    "save": "Save",
+    "cancel": "Cancel",
+    "yes": "Yes",
+    "no": "No"
+  }
+}

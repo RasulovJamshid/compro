@@ -159,6 +159,62 @@ async function main() {
     const status = faker.helpers.arrayElement([...statuses]);
 
     const hasTour360 = faker.datatype.boolean();
+    const virtualTourConfig = hasTour360 ? {
+      nodes: [
+        {
+          id: 'entrance',
+          panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg',
+          name: 'Вход',
+          links: [
+            {
+              nodeId: 'main_room',
+              position: { pitch: 0, yaw: 0 }
+            }
+          ],
+          markers: [
+            {
+              id: 'marker-info-1',
+              position: { pitch: 0.1, yaw: 0.5 },
+              html: '🏢',
+              style: {
+                fontSize: '32px',
+                fontFamily: 'Helvetica, sans-serif',
+                textAlign: 'center'
+              },
+              tooltip: 'Ресепшн',
+              content: '<h2>Зона ресепшн</h2><p>Просторная зона для встречи гостей площадью 25 кв.м.</p>'
+            }
+          ]
+        },
+        {
+          id: 'main_room',
+          panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere-test.jpg',
+          name: 'Главный зал',
+          links: [
+            {
+              nodeId: 'entrance',
+              position: { pitch: 0, yaw: Math.PI }
+            }
+          ],
+          markers: [
+            {
+              id: 'marker-info-2',
+              position: { pitch: 0, yaw: 1.5 },
+              image: 'https://photo-sphere-viewer.js.org/assets/pin-blue.png',
+              size: { width: 32, height: 32 },
+              tooltip: 'Зона отдыха',
+              content: '<h2>Зона отдыха</h2><p>Удобные диваны и кофе-поинт.</p>'
+            }
+          ]
+        }
+      ],
+      startNodeId: 'entrance'
+    } : null;
+
+    const hasParking = faker.datatype.boolean();
+    const isOccupied = dealType === 'rent' && faker.datatype.boolean({ probability: 0.3 });
+    const hasElevator = faker.datatype.boolean({ probability: 0.6 });
+    
     const property = await prisma.property.create({
       data: {
         title: `${propertyType === 'office' ? 'Офис' : propertyType === 'warehouse' ? 'Склад' : propertyType === 'shop' ? 'Торговое помещение' : propertyType === 'cafe_restaurant' ? 'Кафе/Ресторан' : propertyType === 'industrial' ? 'Производственное помещение' : propertyType === 'salon' ? 'Салон' : propertyType === 'recreation' ? 'Развлекательный центр' : 'Другое'} ${area}м² в ${city}`,
@@ -176,10 +232,50 @@ async function main() {
         longitude: faker.location.longitude({ min: 69.1, max: 69.4 }),
         floor: faker.number.int({ min: 1, max: 20 }),
         totalFloors: faker.number.int({ min: 1, max: 25 }),
-        hasParking: faker.datatype.boolean(),
+        hasParking,
+        buildingClass: faker.helpers.arrayElement(['A', 'B', 'C', 'C+']),
+        yearBuilt: faker.number.int({ min: 1980, max: 2024 }),
+        yearRenovated: faker.datatype.boolean({ probability: 0.3 }) ? faker.number.int({ min: 2010, max: 2024 }) : null,
+        ceilingHeight: faker.number.float({ min: 2.5, max: 6.0, precision: 0.1 }),
+        loadingDocks: propertyType === 'warehouse' || propertyType === 'industrial' ? faker.number.int({ min: 0, max: 5 }) : null,
+        zoning: faker.helpers.arrayElement(['commercial', 'mixed', 'industrial', 'retail']),
+        propertyCondition: faker.helpers.arrayElement(['new', 'excellent', 'good', 'needs_renovation']),
+        entranceType: faker.helpers.arrayElement(['separate', 'common', 'from_street']),
+        layoutType: faker.helpers.arrayElement(['open_plan', 'offices', 'mixed', 'warehouse']),
+        ownershipType: faker.helpers.arrayElement(['private', 'state', 'leasehold']),
+        hasLegalIssues: faker.datatype.boolean({ probability: 0.05 }),
+        cadastralNumber: `UZ-${faker.string.numeric(2)}-${faker.string.numeric(6)}`,
+        landArea: faker.datatype.boolean({ probability: 0.4 }) ? faker.number.float({ min: area, max: area * 3, precision: 0.1 }) : null,
+        minLeaseTerm: dealType === 'rent' ? faker.number.int({ min: 1, max: 6 }) : null,
+        maxLeaseTerm: dealType === 'rent' ? faker.number.int({ min: 12, max: 60 }) : null,
+        securityDeposit: dealType === 'rent' ? price * faker.number.int({ min: 1, max: 3 }) : null,
+        prepaymentMonths: dealType === 'rent' ? faker.number.int({ min: 1, max: 3 }) : null,
+        isOccupied,
+        currentTenant: isOccupied ? faker.company.name() : null,
+        leaseExpiryDate: isOccupied ? faker.date.future({ years: 2 }) : null,
+        monthlyRent: isOccupied ? price * 0.9 : null,
+        pricePerSqm,
+        operatingExpenses: faker.number.float({ min: 50000, max: 500000, precision: 1000 }),
+        propertyTax: faker.number.float({ min: 100000, max: 1000000, precision: 10000 }),
+        maintenanceFee: faker.number.float({ min: 50000, max: 300000, precision: 5000 }),
+        occupancyRate: faker.number.float({ min: 0, max: 100, precision: 5 }),
+        hvacType: faker.helpers.arrayElement(['central', 'split', 'vrf', 'none']),
+        powerSupply: faker.helpers.arrayElement(['380V', '220V', 'both']),
+        powerCapacity: faker.number.float({ min: 10, max: 500, precision: 5 }),
+        hasWater: true,
+        hasGas: faker.datatype.boolean({ probability: 0.4 }),
+        hasSewerage: true,
+        hasInternet: faker.datatype.boolean({ probability: 0.8 }),
+        internetSpeed: faker.helpers.arrayElement(['fiber', 'cable', 'dsl']),
+        hasFireSafety: faker.datatype.boolean({ probability: 0.7 }),
+        hasElevator,
+        elevatorCount: hasElevator ? faker.number.int({ min: 1, max: 4 }) : null,
+        securityFeatures: faker.helpers.arrayElements(['cctv', 'security_guard', 'access_control', 'alarm_system', 'fire_alarm'], { min: 1, max: 4 }),
+        amenities: faker.helpers.arrayElements(['cafeteria', 'gym', 'conference_room', 'reception', 'storage', 'shower'], { min: 0, max: 4 }),
         hasVideo: faker.datatype.boolean(),
         hasTour360,
         tour360Url: hasTour360 ? 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg' : null,
+        virtualTourConfig,
         isVerified: status === 'active' ? true : false,
         isTop: faker.datatype.boolean({ probability: 0.2 }),
         status: status as any,

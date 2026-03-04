@@ -1,0 +1,58 @@
+{
+  "Navigation": {
+    "home": "Asosiy",
+    "properties": "Obyektlar",
+    "map": "Xaritadan izlash",
+    "compare": "Taqqoslash",
+    "pricing": "Tariflar",
+    "login": "Kirish"
+  },
+  "HomePage": {
+    "heroTitle": "Biznesingiz uchun",
+    "heroHighlight": "eng yaxshi joy",
+    "heroSubtitle": "O'zbekistondagi eng yirik tijorat ko'chmas mulk bazasi",
+    "searchPlaceholder": "Shahar, tuman yoki manzil bo'yicha qidirish...",
+    "searchButton": "Obyektlarni topish"
+  },
+  "Property": {
+    "dealType": "Bitim turi",
+    "rent": "Ijara",
+    "sale": "Sotish",
+    "propertyType": "Obyekt turi",
+    "office": "Ofis",
+    "warehouse": "Ombor",
+    "shop": "Do'kon",
+    "area": "Maydon",
+    "price": "Narxi",
+    "details": "Tafsilotlar",
+    "description": "Tavsif",
+    "features": "Xususiyatlar",
+    "location": "Joylashuv"
+  },
+  "Filters": {
+    "title": "Filtrlar",
+    "all": "Barchasi",
+    "reset": "Tozalash",
+    "apply": "Qo'llash",
+    "city": "Shahar",
+    "district": "Tuman",
+    "minArea": "Min. maydon (m²)",
+    "maxArea": "Maks. maydon (m²)",
+    "minPrice": "Min. narx",
+    "maxPrice": "Maks. narx",
+    "verifiedOnly": "Faqat tasdiqlanganlar",
+    "hasVideo": "Videoli",
+    "hasTour360": "3D-turli",
+    "hasParking": "Avtoturargohli",
+    "hasElevator": "Lift bor"
+  },
+  "Common": {
+    "loading": "Yuklanmoqda...",
+    "error": "Xatolik yuz berdi",
+    "retry": "Qayta urinib ko'rish",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "yes": "Ha",
+    "no": "Yo'q"
+  }
+}

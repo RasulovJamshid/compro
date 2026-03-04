@@ -7,8 +7,10 @@ import MapView from '@/components/map/MapView'
 import PropertyCard from '@/components/properties/PropertyCard'
 import { getProperties } from '@/lib/api/properties'
 import type { Property, PropertyFilters } from '@/lib/types'
+import { useTranslations } from 'next-intl'
 
 function MapPageContent() {
+  const t = useTranslations()
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [initialLoadCompleted, setInitialLoadCompleted] = useState(false)
@@ -81,6 +83,27 @@ function MapPageContent() {
 
     const hasTour360 = searchParams.get('hasTour360')
     if (hasTour360 === 'true') parsedFilters.hasTour360 = true
+
+    const buildingClass = searchParams.get('buildingClass')
+    if (buildingClass) parsedFilters.buildingClass = buildingClass
+
+    const minCeilingHeight = searchParams.get('minCeilingHeight')
+    if (minCeilingHeight) parsedFilters.minCeilingHeight = Number(minCeilingHeight)
+
+    const minPowerCapacity = searchParams.get('minPowerCapacity')
+    if (minPowerCapacity) parsedFilters.minPowerCapacity = Number(minPowerCapacity)
+
+    const propertyCondition = searchParams.get('propertyCondition')
+    if (propertyCondition) parsedFilters.propertyCondition = propertyCondition
+
+    const hasParking = searchParams.get('hasParking')
+    if (hasParking === 'true') parsedFilters.hasParking = true
+
+    const hasElevator = searchParams.get('hasElevator')
+    if (hasElevator === 'true') parsedFilters.hasElevator = true
+
+    const hasFireSafety = searchParams.get('hasFireSafety')
+    if (hasFireSafety === 'true') parsedFilters.hasFireSafety = true
 
     if (Object.keys(parsedFilters).length > 0) {
       setFilters((prev) => (JSON.stringify(prev) === JSON.stringify(parsedFilters) ? prev : parsedFilters))
@@ -280,7 +303,7 @@ function MapPageContent() {
             className="h-10 md:h-11 px-3 md:px-4 bg-white/90 backdrop-blur-md border border-white shadow-soft rounded-xl flex items-center gap-2 text-secondary-900 hover:bg-white transition-all group active:scale-95"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-            <span className="text-xs md:text-sm font-semibold tracking-tight hidden sm:inline">К списку</span>
+            <span className="text-xs md:text-sm font-semibold tracking-tight hidden sm:inline">{t('Navigation.properties')}</span>
           </button>
 
           {!showFilterSidebar && (
@@ -289,7 +312,7 @@ function MapPageContent() {
               className="h-10 md:h-11 px-3 md:px-4 bg-white/90 backdrop-blur-md border border-white shadow-soft rounded-xl flex items-center gap-2 text-secondary-900 hover:bg-white transition-all active:scale-95"
             >
               <Search className="w-4 h-4" />
-              <span className="text-xs md:text-sm font-semibold tracking-tight hidden sm:inline">Фильтры</span>
+              <span className="text-xs md:text-sm font-semibold tracking-tight hidden sm:inline">{t('Filters.title')}</span>
             </button>
           )}
         </div>
@@ -362,13 +385,13 @@ function MapPageContent() {
               {isMobile && (
                 <button
                   onClick={() => setShowFilterSidebar(false)}
-                  aria-label="Закрыть фильтры"
+                  aria-label={t('Filters.title')}
                   className="p-1.5 -ml-2 hover:bg-secondary-100 rounded-lg transition-colors text-secondary-500"
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </button>
               )}
-              <h2 className="text-base font-bold text-secondary-900">Фильтры</h2>
+              <h2 className="text-base font-bold text-secondary-900">{t('Filters.title')}</h2>
             </div>
             <button
               onClick={() => setShowFilterSidebar(false)}
@@ -380,12 +403,12 @@ function MapPageContent() {
 
           <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6 custom-scrollbar">
             <section>
-              <label className="text-[10px] font-bold text-secondary-400 mb-3 block uppercase tracking-widest">Ключевое слово</label>
+              <label className="text-[10px] font-bold text-secondary-400 mb-3 block uppercase tracking-widest">{t('HomePage.searchPlaceholder')}</label>
               <div className="relative group">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 group-focus-within:text-primary-500 transition-colors" />
                 <input
                   type="text"
-                  placeholder="Название или описание"
+                  placeholder={t('HomePage.searchPlaceholder')}
                   className="w-full pl-10 pr-4 py-2.5 bg-secondary-50/50 border border-secondary-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                   value={filters.q || ''}
                   onChange={(e) => handleFilterChange('q', e.target.value)}
@@ -394,18 +417,18 @@ function MapPageContent() {
             </section>
 
             <section>
-              <label className="text-[10px] font-bold text-secondary-400 mb-3 block uppercase tracking-widest">Бюджет (сум)</label>
+              <label className="text-[10px] font-bold text-secondary-400 mb-3 block uppercase tracking-widest">{t('Property.price')} (сум)</label>
               <div className="grid grid-cols-2 gap-2">
                 <input
                   type="number"
-                  placeholder="От"
+                  placeholder={t('Filters.minPrice')}
                   className="w-full px-4 py-2.5 bg-secondary-50/50 border border-secondary-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all"
                   value={filters.minPrice || ''}
                   onChange={(e) => handleFilterChange('minPrice', e.target.value)}
                 />
                 <input
                   type="number"
-                  placeholder="До"
+                  placeholder={t('Filters.maxPrice')}
                   className="w-full px-4 py-2.5 bg-secondary-50/50 border border-secondary-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all"
                   value={filters.maxPrice || ''}
                   onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
@@ -414,31 +437,31 @@ function MapPageContent() {
             </section>
 
             <section>
-              <label className="text-[10px] font-bold text-secondary-400 mb-3 block uppercase tracking-widest">Тип сделки</label>
+              <label className="text-[10px] font-bold text-secondary-400 mb-3 block uppercase tracking-widest">{t('Property.dealType')}</label>
               <div className="flex p-1 bg-secondary-100 rounded-xl">
                 <button
                   onClick={() => handleFilterChange('dealType', '')}
                   className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${!filters.dealType ? 'bg-white shadow-sm text-primary-600' : 'text-secondary-500 hover:text-secondary-700'}`}
                 >
-                  Все
+                  {t('Filters.all')}
                 </button>
                 <button
                   onClick={() => handleFilterChange('dealType', 'rent')}
                   className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${filters.dealType === 'rent' ? 'bg-white shadow-sm text-primary-600' : 'text-secondary-500 hover:text-secondary-700'}`}
                 >
-                  Аренда
+                  {t('Property.rent')}
                 </button>
                 <button
                   onClick={() => handleFilterChange('dealType', 'sale')}
                   className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${filters.dealType === 'sale' ? 'bg-white shadow-sm text-primary-600' : 'text-secondary-500 hover:text-secondary-700'}`}
                 >
-                  Продажа
+                  {t('Property.sale')}
                 </button>
               </div>
             </section>
 
             <section>
-              <label className="text-[10px] font-bold text-secondary-400 mb-3 block uppercase tracking-widest">Тип объекта</label>
+              <label className="text-[10px] font-bold text-secondary-400 mb-3 block uppercase tracking-widest">{t('Property.propertyType')}</label>
               <div className="space-y-1.5">
                 {['office', 'warehouse', 'shop'].map((type) => (
                   <label key={type} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-secondary-50 cursor-pointer transition-colors border border-transparent hover:border-secondary-200">
@@ -449,7 +472,7 @@ function MapPageContent() {
                       onChange={(e) => handleFilterChange('propertyType', e.target.checked ? type : '')}
                     />
                     <span className="text-sm font-medium text-secondary-700 capitalize">
-                      {type === 'office' ? 'Офис' : type === 'warehouse' ? 'Склад' : 'Магазин'}
+                      {type === 'office' ? t('Property.office') : type === 'warehouse' ? t('Property.warehouse') : t('Property.shop')}
                     </span>
                   </label>
                 ))}
@@ -457,7 +480,7 @@ function MapPageContent() {
             </section>
 
             <section>
-              <label className="text-[10px] font-bold text-secondary-400 mb-3 block uppercase tracking-widest">Расположение</label>
+              <label className="text-[10px] font-bold text-secondary-400 mb-3 block uppercase tracking-widest">{t('Property.location')}</label>
               <div className="space-y-2">
                 <select
                   className="w-full px-4 py-2.5 bg-secondary-50/50 border border-secondary-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 cursor-pointer appearance-none bg-no-repeat bg-[right_1rem_center] bg-[length:1em_1em]"
@@ -465,7 +488,7 @@ function MapPageContent() {
                   value={filters.city || ''}
                   onChange={(e) => handleFilterChange('city', e.target.value)}
                 >
-                  <option value="">Все города</option>
+                  <option value="">{t('Filters.city')}</option>
                   <option value="Ташкент">Ташкент</option>
                   <option value="Самарканд">Самарканд</option>
                 </select>
@@ -475,7 +498,8 @@ function MapPageContent() {
                   value={filters.district || ''}
                   onChange={(e) => handleFilterChange('district', e.target.value)}
                 >
-                  <option value="">Все районы</option>
+                  <option value="">{t('Filters.district')}</option>
+                  <option value="Юнусабадский">Юнусабадский</option>
                   <option value="Мирзо-Улугбекский">Мирзо-Улугбекский</option>
                   <option value="Мирабадский">Мирабадский</option>
                 </select>
@@ -483,10 +507,10 @@ function MapPageContent() {
             </section>
 
             <section>
-              <label className="text-[10px] font-bold text-secondary-400 mb-3 block uppercase tracking-widest">Особенности</label>
+              <label className="text-[10px] font-bold text-secondary-400 mb-3 block uppercase tracking-widest">{t('Property.features')}</label>
               <div className="grid grid-cols-1 gap-2">
                 <label className="flex items-center justify-between p-3 rounded-xl bg-secondary-50/50 border border-secondary-100 hover:border-primary-200 cursor-pointer transition-all">
-                  <span className="text-sm font-medium text-secondary-700">Проверенные</span>
+                  <span className="text-sm font-medium text-secondary-700">{t('Filters.verifiedOnly')}</span>
                   <input
                     type="checkbox"
                     className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500/20"
@@ -495,7 +519,25 @@ function MapPageContent() {
                   />
                 </label>
                 <label className="flex items-center justify-between p-3 rounded-xl bg-secondary-50/50 border border-secondary-100 hover:border-primary-200 cursor-pointer transition-all">
-                  <span className="text-sm font-medium text-secondary-700">С видео</span>
+                  <span className="text-sm font-medium text-secondary-700">{t('Filters.hasParking')}</span>
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500/20"
+                    checked={!!filters.hasParking}
+                    onChange={(e) => handleFilterChange('hasParking', e.target.checked || undefined)}
+                  />
+                </label>
+                <label className="flex items-center justify-between p-3 rounded-xl bg-secondary-50/50 border border-secondary-100 hover:border-primary-200 cursor-pointer transition-all">
+                  <span className="text-sm font-medium text-secondary-700">{t('Filters.hasElevator')}</span>
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500/20"
+                    checked={!!filters.hasElevator}
+                    onChange={(e) => handleFilterChange('hasElevator', e.target.checked || undefined)}
+                  />
+                </label>
+                <label className="flex items-center justify-between p-3 rounded-xl bg-secondary-50/50 border border-secondary-100 hover:border-primary-200 cursor-pointer transition-all">
+                  <span className="text-sm font-medium text-secondary-700">{t('Filters.hasVideo')}</span>
                   <input
                     type="checkbox"
                     className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500/20"
@@ -504,7 +546,7 @@ function MapPageContent() {
                   />
                 </label>
                 <label className="flex items-center justify-between p-3 rounded-xl bg-secondary-50/50 border border-secondary-100 hover:border-primary-200 cursor-pointer transition-all">
-                  <span className="text-sm font-medium text-secondary-700">3D-Тур</span>
+                  <span className="text-sm font-medium text-secondary-700">{t('Filters.hasTour360')}</span>
                   <input
                     type="checkbox"
                     className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500/20"
@@ -521,7 +563,7 @@ function MapPageContent() {
               onClick={clearFilters}
               className="w-full py-2.5 text-sm font-bold text-secondary-600 hover:text-secondary-900 hover:bg-white rounded-xl border border-secondary-200 shadow-sm transition-all active:scale-[0.98]"
             >
-              Сбросить фильтры
+              {t('Filters.reset')}
             </button>
           </div>
         </div>

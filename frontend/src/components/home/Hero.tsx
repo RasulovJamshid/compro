@@ -4,8 +4,11 @@ import { Search, MapPin, Building2, DollarSign, Maximize } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+import { useTranslations } from 'next-intl'
+
 export default function Hero() {
   const router = useRouter()
+  const t = useTranslations()
   const [activeTab, setActiveTab] = useState<'sale' | 'rent'>('rent')
   const [searchQuery, setSearchQuery] = useState('')
   const [propertyType, setPropertyType] = useState('all')
@@ -65,11 +68,11 @@ export default function Hero() {
           {/* Heading */}
           <div className="text-center mb-8 sm:mb-12 transform transition-all">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold text-white mb-4 sm:mb-6 drop-shadow-xl leading-tight max-w-4xl mx-auto text-balance">
-              Идеальное место для <br className="hidden md:block" />
-              <span className="text-primary-500 drop-shadow-md">вашего бизнеса</span>
+              {t('HomePage.heroTitle')} <br className="hidden md:block" />
+              <span className="text-primary-500 drop-shadow-md">{t('HomePage.heroHighlight')}</span>
             </h1>
             <p className="text-base sm:text-xl md:text-2xl text-white/95 drop-shadow-lg font-medium max-w-2xl mx-auto">
-              Самая большая база коммерческой недвижимости в Узбекистане
+              {t('HomePage.heroSubtitle')}
             </p>
           </div>
 
@@ -88,7 +91,7 @@ export default function Hero() {
                 }`}
                 aria-pressed={activeTab === 'rent'}
               >
-                Арендовать
+                {t('Property.rent')}
               </button>
               <button
                 type="button"
@@ -100,7 +103,7 @@ export default function Hero() {
                 }`}
                 aria-pressed={activeTab === 'sale'}
               >
-                Купить
+                {t('Property.sale')}
               </button>
             </div>
 
@@ -118,7 +121,7 @@ export default function Hero() {
                     <input
                       id="hero-search-location"
                       type="text"
-                      placeholder="Город, район, улица или БЦ..."
+                      placeholder={t('HomePage.searchPlaceholder')}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full h-full min-h-[54px] sm:min-h-[60px] pl-12 sm:pl-14 pr-4 py-3 sm:py-4 text-base sm:text-lg border-2 border-secondary-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all bg-white"

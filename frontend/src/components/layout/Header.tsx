@@ -5,8 +5,11 @@ import { User, Heart, Menu, X, ChevronDown, Phone, MapPin, TrendingUp, BarChart3
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/lib/store/authStore'
 import Logo from '@/components/common/Logo'
+import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
+import { useTranslations } from 'next-intl'
 
 export default function Header() {
+  const t = useTranslations('Navigation')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [servicesOpen, setServicesOpen] = useState(false)
   const { user, isAuthenticated } = useAuthStore()
@@ -45,11 +48,11 @@ export default function Header() {
           {/* Center: Desktop Navigation */}
           <div className="hidden lg:flex items-center justify-center gap-8 flex-1 ml-4">
             <Link href="/properties" className="text-sm font-bold text-secondary-700 hover:text-primary-600 transition-colors whitespace-nowrap">
-              Аренда и Продажа
+              {t('properties')}
             </Link>
             <Link href="/map" className="text-sm font-bold text-secondary-700 hover:text-primary-600 transition-colors flex items-center gap-1.5 whitespace-nowrap">
               <MapPin className="w-4 h-4 text-secondary-400" />
-              Поиск на карте
+              {t('map')}
             </Link>
             
             {/* Services Dropdown */}
@@ -114,7 +117,7 @@ export default function Header() {
             </div>
             
             <Link href="/pricing" className="text-sm font-bold text-secondary-700 hover:text-primary-600 transition-colors whitespace-nowrap">
-              Тарифы
+              {t('pricing')}
             </Link>
           </div>
 
@@ -152,6 +155,9 @@ export default function Header() {
                 </Link>
               </div>
             )}
+            
+            <div className="w-px h-6 bg-secondary-200"></div>
+            <LanguageSwitcher />
           </div>
 
           {/* Mobile menu button */}
@@ -175,13 +181,13 @@ export default function Header() {
         <div id="mobile-navigation" aria-hidden={!mobileMenuOpen} className={`lg:hidden transition-all duration-300 overflow-hidden ${mobileMenuOpen ? 'max-h-[500px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
           <div className="flex flex-col gap-2 pb-4 border-t border-secondary-100 pt-4">
             <Link href="/properties" className="px-4 py-3 rounded-lg text-secondary-700 font-bold hover:bg-secondary-50 hover:text-primary-600 transition-colors" onClick={closeMobileMenu}>
-              Аренда и Продажа
+              {t('properties')}
             </Link>
             <Link href="/map" className="px-4 py-3 rounded-lg text-secondary-700 font-bold hover:bg-secondary-50 hover:text-primary-600 transition-colors flex items-center gap-2" onClick={closeMobileMenu}>
-              <MapPin className="w-4 h-4" /> Карта
+              <MapPin className="w-4 h-4" /> {t('map')}
             </Link>
             <Link href="/pricing" className="px-4 py-3 rounded-lg text-secondary-700 font-bold hover:bg-secondary-50 hover:text-primary-600 transition-colors" onClick={closeMobileMenu}>
-              Тарифы
+              {t('pricing')}
             </Link>
             
             <div className="h-px bg-secondary-100 my-2"></div>

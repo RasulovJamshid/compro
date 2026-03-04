@@ -9,8 +9,10 @@ import ComparisonButton from '@/components/comparison/ComparisonButton'
 import ApiErrorHandler from '@/components/common/ApiErrorHandler'
 import { CardSkeleton } from '@/components/common/LoadingSkeleton'
 import { useAnalyticsStore } from '@/lib/store/analyticsStore'
+import { useTranslations } from 'next-intl'
 
 export default function PropertiesPage() {
+  const t = useTranslations()
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -127,38 +129,38 @@ export default function PropertiesPage() {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-secondary-900 flex items-center gap-1.5">
           <Filter className="w-4 h-4 text-primary-600" />
-          Фильтры
+          {t('Filters.title')}
         </h3>
         <button onClick={clearFilters} className="text-xs text-secondary-500 hover:text-red-500 transition-colors">
-          Сбросить
+          {t('Filters.reset')}
         </button>
       </div>
 
       <div className="space-y-3">
         <div>
-          <label className="block text-xs font-medium text-secondary-700 mb-1.5">Тип сделки</label>
+          <label className="block text-xs font-medium text-secondary-700 mb-1.5">{t('Property.dealType')}</label>
           <select
             className="input input-sm"
             value={filters.dealType || ''}
             onChange={(e) => handleFilterChange('dealType', e.target.value || undefined)}
           >
-            <option value="">Все типы</option>
-            <option value="rent">Аренда</option>
-            <option value="sale">Продажа</option>
+            <option value="">{t('Filters.all')}</option>
+            <option value="rent">{t('Property.rent')}</option>
+            <option value="sale">{t('Property.sale')}</option>
           </select>
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-secondary-700 mb-1.5">Тип объекта</label>
+          <label className="block text-xs font-medium text-secondary-700 mb-1.5">{t('Property.propertyType')}</label>
           <select
             className="input input-sm"
             value={filters.propertyType || ''}
             onChange={(e) => handleFilterChange('propertyType', e.target.value || undefined)}
           >
-            <option value="">Все объекты</option>
-            <option value="office">Офис</option>
-            <option value="warehouse">Склад</option>
-            <option value="shop">Магазин</option>
+            <option value="">{t('Filters.all')}</option>
+            <option value="office">{t('Property.office')}</option>
+            <option value="warehouse">{t('Property.warehouse')}</option>
+            <option value="shop">{t('Property.shop')}</option>
             <option value="cafe_restaurant">Кафе/Ресторан</option>
             <option value="industrial">Производство</option>
             <option value="salon">Салон</option>
@@ -168,13 +170,13 @@ export default function PropertiesPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-secondary-700 mb-1.5">Город</label>
+          <label className="block text-xs font-medium text-secondary-700 mb-1.5">{t('Filters.city')}</label>
           <select
             className="input input-sm"
             value={filters.city || ''}
             onChange={(e) => handleFilterChange('city', e.target.value || undefined)}
           >
-            <option value="">Все города</option>
+            <option value="">{t('Filters.all')}</option>
             <option value="Ташкент">Ташкент</option>
             <option value="Самарканд">Самарканд</option>
             <option value="Бухара">Бухара</option>
@@ -183,7 +185,7 @@ export default function PropertiesPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-secondary-700 mb-1.5">Площадь (м²)</label>
+          <label className="block text-xs font-medium text-secondary-700 mb-1.5">{t('Property.area')} (м²)</label>
           <div className="grid grid-cols-2 gap-2">
             <input
               type="number"
@@ -203,7 +205,7 @@ export default function PropertiesPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-secondary-700 mb-1.5">Цена (сум)</label>
+          <label className="block text-xs font-medium text-secondary-700 mb-1.5">{t('Property.price')} (сум)</label>
           <div className="grid grid-cols-2 gap-2">
             <input
               type="number"
@@ -221,6 +223,59 @@ export default function PropertiesPage() {
             />
           </div>
         </div>
+        
+        <div className="pt-3 border-t border-secondary-100">
+          <label className="block text-xs font-medium text-secondary-700 mb-1.5">Класс здания</label>
+          <select
+            className="input input-sm"
+            value={filters.buildingClass || ''}
+            onChange={(e) => handleFilterChange('buildingClass', e.target.value || undefined)}
+          >
+            <option value="">Любой</option>
+            <option value="A">Класс A</option>
+            <option value="B">Класс B</option>
+            <option value="C">Класс C</option>
+            <option value="C+">Класс C+</option>
+          </select>
+        </div>
+        
+        <div>
+          <label className="block text-xs font-medium text-secondary-700 mb-1.5">Состояние</label>
+          <select
+            className="input input-sm"
+            value={filters.propertyCondition || ''}
+            onChange={(e) => handleFilterChange('propertyCondition', e.target.value || undefined)}
+          >
+            <option value="">Любое</option>
+            <option value="new">Новое</option>
+            <option value="excellent">Отличное</option>
+            <option value="good">Хорошее</option>
+            <option value="needs_renovation">Требует ремонта</option>
+          </select>
+        </div>
+        
+        <div>
+          <label className="block text-xs font-medium text-secondary-700 mb-1.5">Высота потолков (от, м)</label>
+          <input
+            type="number"
+            step="0.1"
+            placeholder="Например: 3.5"
+            className="input input-sm w-full"
+            value={filters.minCeilingHeight || ''}
+            onChange={(e) => handleFilterChange('minCeilingHeight', e.target.value ? Number(e.target.value) : undefined)}
+          />
+        </div>
+        
+        <div>
+          <label className="block text-xs font-medium text-secondary-700 mb-1.5">Мощность электросети (от, кВт)</label>
+          <input
+            type="number"
+            placeholder="Например: 100"
+            className="input input-sm w-full"
+            value={filters.minPowerCapacity || ''}
+            onChange={(e) => handleFilterChange('minPowerCapacity', e.target.value ? Number(e.target.value) : undefined)}
+          />
+        </div>
 
         <div className="pt-3 border-t border-secondary-100 space-y-3">
           <label className="flex items-center gap-2 cursor-pointer group">
@@ -230,7 +285,27 @@ export default function PropertiesPage() {
               checked={filters.isVerified || false}
               onChange={(e) => handleFilterChange('isVerified', e.target.checked || undefined)}
             />
-            <span className="text-sm text-secondary-700 group-hover:text-primary-600">Только проверенные</span>
+            <span className="text-sm text-secondary-700 group-hover:text-primary-600">{t('Filters.verifiedOnly')}</span>
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input
+              type="checkbox"
+              className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
+              checked={filters.hasParking || false}
+              onChange={(e) => handleFilterChange('hasParking', e.target.checked || undefined)}
+            />
+            <span className="text-sm text-secondary-700 group-hover:text-primary-600">{t('Filters.hasParking')}</span>
+          </label>
+          
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input
+              type="checkbox"
+              className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
+              checked={filters.hasElevator || false}
+              onChange={(e) => handleFilterChange('hasElevator', e.target.checked || undefined)}
+            />
+            <span className="text-sm text-secondary-700 group-hover:text-primary-600">{t('Filters.hasElevator')}</span>
           </label>
 
           <label className="flex items-center gap-2 cursor-pointer group">
@@ -240,7 +315,7 @@ export default function PropertiesPage() {
               checked={filters.hasVideo || false}
               onChange={(e) => handleFilterChange('hasVideo', e.target.checked || undefined)}
             />
-            <span className="text-sm text-secondary-700 group-hover:text-primary-600">С видео</span>
+            <span className="text-sm text-secondary-700 group-hover:text-primary-600">{t('Filters.hasVideo')}</span>
           </label>
 
           <label className="flex items-center gap-2 cursor-pointer group">
@@ -250,7 +325,7 @@ export default function PropertiesPage() {
               checked={filters.hasTour360 || false}
               onChange={(e) => handleFilterChange('hasTour360', e.target.checked || undefined)}
             />
-            <span className="text-sm text-secondary-700 group-hover:text-primary-600">С 3D-туром</span>
+            <span className="text-sm text-secondary-700 group-hover:text-primary-600">{t('Filters.hasTour360')}</span>
           </label>
         </div>
       </div>
@@ -265,14 +340,14 @@ export default function PropertiesPage() {
       <div className={`bg-white border-b border-secondary-200 sticky top-16 z-40 transition-transform duration-300 ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="max-w-screen-2xl mx-auto px-4 py-2.5">
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-            <h1 className="text-base sm:text-lg font-bold text-secondary-900 whitespace-nowrap">Недвижимость</h1>
+            <h1 className="text-base sm:text-lg font-bold text-secondary-900 whitespace-nowrap">{t('Navigation.properties')}</h1>
             
             {/* Inline Search */}
             <div className="order-3 sm:order-none basis-full sm:basis-auto flex-1 max-w-none sm:max-w-md relative group">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 group-focus-within:text-primary-500 transition-colors" />
               <input
                 type="text"
-                placeholder="Поиск..."
+                placeholder={t('HomePage.searchPlaceholder')}
                 className="w-full pl-8 pr-3 py-2 text-sm border border-secondary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-all"
                 value={filters.q || ''}
                 onChange={(e) => handleSearch(e.target.value)}
@@ -281,7 +356,7 @@ export default function PropertiesPage() {
 
             <div className="flex items-center gap-2 ml-auto">
               <div className="text-xs text-secondary-500 whitespace-nowrap hidden sm:block">
-                <span className="font-semibold text-secondary-900">{total}</span> объектов
+                <span className="font-semibold text-secondary-900">{total}</span>
               </div>
               
               {/* View Toggle */}
@@ -289,14 +364,12 @@ export default function PropertiesPage() {
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-1 rounded transition-colors ${viewMode === 'grid' ? 'bg-white shadow-sm text-primary-600' : 'text-secondary-500 hover:text-secondary-700'}`}
-                  title="Сетка"
                 >
                   <Grid3x3 className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
                   className={`p-1 rounded transition-colors ${viewMode === 'list' ? 'bg-white shadow-sm text-primary-600' : 'text-secondary-500 hover:text-secondary-700'}`}
-                  title="Список"
                 >
                   <List className="w-3.5 h-3.5" />
                 </button>
@@ -311,7 +384,7 @@ export default function PropertiesPage() {
               
               <a href={mapPageHref} className="p-1.5 rounded-lg bg-secondary-100 hover:bg-secondary-200 transition-colors flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-secondary-700" />
-                <span className="hidden sm:inline text-sm font-medium text-secondary-700">На карте</span>
+                <span className="hidden sm:inline text-sm font-medium text-secondary-700">{t('Navigation.map')}</span>
               </a>
             </div>
           </div>

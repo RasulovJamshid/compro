@@ -15,6 +15,15 @@ export interface PropertyFilters {
   hasTour360?: boolean;
   isVerified?: boolean;
   isTop?: boolean;
+  // New commercial parameters
+  buildingClass?: string;
+  minCeilingHeight?: number;
+  minPowerCapacity?: number;
+  propertyCondition?: string;
+  hasParking?: boolean;
+  hasElevator?: boolean;
+  hasFireSafety?: boolean;
+  layoutType?: string;
 }
 
 @Injectable()
@@ -35,6 +44,20 @@ export class PropertiesService {
     if (filters.hasTour360 !== undefined) where.hasTour360 = filters.hasTour360;
     if (filters.isVerified !== undefined) where.isVerified = filters.isVerified;
     if (filters.isTop !== undefined) where.isTop = filters.isTop;
+    if (filters.buildingClass) where.buildingClass = filters.buildingClass;
+    if (filters.propertyCondition) where.propertyCondition = filters.propertyCondition;
+    if (filters.layoutType) where.layoutType = filters.layoutType;
+    if (filters.hasParking !== undefined) where.hasParking = filters.hasParking;
+    if (filters.hasElevator !== undefined) where.hasElevator = filters.hasElevator;
+    if (filters.hasFireSafety !== undefined) where.hasFireSafety = filters.hasFireSafety;
+
+    if (filters.minCeilingHeight) {
+      where.ceilingHeight = { gte: filters.minCeilingHeight };
+    }
+
+    if (filters.minPowerCapacity) {
+      where.powerCapacity = { gte: filters.minPowerCapacity };
+    }
 
     if (filters.minArea || filters.maxArea) {
       where.area = {};

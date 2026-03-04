@@ -27,6 +27,46 @@ export interface Property {
   floor?: number
   totalFloors?: number
   hasParking?: boolean
+  parkingSpaces?: number
+  buildingClass?: string
+  yearBuilt?: number
+  yearRenovated?: number
+  ceilingHeight?: number
+  loadingDocks?: number
+  zoning?: string
+  propertyCondition?: string
+  entranceType?: string
+  layoutType?: string
+  ownershipType?: string
+  hasLegalIssues?: boolean
+  cadastralNumber?: string
+  landArea?: number
+  minLeaseTerm?: number
+  maxLeaseTerm?: number
+  securityDeposit?: number
+  prepaymentMonths?: number
+  isOccupied?: boolean
+  currentTenant?: string
+  leaseExpiryDate?: string
+  monthlyRent?: number
+  pricePerSqm?: number
+  operatingExpenses?: number
+  propertyTax?: number
+  maintenanceFee?: number
+  occupancyRate?: number
+  hvacType?: string
+  powerSupply?: string
+  powerCapacity?: number
+  hasWater?: boolean
+  hasGas?: boolean
+  hasSewerage?: boolean
+  hasInternet?: boolean
+  internetSpeed?: string
+  hasFireSafety?: boolean
+  hasElevator?: boolean
+  elevatorCount?: number
+  securityFeatures?: string[]
+  amenities?: string[]
   hasVideo: boolean
   hasTour360: boolean
   isVerified: boolean
@@ -79,6 +119,15 @@ export interface PropertyFilters {
   maxLat?: number
   minLng?: number
   maxLng?: number
+  // New commercial parameters
+  buildingClass?: string
+  minCeilingHeight?: number
+  minPowerCapacity?: number
+  propertyCondition?: string
+  hasParking?: boolean
+  hasElevator?: boolean
+  hasFireSafety?: boolean
+  layoutType?: string
 }
 
 export interface SubscriptionPlan {

@@ -7,6 +7,8 @@ import '@fontsource/source-sans-3/600.css'
 import './globals.css'
 import AuthProvider from '@/components/auth/AuthProvider'
 import LayoutShell from '@/components/layout/LayoutShell'
+import { NextIntlClientProvider } from 'next-intl'
+import { getMessages, getLocale } from 'next-intl/server'
 import ErrorBoundary from '@/components/common/ErrorBoundary'
 import AnalyticsProvider from '@/components/common/AnalyticsProvider'
 import { generateStructuredData } from '@/lib/utils/seo'
@@ -60,13 +62,16 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+
   return (
-    <html lang="ru" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         {/* Google Analytics */}
         {process.env.NEXT_PUBLIC_GA_ID && (
@@ -112,15 +117,17 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased min-h-screen flex flex-col bg-secondary-50 selection:bg-primary-100 selection:text-primary-900">
-        <ErrorBoundary>
-          <AuthProvider>
-            <AnalyticsProvider>
-              <LayoutShell>
-                {children}
-              </LayoutShell>
-            </AnalyticsProvider>
-          </AuthProvider>
-        </ErrorBoundary>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <ErrorBoundary>
+            <AuthProvider>
+              <AnalyticsProvider>
+                <LayoutShell>
+                  {children}
+                </LayoutShell>
+              </AnalyticsProvider>
+            </AuthProvider>
+          </ErrorBoundary>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

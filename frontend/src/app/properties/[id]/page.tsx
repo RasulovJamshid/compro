@@ -16,10 +16,12 @@ import { getProperty, saveProperty, unsaveProperty } from '@/lib/api/properties'
 import type { Property } from '@/lib/types'
 import ComparisonButton, { useComparison } from '@/components/comparison/ComparisonButton'
 import Tour360Viewer from '@/components/properties/Tour360Viewer'
+import { useTranslations } from 'next-intl'
 
 export default function PropertyDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const t = useTranslations()
   const [property, setProperty] = useState<Property | null>(null)
   const [loading, setLoading] = useState(true)
   const [isSaved, setIsSaved] = useState(false)
@@ -133,19 +135,24 @@ export default function PropertyDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-secondary-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin" />
+          <p className="text-secondary-500 font-medium animate-pulse">{t('Common.loading')}</p>
+        </div>
       </div>
     )
   }
 
   if (!property) {
     return (
-      <div className="container py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Объект не найден</h1>
-        <button onClick={() => router.back()} className="btn btn-primary">
-          Вернуться назад
-        </button>
+      <div className="min-h-screen bg-secondary-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-secondary-900 mb-2">{t('Common.error')}</h2>
+          <Link href="/properties" className="text-primary-600 hover:text-primary-700 font-medium">
+            {t('Navigation.properties')}
+          </Link>
+        </div>
       </div>
     )
   }
@@ -243,7 +250,7 @@ export default function PropertyDetailPage() {
                   {property.isVerified && (
                     <div className="bg-green-500 text-white px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs font-medium shadow-lg">
                       <CheckCircle className="w-3.5 h-3.5" />
-                      Проверено
+                      {t('Filters.verifiedOnly')}
                     </div>
                   )}
                   {property.isTop && (
@@ -254,13 +261,13 @@ export default function PropertyDetailPage() {
                   {property.hasVideo && (
                     <div className="bg-black/70 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs font-medium">
                       <Video className="w-3.5 h-3.5" />
-                      Видео
+                      {t('Filters.hasVideo')}
                     </div>
                   )}
                   {property.hasTour360 && (
                     <div className="bg-primary-600 text-white px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs font-medium">
                       <Box className="w-3.5 h-3.5" />
-                      3D-тур
+                      {t('Filters.hasTour360')}
                     </div>
                   )}
                 </div>
@@ -390,7 +397,7 @@ export default function PropertyDetailPage() {
               </div>
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary-50 text-primary-700 rounded-lg text-sm font-medium">
-                  {property.dealType === 'rent' ? 'Аренда' : 'Продажа'}
+                  {property.dealType === 'rent' ? t('Property.rent') : t('Property.sale')}
                 </span>
                 {property.hasCommission && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-yellow-50 text-yellow-700 rounded-lg text-sm font-medium">
@@ -409,7 +416,7 @@ export default function PropertyDetailPage() {
 
             {/* Description */}
             <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
-              <h2 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-secondary-900">Описание</h2>
+              <h2 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-secondary-900">{t('Property.description')}</h2>
               <p className="text-sm sm:text-base text-secondary-700 whitespace-pre-line leading-relaxed">{property.description}</p>
             </div>
 
@@ -429,9 +436,9 @@ export default function PropertyDetailPage() {
               </div>
             )}
 
-            {/* Characteristics */}
+            {/* Building Details */}
             <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
-              <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-secondary-900">Характеристики</h2>
+              <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-secondary-900">Характеристики здания</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
                 <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
                   <div className="p-2 bg-white rounded-lg">
@@ -455,6 +462,101 @@ export default function PropertyDetailPage() {
                     </div>
                   </div>
                 )}
+                {property.buildingClass && (
+                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                    <div className="p-2 bg-white rounded-lg">
+                      <Building2 className="w-4 h-4 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-secondary-500 mb-0.5">Класс здания</p>
+                      <p className="font-bold text-secondary-900">Класс {property.buildingClass}</p>
+                    </div>
+                  </div>
+                )}
+                {property.yearBuilt && (
+                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                    <div className="p-2 bg-white rounded-lg">
+                      <Calendar className="w-4 h-4 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-secondary-500 mb-0.5">Год постройки</p>
+                      <p className="font-bold text-secondary-900">{property.yearBuilt}</p>
+                    </div>
+                  </div>
+                )}
+                {property.yearRenovated && (
+                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                    <div className="p-2 bg-white rounded-lg">
+                      <Calendar className="w-4 h-4 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-secondary-500 mb-0.5">{t('Property.year_renovated')}</p>
+                      <p className="font-bold text-secondary-900">{property.yearRenovated}</p>
+                    </div>
+                  </div>
+                )}
+                {property.ceilingHeight && (
+                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                    <div className="p-2 bg-white rounded-lg">
+                      <Ruler className="w-4 h-4 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-secondary-500 mb-0.5">{t('Property.ceiling_height')}</p>
+                      <p className="font-bold text-secondary-900">{property.ceilingHeight} м</p>
+                    </div>
+                  </div>
+                )}
+                {property.propertyCondition && (
+                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                    <div className="p-2 bg-white rounded-lg">
+                      <CheckCircle className="w-4 h-4 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-secondary-500 mb-0.5">Состояние</p>
+                      <p className="font-bold text-secondary-900">
+                        {property.propertyCondition === 'new' ? 'Новое' : 
+                         property.propertyCondition === 'excellent' ? 'Отличное' :
+                         property.propertyCondition === 'good' ? 'Хорошее' : 'Требует ремонта'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {property.layoutType && (
+                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                    <div className="p-2 bg-white rounded-lg">
+                      <Building2 className="w-4 h-4 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-secondary-500 mb-0.5">Планировка</p>
+                      <p className="font-bold text-secondary-900">
+                        {property.layoutType === 'open_plan' ? 'Открытая' :
+                         property.layoutType === 'offices' ? 'Кабинеты' :
+                         property.layoutType === 'mixed' ? 'Смешанная' : 'Складская'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {property.entranceType && (
+                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                    <div className="p-2 bg-white rounded-lg">
+                      <Home className="w-4 h-4 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-secondary-500 mb-0.5">Вход</p>
+                      <p className="font-bold text-secondary-900">
+                        {property.entranceType === 'separate' ? 'Отдельный' :
+                         property.entranceType === 'common' ? 'Общий' : 'С улицы'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Parking & Infrastructure */}
+            <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
+              <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-secondary-900">Инфраструктура</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
                 {property.hasParking && (
                   <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
                     <div className="p-2 bg-white rounded-lg">
@@ -462,34 +564,325 @@ export default function PropertyDetailPage() {
                     </div>
                     <div>
                       <p className="text-xs text-secondary-500 mb-0.5">Парковка</p>
+                      <p className="font-bold text-secondary-900">
+                        {property.parkingSpaces ? `${property.parkingSpaces} мест` : 'Есть'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {property.hasElevator && (
+                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                    <div className="p-2 bg-white rounded-lg">
+                      <TrendingUp className="w-4 h-4 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-secondary-500 mb-0.5">Лифты</p>
+                      <p className="font-bold text-secondary-900">
+                        {property.elevatorCount ? `${property.elevatorCount} шт` : 'Есть'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {property.loadingDocks !== null && property.loadingDocks !== undefined && (
+                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                    <div className="p-2 bg-white rounded-lg">
+                      <Car className="w-4 h-4 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-secondary-500 mb-0.5">Погрузочные доки</p>
+                      <p className="font-bold text-secondary-900">{property.loadingDocks} шт</p>
+                    </div>
+                  </div>
+                )}
+                {property.hasFireSafety && (
+                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                    <div className="p-2 bg-white rounded-lg">
+                      <Shield className="w-4 h-4 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-secondary-500 mb-0.5">Пожарная безопасность</p>
                       <p className="font-bold text-secondary-900">Есть</p>
                     </div>
                   </div>
                 )}
-                {property.hasVideo && (
-                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                {property.securityFeatures && property.securityFeatures.length > 0 && (
+                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg col-span-2">
                     <div className="p-2 bg-white rounded-lg">
-                      <Video className="w-4 h-4 text-primary-600" />
+                      <Shield className="w-4 h-4 text-primary-600" />
                     </div>
                     <div>
-                      <p className="text-xs text-secondary-500 mb-0.5">Видео</p>
-                      <p className="font-bold text-secondary-900">Доступно</p>
-                    </div>
-                  </div>
-                )}
-                {property.hasTour360 && (
-                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
-                    <div className="p-2 bg-white rounded-lg">
-                      <Box className="w-4 h-4 text-primary-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-secondary-500 mb-0.5">3D-тур</p>
-                      <p className="font-bold text-secondary-900">Доступен</p>
+                      <p className="text-xs text-secondary-500 mb-0.5">Безопасность</p>
+                      <p className="font-bold text-secondary-900 text-xs">
+                        {property.securityFeatures.map(f => 
+                          f === 'cctv' ? 'Видеонаблюдение' :
+                          f === 'security_guard' ? 'Охрана' :
+                          f === 'access_control' ? 'Контроль доступа' :
+                          f === 'alarm_system' ? 'Сигнализация' : 'Пожарная сигнализация'
+                        ).join(', ')}
+                      </p>
                     </div>
                   </div>
                 )}
               </div>
             </div>
+
+            {/* Utilities */}
+            <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
+              <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-secondary-900">Коммуникации</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                {property.powerSupply && (
+                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                    <div className="p-2 bg-white rounded-lg">
+                      <Zap className="w-4 h-4 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-secondary-500 mb-0.5">Электричество</p>
+                      <p className="font-bold text-secondary-900">
+                        {property.powerSupply}{property.powerCapacity ? `, ${property.powerCapacity} кВт` : ''}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {property.hvacType && (
+                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                    <div className="p-2 bg-white rounded-lg">
+                      <Wifi className="w-4 h-4 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-secondary-500 mb-0.5">Кондиционирование</p>
+                      <p className="font-bold text-secondary-900">
+                        {property.hvacType === 'central' ? 'Центральное' :
+                         property.hvacType === 'split' ? 'Сплит-система' :
+                         property.hvacType === 'vrf' ? 'VRF' : 'Нет'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {property.hasWater && (
+                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                    <div className="p-2 bg-white rounded-lg">
+                      <Wifi className="w-4 h-4 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-secondary-500 mb-0.5">Водоснабжение</p>
+                      <p className="font-bold text-secondary-900">Есть</p>
+                    </div>
+                  </div>
+                )}
+                {property.hasSewerage && (
+                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                    <div className="p-2 bg-white rounded-lg">
+                      <Wifi className="w-4 h-4 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-secondary-500 mb-0.5">Канализация</p>
+                      <p className="font-bold text-secondary-900">Есть</p>
+                    </div>
+                  </div>
+                )}
+                {property.hasGas && (
+                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                    <div className="p-2 bg-white rounded-lg">
+                      <Zap className="w-4 h-4 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-secondary-500 mb-0.5">Газ</p>
+                      <p className="font-bold text-secondary-900">Есть</p>
+                    </div>
+                  </div>
+                )}
+                {property.hasInternet && (
+                  <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                    <div className="p-2 bg-white rounded-lg">
+                      <Wifi className="w-4 h-4 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-secondary-500 mb-0.5">Интернет</p>
+                      <p className="font-bold text-secondary-900">
+                        {property.internetSpeed === 'fiber' ? 'Оптоволокно' :
+                         property.internetSpeed === 'cable' ? 'Кабель' : 'DSL'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Financial Information */}
+            {(property.pricePerSqm || property.operatingExpenses || property.propertyTax || property.maintenanceFee) && (
+              <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
+                <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-secondary-900">Финансовая информация</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                  {property.pricePerSqm && (
+                    <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                      <div className="p-2 bg-white rounded-lg">
+                        <DollarSign className="w-4 h-4 text-primary-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-secondary-500 mb-0.5">Цена за м²</p>
+                        <p className="font-bold text-secondary-900">{new Intl.NumberFormat('ru-RU').format(property.pricePerSqm)} сум</p>
+                      </div>
+                    </div>
+                  )}
+                  {property.operatingExpenses && (
+                    <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                      <div className="p-2 bg-white rounded-lg">
+                        <DollarSign className="w-4 h-4 text-primary-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-secondary-500 mb-0.5">Операционные расходы</p>
+                        <p className="font-bold text-secondary-900">{new Intl.NumberFormat('ru-RU').format(property.operatingExpenses)} сум/мес</p>
+                      </div>
+                    </div>
+                  )}
+                  {property.propertyTax && (
+                    <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                      <div className="p-2 bg-white rounded-lg">
+                        <DollarSign className="w-4 h-4 text-primary-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-secondary-500 mb-0.5">Налог на имущество</p>
+                        <p className="font-bold text-secondary-900">{new Intl.NumberFormat('ru-RU').format(property.propertyTax)} сум/год</p>
+                      </div>
+                    </div>
+                  )}
+                  {property.maintenanceFee && (
+                    <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                      <div className="p-2 bg-white rounded-lg">
+                        <DollarSign className="w-4 h-4 text-primary-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-secondary-500 mb-0.5">Обслуживание</p>
+                        <p className="font-bold text-secondary-900">{new Intl.NumberFormat('ru-RU').format(property.maintenanceFee)} сум/мес</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Lease Terms (for rental properties) */}
+            {property.dealType === 'rent' && (property.minLeaseTerm || property.securityDeposit || property.prepaymentMonths) && (
+              <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
+                <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-secondary-900">Условия аренды</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                  {property.minLeaseTerm && (
+                    <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                      <div className="p-2 bg-white rounded-lg">
+                        <Calendar className="w-4 h-4 text-primary-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-secondary-500 mb-0.5">Мин. срок аренды</p>
+                        <p className="font-bold text-secondary-900">{property.minLeaseTerm} мес</p>
+                      </div>
+                    </div>
+                  )}
+                  {property.maxLeaseTerm && (
+                    <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                      <div className="p-2 bg-white rounded-lg">
+                        <Calendar className="w-4 h-4 text-primary-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-secondary-500 mb-0.5">Макс. срок аренды</p>
+                        <p className="font-bold text-secondary-900">{property.maxLeaseTerm} мес</p>
+                      </div>
+                    </div>
+                  )}
+                  {property.securityDeposit && (
+                    <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                      <div className="p-2 bg-white rounded-lg">
+                        <DollarSign className="w-4 h-4 text-primary-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-secondary-500 mb-0.5">Депозит</p>
+                        <p className="font-bold text-secondary-900">{new Intl.NumberFormat('ru-RU').format(property.securityDeposit)} сум</p>
+                      </div>
+                    </div>
+                  )}
+                  {property.prepaymentMonths && (
+                    <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                      <div className="p-2 bg-white rounded-lg">
+                        <DollarSign className="w-4 h-4 text-primary-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-secondary-500 mb-0.5">Предоплата</p>
+                        <p className="font-bold text-secondary-900">{property.prepaymentMonths} мес</p>
+                      </div>
+                    </div>
+                  )}
+                  {property.isOccupied && (
+                    <div className="flex items-start gap-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200 col-span-2">
+                      <div className="p-2 bg-yellow-100 rounded-lg">
+                        <User className="w-4 h-4 text-yellow-700" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-yellow-700 mb-0.5">Текущий арендатор</p>
+                        <p className="font-bold text-yellow-900">
+                          {property.currentTenant}
+                          {property.leaseExpiryDate && ` (до ${new Date(property.leaseExpiryDate).toLocaleDateString('ru-RU')})`}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Legal & Documentation */}
+            {(property.ownershipType || property.cadastralNumber || property.landArea) && (
+              <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
+                <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-secondary-900">Юридическая информация</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                  {property.ownershipType && (
+                    <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                      <div className="p-2 bg-white rounded-lg">
+                        <Shield className="w-4 h-4 text-primary-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-secondary-500 mb-0.5">Тип собственности</p>
+                        <p className="font-bold text-secondary-900">
+                          {property.ownershipType === 'private' ? 'Частная' :
+                           property.ownershipType === 'state' ? 'Государственная' : 'Долгосрочная аренда'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {property.cadastralNumber && (
+                    <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                      <div className="p-2 bg-white rounded-lg">
+                        <Shield className="w-4 h-4 text-primary-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-secondary-500 mb-0.5">Кадастровый номер</p>
+                        <p className="font-bold text-secondary-900 text-xs">{property.cadastralNumber}</p>
+                      </div>
+                    </div>
+                  )}
+                  {property.landArea && (
+                    <div className="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg">
+                      <div className="p-2 bg-white rounded-lg">
+                        <Ruler className="w-4 h-4 text-primary-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-secondary-500 mb-0.5">Площадь участка</p>
+                        <p className="font-bold text-secondary-900">{property.landArea} м²</p>
+                      </div>
+                    </div>
+                  )}
+                  {property.hasLegalIssues && (
+                    <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border border-red-200 col-span-2">
+                      <div className="p-2 bg-red-100 rounded-lg">
+                        <Shield className="w-4 h-4 text-red-700" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-red-700 mb-0.5">Внимание</p>
+                        <p className="font-bold text-red-900">Имеются юридические вопросы</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Location */}
             <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">

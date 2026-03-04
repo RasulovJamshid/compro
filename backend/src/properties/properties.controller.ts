@@ -30,10 +30,15 @@ export class PropertiesController {
       hasTour360: query.hasTour360 === 'true' ? true : query.hasTour360 === 'false' ? false : undefined,
       isVerified: query.isVerified === 'true' ? true : query.isVerified === 'false' ? false : undefined,
       isTop: query.isTop === 'true' ? true : query.isTop === 'false' ? false : undefined,
+      hasParking: query.hasParking === 'true' ? true : query.hasParking === 'false' ? false : undefined,
+      hasElevator: query.hasElevator === 'true' ? true : query.hasElevator === 'false' ? false : undefined,
+      hasFireSafety: query.hasFireSafety === 'true' ? true : query.hasFireSafety === 'false' ? false : undefined,
       minArea: query.minArea ? +query.minArea : undefined,
       maxArea: query.maxArea ? +query.maxArea : undefined,
       minPrice: query.minPrice ? +query.minPrice : undefined,
       maxPrice: query.maxPrice ? +query.maxPrice : undefined,
+      minCeilingHeight: query.minCeilingHeight ? +query.minCeilingHeight : undefined,
+      minPowerCapacity: query.minPowerCapacity ? +query.minPowerCapacity : undefined,
     };
     return this.propertiesService.findAll(filters, +page, +limit);
   }
