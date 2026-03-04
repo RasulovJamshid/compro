@@ -926,26 +926,27 @@ export default function PropertyDetailPage() {
 
           {/* 360° Tour Modal */}
           {tour360ModalOpen && property.hasTour360 && property.tour360Url && (
-            <div className="fixed inset-0 bg-black/95 z-50 flex flex-col">
-              {/* Modal Header */}
-              <div className="bg-black/80 backdrop-blur-sm border-b border-white/10 px-4 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Box className="w-6 h-6 text-primary-400" />
-                  <div>
-                    <h3 className="text-white font-bold text-lg">{property.title}</h3>
-                    <p className="text-secondary-300 text-sm">360° Виртуальный тур</p>
+            <div className="fixed inset-0 bg-black z-50 flex flex-col">
+              {/* Modal Header - Optimized for Mobile */}
+              <div className="bg-black/90 backdrop-blur-sm border-b border-white/10 px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <Box className="w-5 h-5 sm:w-6 sm:h-6 text-primary-400 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-white font-bold text-sm sm:text-lg truncate">{property.title}</h3>
+                    <p className="text-secondary-400 text-xs sm:text-sm hidden sm:block">360° Виртуальный тур</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setTour360ModalOpen(false)}
-                  className="text-white hover:text-secondary-300 transition-colors p-2 hover:bg-white/10 rounded-lg"
+                  className="text-white hover:text-secondary-300 transition-colors p-2 hover:bg-white/10 rounded-lg flex-shrink-0"
+                  aria-label="Закрыть"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
               </div>
               
-              {/* Tour Viewer */}
-              <div className="flex-1 relative">
+              {/* Tour Viewer - Full Screen */}
+              <div className="flex-1 relative w-full h-full">
                 <Tour360Viewer 
                   imageUrl={property.tour360Url} 
                   title={property.title}
@@ -953,25 +954,25 @@ export default function PropertyDetailPage() {
                 />
               </div>
               
-              {/* Modal Footer */}
-              <div className="bg-black/80 backdrop-blur-sm border-t border-white/10 px-4 py-3">
-                <div className="flex items-center justify-between text-sm text-secondary-300">
-                  <div className="flex items-center gap-4">
-                    <span className="flex items-center gap-1.5">
-                      <MapPin className="w-4 h-4" />
-                      {property.city}, {property.district}
+              {/* Modal Footer - Simplified for Mobile */}
+              <div className="bg-black/90 backdrop-blur-sm border-t border-white/10 px-3 sm:px-4 py-2 sm:py-3">
+                <div className="flex items-center justify-between text-xs sm:text-sm text-secondary-300">
+                  <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+                    <span className="flex items-center gap-1 sm:gap-1.5">
+                      <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="truncate max-w-[120px] sm:max-w-none">{property.city}, {property.district}</span>
                     </span>
-                    <span className="flex items-center gap-1.5">
-                      <Ruler className="w-4 h-4" />
+                    <span className="flex items-center gap-1 sm:gap-1.5">
+                      <Ruler className="w-3 h-3 sm:w-4 sm:h-4" />
                       {property.area} м²
                     </span>
                   </div>
                   <button
                     onClick={() => setTour360ModalOpen(false)}
-                    className="text-white hover:text-secondary-300 transition-colors flex items-center gap-2 px-4 py-2 hover:bg-white/10 rounded-lg"
+                    className="text-white hover:text-secondary-300 transition-colors flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 hover:bg-white/10 rounded-lg flex-shrink-0"
                   >
-                    <span>Закрыть</span>
-                    <kbd className="px-2 py-1 bg-white/10 rounded text-xs">ESC</kbd>
+                    <span className="hidden sm:inline">Закрыть</span>
+                    <kbd className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-white/10 rounded text-[10px] sm:text-xs">ESC</kbd>
                   </button>
                 </div>
               </div>

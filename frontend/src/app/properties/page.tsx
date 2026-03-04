@@ -100,8 +100,8 @@ export default function PropertiesPage() {
   const totalPages = Math.ceil(total / limit)
 
   const gridClass = viewMode === 'grid'
-    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
-    : 'flex flex-col gap-4'
+    ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4'
+    : 'flex flex-col gap-3'
 
   const buildMapQuery = () => {
     const params = new URLSearchParams()
@@ -336,78 +336,98 @@ export default function PropertiesPage() {
     <div className="min-h-screen bg-secondary-50">
       <ApiErrorHandler error={error} onDismiss={() => setError(null)} />
 
-      {/* Ultra Compact Auto-Hide Header */}
+      {/* Compact Header */}
       <div className={`bg-white border-b border-secondary-200 sticky top-16 z-40 transition-transform duration-300 ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
-        <div className="max-w-screen-2xl mx-auto px-4 py-2.5">
-          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-            <h1 className="text-base sm:text-lg font-bold text-secondary-900 whitespace-nowrap">{t('Navigation.properties')}</h1>
+        <div className="max-w-screen-2xl mx-auto px-3 sm:px-4 py-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <h1 className="text-lg sm:text-xl font-bold text-secondary-900">{t('Navigation.properties')}</h1>
             
-            {/* Inline Search */}
-            <div className="order-3 sm:order-none basis-full sm:basis-auto flex-1 max-w-none sm:max-w-md relative group">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 group-focus-within:text-primary-500 transition-colors" />
+            {/* Search */}
+            <div className="flex-1 max-w-md relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
               <input
                 type="text"
                 placeholder={t('HomePage.searchPlaceholder')}
-                className="w-full pl-8 pr-3 py-2 text-sm border border-secondary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-all"
+                className="w-full pl-9 pr-3 py-2 text-sm border border-secondary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
                 value={filters.q || ''}
                 onChange={(e) => handleSearch(e.target.value)}
               />
             </div>
 
-            <div className="flex items-center gap-2 ml-auto">
-              <div className="text-xs text-secondary-500 whitespace-nowrap hidden sm:block">
-                <span className="font-semibold text-secondary-900">{total}</span>
-              </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-secondary-600 hidden sm:block">
+                <span className="font-semibold text-secondary-900">{total}</span> {total === 1 ? 'объект' : 'объектов'}
+              </span>
               
               {/* View Toggle */}
-              <div className="hidden md:flex items-center gap-0.5 bg-secondary-100 rounded-lg p-0.5">
+              <div className="hidden md:flex items-center gap-1 bg-secondary-50 rounded-lg p-1">
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-1 rounded transition-colors ${viewMode === 'grid' ? 'bg-white shadow-sm text-primary-600' : 'text-secondary-500 hover:text-secondary-700'}`}
+                  className={`p-1.5 rounded transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-primary-600' : 'text-secondary-500 hover:text-secondary-700'}`}
+                  title="Сетка"
                 >
-                  <Grid3x3 className="w-3.5 h-3.5" />
+                  <Grid3x3 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-1 rounded transition-colors ${viewMode === 'list' ? 'bg-white shadow-sm text-primary-600' : 'text-secondary-500 hover:text-secondary-700'}`}
+                  className={`p-1.5 rounded transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-primary-600' : 'text-secondary-500 hover:text-secondary-700'}`}
+                  title="Список"
                 >
-                  <List className="w-3.5 h-3.5" />
+                  <List className="w-4 h-4" />
                 </button>
               </div>
               
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="p-1.5 rounded-lg bg-secondary-100 hover:bg-secondary-200 transition-colors lg:hidden"
+                className="lg:hidden px-3 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition-colors flex items-center gap-2 text-sm font-medium"
               >
-                <Filter className="w-4 h-4 text-secondary-700" />
+                <Filter className="w-4 h-4" />
+                <span>Фильтры</span>
               </button>
               
-              <a href={mapPageHref} className="p-1.5 rounded-lg bg-secondary-100 hover:bg-secondary-200 transition-colors flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-secondary-700" />
-                <span className="hidden sm:inline text-sm font-medium text-secondary-700">{t('Navigation.map')}</span>
+              <a href={mapPageHref} className="hidden sm:flex px-3 py-2 rounded-lg bg-secondary-100 hover:bg-secondary-200 transition-colors items-center gap-2 text-sm font-medium text-secondary-700">
+                <MapPin className="w-4 h-4" />
+                <span>{t('Navigation.map')}</span>
               </a>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content with Sidebar */}
-      <div className="max-w-screen-2xl mx-auto px-4 py-4">
-        {showFilters && (
-          <div className="lg:hidden mb-4 bg-white rounded-xl border border-secondary-200 p-4 shadow-sm">
-            {filtersContent}
+      {/* Mobile Filters Modal */}
+      {showFilters && (
+        <div className="lg:hidden fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowFilters(false)}>
+          <div className="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[85vh] sm:max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-secondary-200">
+              <h3 className="text-lg font-bold text-secondary-900">{t('Filters.title')}</h3>
+              <button onClick={() => setShowFilters(false)} className="p-2 hover:bg-secondary-100 rounded-lg transition-colors">
+                <X className="w-5 h-5 text-secondary-600" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              {filtersContent}
+            </div>
+            <div className="p-4 border-t border-secondary-200 flex gap-2">
+              <button onClick={clearFilters} className="flex-1 px-4 py-2.5 border border-secondary-300 rounded-lg text-sm font-medium text-secondary-700 hover:bg-secondary-50 transition-colors">
+                {t('Filters.reset')}
+              </button>
+              <button onClick={() => setShowFilters(false)} className="flex-1 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors">
+                Показать {total}
+              </button>
+            </div>
           </div>
-        )}
+        </div>
+      )}
 
+      {/* Main Content with Sidebar */}
+      <div className="max-w-screen-2xl mx-auto px-3 sm:px-4 py-4">
         <div className="flex gap-4">
           {/* Sidebar Filters - Desktop */}
-          {showFilters && (
-            <aside className="hidden lg:block w-64 flex-shrink-0">
-              <div className="sticky top-20 bg-white rounded-xl border border-secondary-200 p-4 shadow-sm max-h-[calc(100vh-100px)] overflow-y-auto">
-                {filtersContent}
-              </div>
-            </aside>
-          )}
+          <aside className="hidden lg:block w-72 flex-shrink-0">
+            <div className="sticky top-24 bg-white rounded-xl border border-secondary-200 p-4 shadow-sm max-h-[calc(100vh-120px)] overflow-y-auto">
+              {filtersContent}
+            </div>
+          </aside>
 
           {/* Results */}
           <div className="flex-1 min-w-0">
@@ -418,35 +438,35 @@ export default function PropertiesPage() {
                 ))}
               </div>
             ) : error ? (
-              <div className="text-center py-20 bg-white rounded-2xl border border-secondary-200">
-                <div className="bg-red-50 p-4 rounded-full inline-block mb-4">
-                  <Building2 className="w-12 h-12 text-red-400" />
+              <div className="text-center py-16 sm:py-20 bg-white rounded-xl sm:rounded-2xl border border-secondary-200 px-4">
+                <div className="bg-red-50 p-3 sm:p-4 rounded-full inline-block mb-3 sm:mb-4">
+                  <Building2 className="w-10 h-10 sm:w-12 sm:h-12 text-red-400" />
                 </div>
-                <h3 className="text-xl font-bold text-secondary-900 mb-2">Ошибка при загрузке</h3>
-                <p className="text-secondary-500 mb-6">{error}</p>
-                <div className="space-y-2">
+                <h3 className="text-lg sm:text-xl font-bold text-secondary-900 mb-2">Ошибка при загрузке</h3>
+                <p className="text-sm sm:text-base text-secondary-500 mb-4 sm:mb-6 max-w-md mx-auto">{error}</p>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
                   <button 
                     onClick={() => fetchProperties()}
-                    className="btn btn-primary"
+                    className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors"
                   >
                     Повторить попытку
                   </button>
                   <button 
                     onClick={clearFilters}
-                    className="btn btn-secondary"
+                    className="px-6 py-2.5 border border-secondary-300 hover:bg-secondary-50 text-secondary-700 rounded-lg font-medium transition-colors"
                   >
                     Очистить фильтры
                   </button>
                 </div>
               </div>
             ) : properties.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-2xl border border-secondary-200">
-                <div className="bg-secondary-50 p-4 rounded-full inline-block mb-4">
-                  <Building2 className="w-12 h-12 text-secondary-400" />
+              <div className="text-center py-16 sm:py-20 bg-white rounded-xl sm:rounded-2xl border border-secondary-200 px-4">
+                <div className="bg-secondary-50 p-3 sm:p-4 rounded-full inline-block mb-3 sm:mb-4">
+                  <Building2 className="w-10 h-10 sm:w-12 sm:h-12 text-secondary-400" />
                 </div>
-                <h3 className="text-xl font-bold text-secondary-900 mb-2">Объекты не найдены</h3>
-                <p className="text-secondary-500">Попробуйте изменить параметры поиска или сбросить фильтры</p>
-                <button onClick={clearFilters} className="btn btn-outline mt-6">
+                <h3 className="text-lg sm:text-xl font-bold text-secondary-900 mb-2">Объекты не найдены</h3>
+                <p className="text-sm sm:text-base text-secondary-500 mb-4 sm:mb-6 max-w-md mx-auto">Попробуйте изменить параметры поиска или сбросить фильтры</p>
+                <button onClick={clearFilters} className="px-6 py-2.5 border border-secondary-300 hover:bg-secondary-50 text-secondary-700 rounded-lg font-medium transition-colors">
                   Сбросить все фильтры
                 </button>
               </div>
@@ -460,25 +480,25 @@ export default function PropertiesPage() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex justify-center gap-2 mt-8">
+                  <div className="flex justify-center items-center gap-2 mt-6 sm:mt-8">
                     <button
                       onClick={() => setPage(p => Math.max(1, p - 1))}
                       disabled={page === 1}
-                      className="btn btn-secondary w-10 h-10 p-0 rounded-full flex items-center justify-center disabled:opacity-50"
+                      className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg border border-secondary-300 hover:bg-secondary-50 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
                     >
-                      <ChevronLeft className="w-5 h-5" />
+                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-secondary-700" />
                     </button>
                     
-                    <span className="flex items-center px-4 font-medium text-secondary-600">
-                      Страница {page} из {totalPages}
+                    <span className="flex items-center px-3 sm:px-4 text-sm sm:text-base font-medium text-secondary-700">
+                      {page} / {totalPages}
                     </span>
                     
                     <button
                       onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                       disabled={page === totalPages}
-                      className="btn btn-secondary w-10 h-10 p-0 rounded-full flex items-center justify-center disabled:opacity-50"
+                      className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg border border-secondary-300 hover:bg-secondary-50 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
                     >
-                      <ChevronRight className="w-5 h-5" />
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-secondary-700" />
                     </button>
                   </div>
                 )}

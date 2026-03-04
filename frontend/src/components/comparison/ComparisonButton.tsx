@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import { GitCompare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 export default function ComparisonButton() {
   const router = useRouter();
+  const t = useTranslations('Compare');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -30,35 +32,35 @@ export default function ComparisonButton() {
   if (selectedIds.length === 0) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      <div className="bg-white rounded-lg shadow-lg border-2 border-blue-600 p-4 min-w-[200px]">
+    <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-50">
+      <div className="bg-white rounded-xl shadow-xl border-2 border-primary-600 p-4 min-w-[220px] max-w-[280px]">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <GitCompare className="w-5 h-5 text-blue-600" />
-            <span className="font-semibold">Compare</span>
+            <GitCompare className="w-5 h-5 text-primary-600" />
+            <span className="font-bold text-secondary-900">{t('compareButton')}</span>
           </div>
           <button
             onClick={handleClear}
-            className="text-sm text-gray-500 hover:text-gray-700"
+            className="text-sm text-secondary-500 hover:text-secondary-700 font-medium transition-colors"
           >
-            Clear
+            {t('clear')}
           </button>
         </div>
-        <p className="text-sm text-gray-600 mb-3">
-          {selectedIds.length} {selectedIds.length === 1 ? 'property' : 'properties'} selected
+        <p className="text-sm text-secondary-600 mb-3">
+          {selectedIds.length} {t('properties')} {t('selected')}
         </p>
         <button
           onClick={handleCompare}
           disabled={selectedIds.length < 2}
-          className={`w-full px-4 py-2 rounded-lg font-medium ${
+          className={`w-full px-4 py-2.5 rounded-lg font-medium transition-all ${
             selectedIds.length >= 2
-              ? 'bg-blue-600 text-white hover:bg-blue-700'
-              : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+              ? 'bg-primary-600 text-white hover:bg-primary-700 shadow-md'
+              : 'bg-secondary-200 text-secondary-500 cursor-not-allowed'
           }`}
         >
           {selectedIds.length < 2
-            ? 'Select 2+ properties'
-            : `Compare ${selectedIds.length} properties`}
+            ? t('selectMore')
+            : `${t('compareButton')} ${selectedIds.length}`}
         </button>
       </div>
     </div>
@@ -85,7 +87,6 @@ export function useComparison(propertyId: string) {
       ids = ids.filter(id => id !== propertyId);
     } else {
       if (ids.length >= 4) {
-        alert('You can compare up to 4 properties at a time');
         return;
       }
       ids.push(propertyId);
