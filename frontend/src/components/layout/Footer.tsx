@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, MapPin, Mail, Phone } from 'lucide-react'
+import { MapPin, Mail, Phone } from 'lucide-react'
+import Logo from '@/components/common/Logo'
 
 export default function Footer() {
   const pathname = usePathname()
@@ -17,14 +18,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* Brand */}
           <div>
-            <div className="flex items-center space-x-2 mb-6">
-              <div className="bg-primary-600 p-1.5 rounded-lg">
-                <Building2 className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-xl font-bold text-white">RealEstate</span>
+            <div className="mb-6">
+              <Logo variant="light" />
             </div>
             <p className="text-sm leading-relaxed text-secondary-400">
-              №1 маркетплейс коммерческой недвижимости в Ташкенте. Мы помогаем бизнесу находить идеальные помещения для роста и развития.
+              №1 маркетплейс коммерческой недвижимости в Узбекистане. Мы помогаем бизнесу находить идеальные помещения для роста и развития.
             </p>
           </div>
 
@@ -55,22 +53,22 @@ export default function Footer() {
             <h3 className="text-white font-bold mb-6">Категории</h3>
             <ul className="space-y-3">
               <li>
-                <Link href="/properties?type=office" className="hover:text-primary-500 transition-colors">
+                <Link href="/properties?propertyType=office" className="hover:text-primary-500 transition-colors">
                   Офисы
                 </Link>
               </li>
               <li>
-                <Link href="/properties?type=warehouse" className="hover:text-primary-500 transition-colors">
+                <Link href="/properties?propertyType=warehouse" className="hover:text-primary-500 transition-colors">
                   Склады
                 </Link>
               </li>
               <li>
-                <Link href="/properties?type=shop" className="hover:text-primary-500 transition-colors">
+                <Link href="/properties?propertyType=shop" className="hover:text-primary-500 transition-colors">
                   Магазины
                 </Link>
               </li>
               <li>
-                <Link href="/properties?type=cafe_restaurant" className="hover:text-primary-500 transition-colors">
+                <Link href="/properties?propertyType=cafe_restaurant" className="hover:text-primary-500 transition-colors">
                   Кафе и рестораны
                 </Link>
               </li>
@@ -87,8 +85,8 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-primary-500 flex-shrink-0" />
-                <a href="mailto:info@realestate.uz" className="hover:text-white transition-colors">
-                  info@realestate.uz
+                <a href="mailto:info@compro.uz" className="hover:text-white transition-colors">
+                  info@compro.uz
                 </a>
               </li>
               <li className="flex items-center gap-3">
@@ -102,7 +100,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-secondary-900 mt-12 pt-8 text-center text-sm text-secondary-500">
-          <p>&copy; {new Date().getFullYear()} RealEstate. Все права защищены.</p>
+          <p>&copy; {new Date().getFullYear()} COMPRO.UZ. Все права защищены.</p>
         </div>
       </div>
     </footer>

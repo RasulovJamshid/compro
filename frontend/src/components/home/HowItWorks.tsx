@@ -1,4 +1,7 @@
+'use client'
+
 import { Search, FileCheck, Key, Sparkles } from 'lucide-react'
+import { useState } from 'react'
 
 const steps = [
   {
@@ -32,6 +35,8 @@ const steps = [
 ]
 
 export default function HowItWorks() {
+  const [activeStep, setActiveStep] = useState(0)
+
   return (
     <section className="py-24 bg-gradient-to-b from-secondary-50 to-white relative overflow-hidden">
       {/* Decorative elements */}
@@ -52,17 +57,26 @@ export default function HowItWorks() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
-          {/* Connection lines for desktop */}
-          <div className="hidden lg:block absolute top-24 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-secondary-200 to-transparent"></div>
+          {/* Animated connection line */}
+          <div className="hidden lg:block absolute top-24 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary-200 to-transparent"></div>
           
           {steps.map((step, index) => {
             const Icon = step.icon
+            const isActive = activeStep === index
+
             return (
               <div key={index} className="relative">
-                {/* Step card */}
-                <div className="group bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl border border-secondary-100 hover:border-primary-200 transition-all duration-300 relative z-10">
-                  {/* Step number */}
-                  <div className={`absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br ${step.color} rounded-xl shadow-lg flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300`}>
+                {/* Step card with enhanced interactivity */}
+                <button
+                  onClick={() => setActiveStep(index)}
+                  className={`group w-full bg-white rounded-2xl p-8 border-2 transition-all duration-300 text-left ${
+                    isActive
+                      ? 'border-primary-500 shadow-xl scale-105 bg-primary-50'
+                      : 'border-secondary-100 hover:border-primary-200 hover:shadow-lg'
+                  }`}
+                >
+                  {/* Step number badge */}
+                  <div className={`absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br ${step.color} rounded-xl shadow-lg flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300`}>
                     <span className="text-white font-bold text-lg">{step.number}</span>
                   </div>
 
@@ -72,18 +86,28 @@ export default function HowItWorks() {
                   </div>
 
                   {/* Content */}
-                  <h3 className="text-xl font-bold mb-3 text-secondary-900 group-hover:text-primary-600 transition-colors">
+                  <h3 className={`text-xl font-bold mb-3 transition-colors duration-300 ${isActive ? 'text-primary-900' : 'text-secondary-900 group-hover:text-primary-600'}`}>
                     {step.title}
                   </h3>
-                  <p className="text-secondary-600 leading-relaxed">
+                  <p className={`transition-colors duration-300 ${isActive ? 'text-primary-700' : 'text-secondary-600'} leading-relaxed`}>
                     {step.description}
                   </p>
-                </div>
+
+                  {/* Active indicator */}
+                  {isActive && (
+                    <div className="mt-4 pt-4 border-t border-primary-200">
+                      <div className="text-xs font-semibold text-primary-700 flex items-center gap-2">
+                        <div className="w-2 h-2 bg-primary-600 rounded-full animate-pulse"></div>
+                        Выбранный шаг
+                      </div>
+                    </div>
+                  )}
+                </button>
 
                 {/* Arrow for desktop */}
                 {index < steps.length - 1 && (
                   <div className="hidden lg:block absolute top-24 -right-4 z-20">
-                    <div className="w-8 h-8 bg-white rounded-full border-2 border-secondary-200 flex items-center justify-center">
+                    <div className="w-8 h-8 bg-white rounded-full border-2 border-secondary-200 flex items-center justify-center group-hover:border-primary-500 transition-colors">
                       <svg className="w-4 h-4 text-secondary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
@@ -95,11 +119,24 @@ export default function HowItWorks() {
           })}
         </div>
 
+        {/* Progress indicator */}
+        <div className="flex justify-center gap-2 mt-12">
+          {steps.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setActiveStep(index)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                index === activeStep ? 'bg-primary-600 w-8' : 'bg-secondary-200 w-2 hover:bg-secondary-300'
+              }`}
+            ></button>
+          ))}
+        </div>
+
         {/* CTA */}
         <div className="text-center mt-16">
           <a
             href="/properties"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-500/40 hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-500/40 hover:-translate-y-0.5 active:translate-y-0 active:shadow-lg"
           >
             Начать поиск
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

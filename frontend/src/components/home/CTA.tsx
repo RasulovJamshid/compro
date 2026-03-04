@@ -1,88 +1,97 @@
-import { ArrowRight, Sparkles, CheckCircle } from 'lucide-react'
-import Link from 'next/link'
+'use client'
 
-const benefits = [
-  'Бесплатный доступ к базе объектов',
-  'Проверенные объявления',
-  'Прямая связь с владельцами',
-  'Юридическая поддержка'
-]
+import { ArrowRight, Building2, Users } from 'lucide-react'
+import Link from 'next/link'
 
 export default function CTA() {
   return (
-    <section className="py-24 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 relative overflow-hidden">
-      {/* Background patterns */}
-      <div className="absolute inset-0 opacity-10 bg-[url('/grid-pattern.svg')]"></div>
-      <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl opacity-10"></div>
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl opacity-10"></div>
-      
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Badge */}
-          <div className="inline-block mb-6 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-            <span className="text-sm font-medium text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-yellow-300" />
-              Присоединяйтесь к 15,000+ довольных клиентов
-            </span>
-          </div>
-
-          {/* Heading */}
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white leading-tight">
-            Готовы найти идеальное<br />
-            помещение для бизнеса?
+    <section className="py-24 bg-white">
+      <div className="container mx-auto px-4">
+        
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-secondary-900 mb-4">
+            Готовы начать?
           </h2>
-
-          {/* Description */}
-          <p className="text-xl md:text-2xl mb-10 text-primary-100 max-w-2xl mx-auto font-light">
-            Начните поиск прямо сейчас и получите доступ ко всем функциям платформы
+          <p className="text-xl text-secondary-600">
+            Присоединяйтесь к тысячам профессионалов на ведущей платформе коммерческой недвижимости
           </p>
+        </div>
 
-          {/* Benefits */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10 max-w-2xl mx-auto">
-            {benefits.map((benefit, index) => (
-              <div key={index} className="flex items-center gap-3 text-left bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                <CheckCircle className="w-5 h-5 text-green-300 flex-shrink-0" />
-                <span className="text-white font-medium">{benefit}</span>
-              </div>
-            ))}
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+          
+          {/* For Tenants/Buyers Card */}
+          <div className="relative overflow-hidden rounded-2xl group min-h-[400px] flex flex-col justify-end">
+            {/* Background Image */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-700 group-hover:scale-105"
+              style={{
+                backgroundImage: 'url("https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=2069&auto=format&fit=crop")',
+              }}
+            ></div>
+            {/* Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-secondary-900 via-secondary-900/80 to-transparent"></div>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/properties"
-              className="group inline-flex items-center gap-2 px-8 py-4 bg-white text-primary-700 rounded-xl font-bold hover:bg-primary-50 transition-all shadow-2xl hover:shadow-3xl hover:-translate-y-1 w-full sm:w-auto justify-center"
-            >
-              Начать поиск
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link
-              href="/auth/register"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-xl font-bold hover:bg-white/20 transition-all border-2 border-white/30 w-full sm:w-auto justify-center"
-            >
-              Разместить объект
-            </Link>
-          </div>
+            {/* Content */}
+            <div className="relative z-10 p-8 sm:p-10 flex flex-col h-full justify-end">
+              <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center mb-6 border border-white/20">
+                <Building2 className="w-8 h-8 text-white" />
+              </div>
+              
+              <h3 className="text-3xl font-bold text-white mb-4">
+                Ищете помещение?
+              </h3>
+              
+              <p className="text-white/80 text-lg mb-8 max-w-md">
+                Найдите идеальный офис, склад или торговую площадь среди 2,500+ проверенных объектов от собственников.
+              </p>
 
-          {/* Trust indicators */}
-          <div className="mt-12 pt-8 border-t border-white/20">
-            <div className="flex flex-wrap items-center justify-center gap-8 text-white/80">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white mb-1">2,500+</div>
-                <div className="text-sm">Активных объектов</div>
-              </div>
-              <div className="hidden sm:block w-px h-12 bg-white/20"></div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white mb-1">15,000+</div>
-                <div className="text-sm">Довольных клиентов</div>
-              </div>
-              <div className="hidden sm:block w-px h-12 bg-white/20"></div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white mb-1">98%</div>
-                <div className="text-sm">Успешных сделок</div>
-              </div>
+              <Link
+                href="/properties"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-colors w-fit text-lg"
+              >
+                Начать поиск
+                <ArrowRight className="w-5 h-5" />
+              </Link>
             </div>
           </div>
+
+          {/* For Landlords/Sellers Card */}
+          <div className="relative overflow-hidden rounded-2xl group min-h-[400px] flex flex-col justify-end">
+            {/* Background Image */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-700 group-hover:scale-105"
+              style={{
+                backgroundImage: 'url("https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2070&auto=format&fit=crop")',
+              }}
+            ></div>
+            {/* Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-secondary-900 via-secondary-900/80 to-transparent"></div>
+
+            {/* Content */}
+            <div className="relative z-10 p-8 sm:p-10 flex flex-col h-full justify-end">
+              <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center mb-6 border border-white/20">
+                <Users className="w-8 h-8 text-white" />
+              </div>
+              
+              <h3 className="text-3xl font-bold text-white mb-4">
+                Есть объект?
+              </h3>
+              
+              <p className="text-white/80 text-lg mb-8 max-w-md">
+                Разместите свою недвижимость и получите доступ к 15,000+ активных арендаторов и покупателей ежемесячно.
+              </p>
+
+              <Link
+                href="/auth/register"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-white hover:bg-secondary-50 text-secondary-900 font-bold rounded-xl transition-colors w-fit text-lg"
+              >
+                Добавить объявление
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>

@@ -1,7 +1,7 @@
 'use client'
 
-import { Star, Quote } from 'lucide-react'
-import { useState } from 'react'
+import { Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 const testimonials = [
   {
@@ -40,6 +40,27 @@ const testimonials = [
 
 export default function Testimonials() {
   const [activeIndex, setActiveIndex] = useState(0)
+  const [autoPlay, setAutoPlay] = useState(true)
+
+  useEffect(() => {
+    if (!autoPlay) return
+
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % testimonials.length)
+    }, 5000)
+
+    return () => clearInterval(timer)
+  }, [autoPlay])
+
+  const goToPrevious = () => {
+    setAutoPlay(false)
+    setActiveIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length)
+  }
+
+  const goToNext = () => {
+    setAutoPlay(false)
+    setActiveIndex((prev) => (prev + 1) % testimonials.length)
+  }
 
   return (
     <section className="py-24 bg-white relative overflow-hidden">
@@ -63,8 +84,8 @@ export default function Testimonials() {
         </div>
 
         <div className="max-w-6xl mx-auto">
-          {/* Main testimonial */}
-          <div className="bg-gradient-to-br from-secondary-900 to-primary-900 rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden mb-8">
+          {/* Main testimonial with smooth transition */}
+          <div className="bg-gradient-to-br from-secondary-900 to-primary-900 rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden mb-8 transition-all duration-500">
             {/* Quote icon */}
             <Quote className="absolute top-8 right-8 w-24 h-24 text-white/10" />
             
@@ -76,12 +97,12 @@ export default function Testimonials() {
                 ))}
               </div>
 
-              {/* Text */}
-              <p className="text-xl md:text-2xl text-white mb-8 leading-relaxed font-light">
+              {/* Text with fade animation */}
+              <p className="text-xl md:text-2xl text-white mb-8 leading-relaxed font-light min-h-[80px] transition-all duration-500">
                 "{testimonials[activeIndex].text}"
               </p>
 
-              {/* Author */}
+              {/* Author section */}
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
                   {testimonials[activeIndex].avatar}
@@ -92,24 +113,45 @@ export default function Testimonials() {
                   <div className="text-primary-300 text-xs">{testimonials[activeIndex].company}</div>
                 </div>
               </div>
+
+              {/* Navigation arrows */}
+              <div className="flex gap-2 mt-8">
+                <button
+                  onClick={goToPrevious}
+                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all"
+                  title="Предыдущий"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={goToNext}
+                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all"
+                  title="Следующий"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Thumbnail navigation */}
+          {/* Thumbnail navigation with progress indicator */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {testimonials.map((testimonial, index) => (
               <button
                 key={index}
-                onClick={() => setActiveIndex(index)}
-                className={`p-4 rounded-xl border-2 transition-all duration-300 text-left ${
+                onClick={() => {
+                  setActiveIndex(index)
+                  setAutoPlay(false)
+                }}
+                className={`p-4 rounded-xl border-2 transition-all duration-300 text-left relative overflow-hidden group ${
                   activeIndex === index
-                    ? 'border-primary-500 bg-primary-50 shadow-lg'
-                    : 'border-secondary-200 bg-white hover:border-primary-300 hover:shadow-md'
+                    ? 'border-primary-500 bg-primary-50 shadow-lg scale-105'
+                    : 'border-secondary-200 bg-white hover:border-primary-300 hover:shadow-md hover:scale-102'
                 }`}
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${
-                    activeIndex === index ? 'bg-gradient-to-br from-primary-500 to-primary-600' : 'bg-secondary-400'
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all ${
+                    activeIndex === index ? 'bg-gradient-to-br from-primary-500 to-primary-600 scale-110' : 'bg-secondary-400'
                   }`}>
                     {testimonial.avatar}
                   </div>
@@ -128,7 +170,24 @@ export default function Testimonials() {
                     }`} />
                   ))}
                 </div>
+
+                {/* Progress indicator for active */}
+                {activeIndex === index && (
+                  <div className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-primary-500 to-primary-600 w-full animate-pulse"></div>
+                )}
               </button>
+            ))}
+          </div>
+
+          {/* Auto-play indicator */}
+          <div className="flex justify-center gap-1 mt-8">
+            {testimonials.map((_, index) => (
+              <div
+                key={index}
+                className={`h-1 rounded-full transition-all duration-300 ${
+                  index === activeIndex ? 'bg-primary-600 w-8' : 'bg-secondary-200 w-2 hover:bg-secondary-300'
+                }`}
+              ></div>
             ))}
           </div>
         </div>

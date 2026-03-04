@@ -6,10 +6,14 @@ import PropertyCard from '@/components/properties/PropertyCard'
 import { getProperties } from '@/lib/api/properties'
 import type { Property, PropertyFilters } from '@/lib/types'
 import ComparisonButton from '@/components/comparison/ComparisonButton'
+import ApiErrorHandler from '@/components/common/ApiErrorHandler'
+import { CardSkeleton } from '@/components/common/LoadingSkeleton'
+import { useAnalyticsStore } from '@/lib/store/analyticsStore'
 
 export default function PropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(true)
   const [filters, setFilters] = useState<PropertyFilters>({})
   const [page, setPage] = useState(1)
@@ -17,6 +21,10 @@ export default function PropertiesPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [headerVisible, setHeaderVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
+  
+  const trackFilter = useAnalyticsStore((state) => state.trackFilter)
+  const trackSearch = useAnalyticsStore((state) => state.trackSearch)
+  
   const limit = 12
 
   useEffect(() => {
@@ -42,26 +50,43 @@ export default function PropertiesPage() {
 
   const fetchProperties = async () => {
     setLoading(true)
+    setError(null)
     try {
       const data = await getProperties({ ...filters, page, limit })
       setProperties(data.items || [])
       setTotal(data.total || 0)
-    } catch (error) {
-      console.error('Failed to fetch properties:', error)
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Ошибка при загрузке объектов'
+      setError(errorMessage)
       setProperties([])
+      console.error('Failed to fetch properties:', error)
     } finally {
       setLoading(false)
     }
   }
 
   const handleFilterChange = (key: keyof PropertyFilters, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
+    setFilters(prev => {
+      const updated = { ...prev, [key]: value }
+      trackFilter(key, value)
+      return updated
+    })
+    setPage(1)
+  }
+
+  const handleSearch = (query: string) => {
+    setFilters(prev => {
+      const updated = { ...prev, q: query }
+      if (query) trackSearch(query, filters)
+      return updated
+    })
     setPage(1)
   }
 
   const clearFilters = () => {
     setFilters({})
     setPage(1)
+    setError(null)
   }
 
   const totalPages = Math.ceil(total / limit)
@@ -72,6 +97,8 @@ export default function PropertiesPage() {
 
   return (
     <div className="min-h-screen bg-secondary-50">
+      <ApiErrorHandler error={error} onDismiss={() => setError(null)} />
+
       {/* Ultra Compact Auto-Hide Header */}
       <div className={`bg-white border-b border-secondary-200 sticky top-16 z-40 transition-transform duration-300 ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="max-w-screen-2xl mx-auto px-4 py-2">
@@ -86,7 +113,7 @@ export default function PropertiesPage() {
                 placeholder="Поиск..."
                 className="w-full pl-8 pr-3 py-1.5 text-sm border border-secondary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-all"
                 value={filters.q || ''}
-                onChange={(e) => handleFilterChange('q', e.target.value)}
+                onChange={(e) => handleSearch(e.target.value)}
               />
             </div>
             
@@ -152,7 +179,7 @@ export default function PropertiesPage() {
                     <select
                       className="input input-sm"
                       value={filters.dealType || ''}
-                      onChange={(e) => handleFilterChange('dealType', e.target.value)}
+                      onChange={(e) => handleFilterChange('dealType', e.target.value || undefined)}
                     >
                       <option value="">Все типы</option>
                       <option value="rent">Аренда</option>
@@ -165,7 +192,7 @@ export default function PropertiesPage() {
                     <select
                       className="input input-sm"
                       value={filters.propertyType || ''}
-                      onChange={(e) => handleFilterChange('propertyType', e.target.value)}
+                      onChange={(e) => handleFilterChange('propertyType', e.target.value || undefined)}
                     >
                       <option value="">Все объекты</option>
                       <option value="office">Офис</option>
@@ -184,7 +211,7 @@ export default function PropertiesPage() {
                     <select
                       className="input input-sm"
                       value={filters.city || ''}
-                      onChange={(e) => handleFilterChange('city', e.target.value)}
+                      onChange={(e) => handleFilterChange('city', e.target.value || undefined)}
                     >
                       <option value="">Все города</option>
                       <option value="Ташкент">Ташкент</option>
@@ -275,16 +302,30 @@ export default function PropertiesPage() {
             {loading ? (
               <div className={gridClass}>
                 {[...Array(8)].map((_, i) => (
-                  <div key={i} className="card animate-pulse">
-                    <div className="h-48 bg-secondary-200 rounded-t-xl"></div>
-                    <div className="p-4 space-y-3">
-                      <div className="h-3 bg-secondary-200 rounded w-1/3"></div>
-                      <div className="h-5 bg-secondary-200 rounded w-3/4"></div>
-                      <div className="h-3 bg-secondary-200 rounded w-1/2"></div>
-                      <div className="h-4 bg-secondary-200 rounded w-1/3"></div>
-                    </div>
-                  </div>
+                  <CardSkeleton key={i} />
                 ))}
+              </div>
+            ) : error ? (
+              <div className="text-center py-20 bg-white rounded-2xl border border-secondary-200">
+                <div className="bg-red-50 p-4 rounded-full inline-block mb-4">
+                  <Building2 className="w-12 h-12 text-red-400" />
+                </div>
+                <h3 className="text-xl font-bold text-secondary-900 mb-2">Ошибка при загрузке</h3>
+                <p className="text-secondary-500 mb-6">{error}</p>
+                <div className="space-y-2">
+                  <button 
+                    onClick={() => fetchProperties()}
+                    className="btn btn-primary"
+                  >
+                    Повторить попытку
+                  </button>
+                  <button 
+                    onClick={clearFilters}
+                    className="btn btn-secondary"
+                  >
+                    Очистить фильтры
+                  </button>
+                </div>
               </div>
             ) : properties.length === 0 ? (
               <div className="text-center py-20 bg-white rounded-2xl border border-secondary-200">

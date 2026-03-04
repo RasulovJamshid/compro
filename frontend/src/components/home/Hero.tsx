@@ -1,223 +1,236 @@
 'use client'
 
-import { Search, Sparkles, Building, Coins, Map, TrendingUp, Shield, CheckCircle, Star } from 'lucide-react'
+import { Search, MapPin, Building2, DollarSign, Maximize } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function Hero() {
   const router = useRouter()
+  const [activeTab, setActiveTab] = useState<'sale' | 'rent'>('rent')
   const [searchQuery, setSearchQuery] = useState('')
+  const [propertyType, setPropertyType] = useState('all')
+  const [minPrice, setMinPrice] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
+  const [minArea, setMinArea] = useState('')
+  const [maxArea, setMaxArea] = useState('')
+
+  const normalizeRange = (minValue: string, maxValue: string) => {
+    const min = Number(minValue)
+    const max = Number(maxValue)
+
+    const hasMin = Number.isFinite(min) && min > 0
+    const hasMax = Number.isFinite(max) && max > 0
+
+    if (!hasMin && !hasMax) return { min: null, max: null }
+    if (hasMin && !hasMax) return { min, max: null }
+    if (!hasMin && hasMax) return { min: null, max }
+
+    return min <= max ? { min, max } : { min: max, max: min }
+  }
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    router.push(`/properties?q=${encodeURIComponent(searchQuery)}`)
+    const params = new URLSearchParams()
+
+    const normalizedPrice = normalizeRange(minPrice, maxPrice)
+    const normalizedArea = normalizeRange(minArea, maxArea)
+
+    if (searchQuery.trim()) params.append('q', searchQuery.trim())
+    if (propertyType !== 'all') params.append('propertyType', propertyType)
+    if (normalizedPrice.min !== null) params.append('minPrice', String(normalizedPrice.min))
+    if (normalizedPrice.max !== null) params.append('maxPrice', String(normalizedPrice.max))
+    if (normalizedArea.min !== null) params.append('minArea', String(normalizedArea.min))
+    if (normalizedArea.max !== null) params.append('maxArea', String(normalizedArea.max))
+    params.append('dealType', activeTab)
+    router.push(`/properties?${params.toString()}`)
   }
 
   return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden">
-      {/* Background Image with Overlay */}
-      <div className="absolute inset-0 z-0">
-        {/* Using a gradient background that simulates a modern office/building image */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800"></div>
-        
-        {/* Animated geometric shapes */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-500"></div>
-        
-        {/* Grid pattern overlay */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40"></div>
-        
-        {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60"></div>
+    <section className="relative min-h-[650px] lg:min-h-[800px] flex items-center justify-center pt-24 pb-12 overflow-hidden">
+      {/* Background Image & Overlays */}
+      <div
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transform scale-105"
+        style={{
+          backgroundImage: 'url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop")',
+        }}
+      >
+        {/* Stronger gradient overlay for excellent text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/80" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/35 via-transparent to-black/25" />
       </div>
 
-      {/* Floating Feature Cards */}
-      <div className="absolute inset-0 z-0 hidden lg:block">
-        {/* Top Right Card */}
-        <div className="absolute top-24 right-12 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-2xl animate-float">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-green-400" />
-            </div>
-            <div>
-              <div className="text-white font-bold text-lg">2,500+</div>
-              <div className="text-white/70 text-sm">Проверенных объектов</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Left Middle Card */}
-        <div className="absolute top-1/3 left-12 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-2xl animate-float-delayed">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-blue-400" />
-            </div>
-            <div>
-              <div className="text-white font-bold text-lg">98%</div>
-              <div className="text-white/70 text-sm">Успешных сделок</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Right Card */}
-        <div className="absolute bottom-32 right-24 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-2xl animate-float">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center">
-              <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
-            </div>
-            <div>
-              <div className="text-white font-bold text-lg">4.9/5</div>
-              <div className="text-white/70 text-sm">Рейтинг платформы</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div className="container mx-auto px-4 relative z-10 py-20">
-        <div className="max-w-5xl mx-auto">
-          {/* Badge */}
-          <div className="flex justify-center mb-6 animate-fade-in">
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-lg">
-              <Sparkles className="w-5 h-5 text-yellow-400 animate-pulse" />
-              <span className="text-white font-semibold text-sm">Маркетплейс №1 в Ташкенте</span>
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            </div>
-          </div>
+      <div className="container mx-auto px-4 relative z-10 w-full max-w-6xl">
+        <div className="mx-auto">
           
-          {/* Main Heading */}
-          <h1 className="text-center mb-6 animate-slide-up">
-            <div className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight">
-              <span className="block text-white drop-shadow-2xl">
-                Коммерческая
-              </span>
-              <span className="block bg-gradient-to-r from-primary-400 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-gradient">
-                недвижимость
-              </span>
-              <span className="block text-white/90 text-4xl md:text-5xl lg:text-6xl mt-2">
-                для вашего бизнеса
-              </span>
-            </div>
-          </h1>
-          
-          {/* Subtitle */}
-          <p className="text-center text-xl md:text-2xl lg:text-3xl mb-12 text-white/90 max-w-3xl mx-auto font-light leading-relaxed animate-fade-in-delayed drop-shadow-lg">
-            Профессиональные объекты с проверенной информацией,<br className="hidden md:block" />
-            фото и видео обзорами
-          </p>
+          {/* Heading */}
+          <div className="text-center mb-12 transform transition-all">
+            <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold text-white mb-6 drop-shadow-xl leading-tight max-w-4xl mx-auto text-balance">
+              Идеальное место для <br className="hidden md:block" />
+              <span className="text-primary-500 drop-shadow-md">вашего бизнеса</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-white/95 drop-shadow-lg font-medium max-w-2xl mx-auto">
+              Самая большая база коммерческой недвижимости в Узбекистане
+            </p>
+          </div>
 
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} className="max-w-3xl mx-auto mb-8 animate-slide-up-delayed">
-            <div className="bg-white rounded-2xl shadow-2xl p-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 backdrop-blur-sm border border-white/20 transition-all hover:shadow-primary-500/30 hover:scale-[1.02] duration-300">
-              <div className="flex-1 flex items-center px-4 py-1">
-                <Search className="h-6 w-6 text-secondary-400 mr-3 flex-shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Поиск по району, названию или типу объекта..."
-                  className="w-full py-3 text-secondary-900 text-lg outline-none placeholder-secondary-400 bg-transparent"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <button 
-                type="submit" 
-                className="px-8 py-4 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold text-lg rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
+          {/* Search Box - Modern Glassmorphism Style */}
+          <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-visible border border-white/40">
+            
+            {/* Tabs */}
+            <div className="flex border-b border-secondary-200/60">
+              <button
+                type="button"
+                onClick={() => setActiveTab('rent')}
+                className={`flex-1 px-6 py-5 font-bold text-lg transition-all duration-300 rounded-tl-2xl ${
+                  activeTab === 'rent'
+                    ? 'bg-white text-primary-600 border-b-2 border-primary-600 shadow-[0_4px_20px_-10px_rgba(227,24,55,0.3)] relative z-10'
+                    : 'bg-secondary-50/50 text-secondary-500 hover:bg-white/80 hover:text-secondary-900'
+                }`}
+                aria-pressed={activeTab === 'rent'}
               >
-                Найти
+                Арендовать
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('sale')}
+                className={`flex-1 px-6 py-5 font-bold text-lg transition-all duration-300 rounded-tr-2xl ${
+                  activeTab === 'sale'
+                    ? 'bg-white text-primary-600 border-b-2 border-primary-600 shadow-[0_4px_20px_-10px_rgba(227,24,55,0.3)] relative z-10'
+                    : 'bg-secondary-50/50 text-secondary-500 hover:bg-white/80 hover:text-secondary-900'
+                }`}
+                aria-pressed={activeTab === 'sale'}
+              >
+                Купить
               </button>
             </div>
-          </form>
 
-          {/* Quick Stats */}
-          <div className="flex flex-wrap justify-center gap-6 mb-10 animate-fade-in-delayed">
-            <div className="flex items-center gap-2 text-white/90">
-              <Shield className="w-5 h-5 text-green-400" />
-              <span className="text-sm font-medium">100% Проверенные объекты</span>
-            </div>
-            <div className="flex items-center gap-2 text-white/90">
-              <CheckCircle className="w-5 h-5 text-blue-400" />
-              <span className="text-sm font-medium">Бесплатный доступ</span>
-            </div>
-            <div className="flex items-center gap-2 text-white/90">
-              <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-              <span className="text-sm font-medium">15,000+ довольных клиентов</span>
-            </div>
-          </div>
+            {/* Search Form */}
+            <form onSubmit={handleSearch} className="p-6 md:p-8 space-y-4">
+              {/* Top Row: Location and Property Type */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                {/* Location Search */}
+                <div className="md:col-span-8">
+                  <div className="relative group h-full">
+                    <label htmlFor="hero-search-location" className="sr-only">
+                      Локация
+                    </label>
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-secondary-400 group-focus-within:text-primary-600 transition-colors" />
+                    <input
+                      id="hero-search-location"
+                      type="text"
+                      placeholder="Город, район, улица или БЦ..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full h-full min-h-[60px] pl-14 pr-4 py-4 text-lg border-2 border-secondary-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all bg-white"
+                    />
+                  </div>
+                </div>
 
-          {/* Quick Filters */}
-          <div className="flex flex-wrap justify-center gap-3 animate-fade-in-delayed">
-            <button
-              onClick={() => router.push('/properties?dealType=rent')}
-              className="group px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl transition-all font-medium backdrop-blur-md hover:-translate-y-1 hover:shadow-xl flex items-center gap-2 text-white"
-            >
-              <Building className="w-5 h-5 text-primary-300 group-hover:scale-110 transition-transform" />
-              Аренда офиса
-            </button>
-            <button
-              onClick={() => router.push('/properties?dealType=sale')}
-              className="group px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl transition-all font-medium backdrop-blur-md hover:-translate-y-1 hover:shadow-xl flex items-center gap-2 text-white"
-            >
-              <Coins className="w-5 h-5 text-primary-300 group-hover:scale-110 transition-transform" />
-              Продажа
-            </button>
-            <button
-              onClick={() => router.push('/map')}
-              className="group px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl transition-all font-medium backdrop-blur-md hover:-translate-y-1 hover:shadow-xl flex items-center gap-2 text-white"
-            >
-              <Map className="w-5 h-5 text-primary-300 group-hover:scale-110 transition-transform" />
-              Показать на карте
-            </button>
+                {/* Property Type */}
+                <div className="md:col-span-4">
+                  <div className="relative h-full group">
+                    <label htmlFor="hero-property-type" className="sr-only">
+                      Тип недвижимости
+                    </label>
+                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-secondary-400 group-focus-within:text-primary-600 transition-colors" />
+                    <select
+                      id="hero-property-type"
+                      value={propertyType}
+                      onChange={(e) => setPropertyType(e.target.value)}
+                      className="w-full h-full min-h-[60px] pl-14 pr-4 py-4 text-lg border-2 border-secondary-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 appearance-none bg-white cursor-pointer transition-all font-medium text-secondary-900"
+                    >
+                      <option value="all">Любой тип</option>
+                      <option value="office">Офисы</option>
+                      <option value="warehouse">Склады</option>
+                      <option value="shop">Магазины</option>
+                      <option value="cafe_restaurant">Общепит</option>
+                      <option value="industrial">Производство</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Row: Filters & Search Button */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                {/* Price Range */}
+                <div className="md:col-span-4">
+                  <label className="block text-xs font-bold text-secondary-500 uppercase tracking-wider mb-2 ml-1">
+                    {activeTab === 'rent' ? 'Цена за месяц (сум)' : 'Стоимость (сум)'}
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1 group">
+                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 group-focus-within:text-primary-600 transition-colors" />
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min="0"
+                        placeholder="От"
+                        value={minPrice}
+                        onChange={(e) => setMinPrice(e.target.value)}
+                        className="w-full pl-9 pr-3 py-3.5 border-2 border-secondary-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all bg-white"
+                      />
+                    </div>
+                    <span className="text-secondary-400">-</span>
+                    <div className="relative flex-1 group">
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min="0"
+                        placeholder="До"
+                        value={maxPrice}
+                        onChange={(e) => setMaxPrice(e.target.value)}
+                        className="w-full px-4 py-3.5 border-2 border-secondary-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all bg-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Area Range */}
+                <div className="md:col-span-4">
+                  <label className="block text-xs font-bold text-secondary-500 uppercase tracking-wider mb-2 ml-1">Площадь (м²)</label>
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1 group">
+                      <Maximize className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 group-focus-within:text-primary-600 transition-colors" />
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min="0"
+                        placeholder="От"
+                        value={minArea}
+                        onChange={(e) => setMinArea(e.target.value)}
+                        className="w-full pl-9 pr-3 py-3.5 border-2 border-secondary-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all bg-white"
+                      />
+                    </div>
+                    <span className="text-secondary-400">-</span>
+                    <div className="relative flex-1 group">
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min="0"
+                        placeholder="До"
+                        value={maxArea}
+                        onChange={(e) => setMaxArea(e.target.value)}
+                        className="w-full px-4 py-3.5 border-2 border-secondary-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all bg-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Search Button */}
+                <div className="md:col-span-4">
+                  <button
+                    type="submit"
+                    className="w-full h-full min-h-[52px] md:min-h-[56px] px-6 bg-primary-600 hover:bg-primary-700 active:scale-95 text-white font-bold text-lg rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:shadow-primary-600/20"
+                  >
+                    <Search className="w-5 h-5" />
+                    Показать результаты
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       </div>
-
-      {/* Custom CSS for animations */}
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-        @keyframes gradient {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-        .animate-float-delayed {
-          animation: float 6s ease-in-out infinite 2s;
-        }
-        .animate-gradient {
-          background-size: 200% 200%;
-          animation: gradient 3s ease infinite;
-        }
-        .animate-fade-in {
-          animation: fadeIn 0.8s ease-out;
-        }
-        .animate-fade-in-delayed {
-          animation: fadeIn 1s ease-out 0.3s both;
-        }
-        .animate-slide-up {
-          animation: slideUp 0.8s ease-out;
-        }
-        .animate-slide-up-delayed {
-          animation: slideUp 1s ease-out 0.2s both;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideUp {
-          from { 
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to { 
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </section>
   )
 }
