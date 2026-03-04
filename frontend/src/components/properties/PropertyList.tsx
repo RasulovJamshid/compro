@@ -27,11 +27,11 @@ export default function PropertyList() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {[...Array(8)].map((_, i) => (
           <div key={i} className="card animate-pulse">
-            <div className="h-56 bg-secondary-200 rounded-t-2xl"></div>
-            <div className="p-5 space-y-4">
+            <div className="h-48 sm:h-56 bg-secondary-200 rounded-t-2xl"></div>
+            <div className="p-4 sm:p-5 space-y-4">
               <div className="flex justify-between">
                 <div className="h-3 bg-secondary-200 rounded w-1/3"></div>
                 <div className="h-3 bg-secondary-200 rounded w-8"></div>
@@ -60,7 +60,7 @@ export default function PropertyList() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
       {properties.map((property) => (
         <PropertyCard key={property.id} property={property} />
       ))}

@@ -68,19 +68,19 @@ export default function DashboardAnalyticsPage() {
   const revenueChange = calculateChange(analytics?.revenueThisMonth || 0, analytics?.revenueLastMonth || 0)
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-secondary-900 mb-2">Аналитика</h1>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-secondary-900 mb-2">Аналитика</h1>
         <p className="text-secondary-500">Детальная статистика и метрики платформы</p>
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-xl shadow-sm border border-secondary-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <Eye className="w-6 h-6 text-blue-600" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="bg-white rounded-xl shadow-sm border border-secondary-100 p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div className="bg-blue-50 p-2.5 sm:p-3 rounded-lg">
+              <Eye className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
             </div>
             <div className={`flex items-center gap-1 text-sm font-medium ${viewsChange.isPositive ? 'text-green-600' : 'text-red-600'}`}>
               {viewsChange.isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
@@ -88,14 +88,14 @@ export default function DashboardAnalyticsPage() {
             </div>
           </div>
           <h3 className="text-secondary-500 text-sm font-medium mb-1">Просмотры сегодня</h3>
-          <p className="text-2xl font-bold text-secondary-900">{analytics?.viewsToday || 0}</p>
+          <p className="text-xl sm:text-2xl font-bold text-secondary-900">{analytics?.viewsToday || 0}</p>
           <p className="text-xs text-secondary-400 mt-1">Вчера: {analytics?.viewsYesterday || 0}</p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-secondary-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="bg-green-50 p-3 rounded-lg">
-              <Building2 className="w-6 h-6 text-green-600" />
+        <div className="bg-white rounded-xl shadow-sm border border-secondary-100 p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div className="bg-green-50 p-2.5 sm:p-3 rounded-lg">
+              <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
             </div>
             <div className={`flex items-center gap-1 text-sm font-medium ${propertiesChange.isPositive ? 'text-green-600' : 'text-red-600'}`}>
               {propertiesChange.isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
@@ -103,14 +103,14 @@ export default function DashboardAnalyticsPage() {
             </div>
           </div>
           <h3 className="text-secondary-500 text-sm font-medium mb-1">Новые объекты</h3>
-          <p className="text-2xl font-bold text-secondary-900">{analytics?.newPropertiesThisWeek || 0}</p>
+          <p className="text-xl sm:text-2xl font-bold text-secondary-900">{analytics?.newPropertiesThisWeek || 0}</p>
           <p className="text-xs text-secondary-400 mt-1">За эту неделю</p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-secondary-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="bg-purple-50 p-3 rounded-lg">
-              <Users className="w-6 h-6 text-purple-600" />
+        <div className="bg-white rounded-xl shadow-sm border border-secondary-100 p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div className="bg-purple-50 p-2.5 sm:p-3 rounded-lg">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
             </div>
             <div className={`flex items-center gap-1 text-sm font-medium ${usersChange.isPositive ? 'text-green-600' : 'text-red-600'}`}>
               {usersChange.isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
@@ -118,14 +118,14 @@ export default function DashboardAnalyticsPage() {
             </div>
           </div>
           <h3 className="text-secondary-500 text-sm font-medium mb-1">Новые пользователи</h3>
-          <p className="text-2xl font-bold text-secondary-900">{analytics?.newUsersThisWeek || 0}</p>
+          <p className="text-xl sm:text-2xl font-bold text-secondary-900">{analytics?.newUsersThisWeek || 0}</p>
           <p className="text-xs text-secondary-400 mt-1">За эту неделю</p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-secondary-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="bg-emerald-50 p-3 rounded-lg">
-              <DollarSign className="w-6 h-6 text-emerald-600" />
+        <div className="bg-white rounded-xl shadow-sm border border-secondary-100 p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div className="bg-emerald-50 p-2.5 sm:p-3 rounded-lg">
+              <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
             </div>
             <div className={`flex items-center gap-1 text-sm font-medium ${revenueChange.isPositive ? 'text-green-600' : 'text-red-600'}`}>
               {revenueChange.isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
@@ -133,15 +133,15 @@ export default function DashboardAnalyticsPage() {
             </div>
           </div>
           <h3 className="text-secondary-500 text-sm font-medium mb-1">Доход за месяц</h3>
-          <p className="text-2xl font-bold text-secondary-900">{(analytics?.revenueThisMonth || 0).toLocaleString()} сум</p>
+          <p className="text-xl sm:text-2xl font-bold text-secondary-900">{(analytics?.revenueThisMonth || 0).toLocaleString()} сум</p>
           <p className="text-xs text-secondary-400 mt-1">Прошлый месяц: {(analytics?.revenueLastMonth || 0).toLocaleString()} сум</p>
         </div>
       </div>
 
       {/* Charts and Lists */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Top Properties */}
-        <div className="bg-white rounded-xl shadow-sm border border-secondary-100 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-secondary-100 p-4 sm:p-6">
           <h2 className="text-lg font-bold text-secondary-900 mb-4">Популярные объекты</h2>
           <div className="space-y-3">
             {analytics?.topProperties && analytics.topProperties.length > 0 ? (
@@ -169,7 +169,7 @@ export default function DashboardAnalyticsPage() {
         </div>
 
         {/* Top Cities */}
-        <div className="bg-white rounded-xl shadow-sm border border-secondary-100 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-secondary-100 p-4 sm:p-6">
           <h2 className="text-lg font-bold text-secondary-900 mb-4">Популярные города</h2>
           <div className="space-y-3">
             {analytics?.topCities && analytics.topCities.length > 0 ? (

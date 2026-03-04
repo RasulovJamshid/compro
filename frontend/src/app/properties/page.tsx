@@ -14,7 +14,7 @@ export default function PropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [showFilters, setShowFilters] = useState(true)
+  const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState<PropertyFilters>({})
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
@@ -30,6 +30,12 @@ export default function PropertiesPage() {
   useEffect(() => {
     fetchProperties()
   }, [filters, page])
+
+  useEffect(() => {
+    if (window.innerWidth >= 1024) {
+      setShowFilters(true)
+    }
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -91,9 +97,165 @@ export default function PropertiesPage() {
 
   const totalPages = Math.ceil(total / limit)
 
-  const gridClass = viewMode === 'grid' 
-    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4'
+  const gridClass = viewMode === 'grid'
+    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
     : 'flex flex-col gap-4'
+
+  const buildMapQuery = () => {
+    const params = new URLSearchParams()
+
+    if (filters.q) params.set('q', String(filters.q))
+    if (filters.dealType) params.set('dealType', String(filters.dealType))
+    if (filters.propertyType) params.set('propertyType', String(filters.propertyType))
+    if (filters.city) params.set('city', String(filters.city))
+    if (filters.minArea !== undefined) params.set('minArea', String(filters.minArea))
+    if (filters.maxArea !== undefined) params.set('maxArea', String(filters.maxArea))
+    if (filters.minPrice !== undefined) params.set('minPrice', String(filters.minPrice))
+    if (filters.maxPrice !== undefined) params.set('maxPrice', String(filters.maxPrice))
+    if (filters.isVerified) params.set('isVerified', 'true')
+    if (filters.hasVideo) params.set('hasVideo', 'true')
+    if (filters.hasTour360) params.set('hasTour360', 'true')
+
+    const query = params.toString()
+    return query ? `/map?${query}` : '/map'
+  }
+
+  const mapPageHref = buildMapQuery()
+
+  const filtersContent = (
+    <>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-bold text-secondary-900 flex items-center gap-1.5">
+          <Filter className="w-4 h-4 text-primary-600" />
+          Фильтры
+        </h3>
+        <button onClick={clearFilters} className="text-xs text-secondary-500 hover:text-red-500 transition-colors">
+          Сбросить
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <label className="block text-xs font-medium text-secondary-700 mb-1.5">Тип сделки</label>
+          <select
+            className="input input-sm"
+            value={filters.dealType || ''}
+            onChange={(e) => handleFilterChange('dealType', e.target.value || undefined)}
+          >
+            <option value="">Все типы</option>
+            <option value="rent">Аренда</option>
+            <option value="sale">Продажа</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-secondary-700 mb-1.5">Тип объекта</label>
+          <select
+            className="input input-sm"
+            value={filters.propertyType || ''}
+            onChange={(e) => handleFilterChange('propertyType', e.target.value || undefined)}
+          >
+            <option value="">Все объекты</option>
+            <option value="office">Офис</option>
+            <option value="warehouse">Склад</option>
+            <option value="shop">Магазин</option>
+            <option value="cafe_restaurant">Кафе/Ресторан</option>
+            <option value="industrial">Производство</option>
+            <option value="salon">Салон</option>
+            <option value="recreation">Развлечения</option>
+            <option value="other">Другое</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-secondary-700 mb-1.5">Город</label>
+          <select
+            className="input input-sm"
+            value={filters.city || ''}
+            onChange={(e) => handleFilterChange('city', e.target.value || undefined)}
+          >
+            <option value="">Все города</option>
+            <option value="Ташкент">Ташкент</option>
+            <option value="Самарканд">Самарканд</option>
+            <option value="Бухара">Бухара</option>
+            <option value="Хива">Хива</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-secondary-700 mb-1.5">Площадь (м²)</label>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="number"
+              placeholder="От"
+              className="input input-sm"
+              value={filters.minArea || ''}
+              onChange={(e) => handleFilterChange('minArea', e.target.value ? Number(e.target.value) : undefined)}
+            />
+            <input
+              type="number"
+              placeholder="До"
+              className="input input-sm"
+              value={filters.maxArea || ''}
+              onChange={(e) => handleFilterChange('maxArea', e.target.value ? Number(e.target.value) : undefined)}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-secondary-700 mb-1.5">Цена (сум)</label>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="number"
+              placeholder="От"
+              className="input input-sm"
+              value={filters.minPrice || ''}
+              onChange={(e) => handleFilterChange('minPrice', e.target.value ? Number(e.target.value) : undefined)}
+            />
+            <input
+              type="number"
+              placeholder="До"
+              className="input input-sm"
+              value={filters.maxPrice || ''}
+              onChange={(e) => handleFilterChange('maxPrice', e.target.value ? Number(e.target.value) : undefined)}
+            />
+          </div>
+        </div>
+
+        <div className="pt-3 border-t border-secondary-100 space-y-3">
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input
+              type="checkbox"
+              className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
+              checked={filters.isVerified || false}
+              onChange={(e) => handleFilterChange('isVerified', e.target.checked || undefined)}
+            />
+            <span className="text-sm text-secondary-700 group-hover:text-primary-600">Только проверенные</span>
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input
+              type="checkbox"
+              className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
+              checked={filters.hasVideo || false}
+              onChange={(e) => handleFilterChange('hasVideo', e.target.checked || undefined)}
+            />
+            <span className="text-sm text-secondary-700 group-hover:text-primary-600">С видео</span>
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input
+              type="checkbox"
+              className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
+              checked={filters.hasTour360 || false}
+              onChange={(e) => handleFilterChange('hasTour360', e.target.checked || undefined)}
+            />
+            <span className="text-sm text-secondary-700 group-hover:text-primary-600">С 3D-туром</span>
+          </label>
+        </div>
+      </div>
+    </>
+  )
 
   return (
     <div className="min-h-screen bg-secondary-50">
@@ -101,22 +263,22 @@ export default function PropertiesPage() {
 
       {/* Ultra Compact Auto-Hide Header */}
       <div className={`bg-white border-b border-secondary-200 sticky top-16 z-40 transition-transform duration-300 ${headerVisible ? 'translate-y-0' : '-translate-y-full'}`}>
-        <div className="max-w-screen-2xl mx-auto px-4 py-2">
-          <div className="flex items-center gap-3">
-            <h1 className="text-lg font-bold text-secondary-900 whitespace-nowrap">Недвижимость</h1>
+        <div className="max-w-screen-2xl mx-auto px-4 py-2.5">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+            <h1 className="text-base sm:text-lg font-bold text-secondary-900 whitespace-nowrap">Недвижимость</h1>
             
             {/* Inline Search */}
-            <div className="flex-1 max-w-md relative group">
+            <div className="order-3 sm:order-none basis-full sm:basis-auto flex-1 max-w-none sm:max-w-md relative group">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 group-focus-within:text-primary-500 transition-colors" />
               <input
                 type="text"
                 placeholder="Поиск..."
-                className="w-full pl-8 pr-3 py-1.5 text-sm border border-secondary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-all"
+                className="w-full pl-8 pr-3 py-2 text-sm border border-secondary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-all"
                 value={filters.q || ''}
                 onChange={(e) => handleSearch(e.target.value)}
               />
             </div>
-            
+
             <div className="flex items-center gap-2 ml-auto">
               <div className="text-xs text-secondary-500 whitespace-nowrap hidden sm:block">
                 <span className="font-semibold text-secondary-900">{total}</span> объектов
@@ -147,9 +309,9 @@ export default function PropertiesPage() {
                 <Filter className="w-4 h-4 text-secondary-700" />
               </button>
               
-              <a href="/map" className="p-1.5 rounded-lg bg-secondary-100 hover:bg-secondary-200 transition-colors flex items-center gap-1.5">
+              <a href={mapPageHref} className="p-1.5 rounded-lg bg-secondary-100 hover:bg-secondary-200 transition-colors flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-secondary-700" />
-                <span className="hidden sm:inline text-sm font-medium text-secondary-700">Карта</span>
+                <span className="hidden sm:inline text-sm font-medium text-secondary-700">На карте</span>
               </a>
             </div>
           </div>
@@ -158,141 +320,18 @@ export default function PropertiesPage() {
 
       {/* Main Content with Sidebar */}
       <div className="max-w-screen-2xl mx-auto px-4 py-4">
+        {showFilters && (
+          <div className="lg:hidden mb-4 bg-white rounded-xl border border-secondary-200 p-4 shadow-sm">
+            {filtersContent}
+          </div>
+        )}
+
         <div className="flex gap-4">
           {/* Sidebar Filters - Desktop */}
           {showFilters && (
             <aside className="hidden lg:block w-64 flex-shrink-0">
               <div className="sticky top-20 bg-white rounded-xl border border-secondary-200 p-4 shadow-sm max-h-[calc(100vh-100px)] overflow-y-auto">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-secondary-900 flex items-center gap-1.5">
-                    <Filter className="w-4 h-4 text-primary-600" />
-                    Фильтры
-                  </h3>
-                  <button onClick={clearFilters} className="text-xs text-secondary-500 hover:text-red-500 transition-colors">
-                    Сбросить
-                  </button>
-                </div>
-                
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-medium text-secondary-700 mb-1.5">Тип сделки</label>
-                    <select
-                      className="input input-sm"
-                      value={filters.dealType || ''}
-                      onChange={(e) => handleFilterChange('dealType', e.target.value || undefined)}
-                    >
-                      <option value="">Все типы</option>
-                      <option value="rent">Аренда</option>
-                      <option value="sale">Продажа</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-secondary-700 mb-1.5">Тип объекта</label>
-                    <select
-                      className="input input-sm"
-                      value={filters.propertyType || ''}
-                      onChange={(e) => handleFilterChange('propertyType', e.target.value || undefined)}
-                    >
-                      <option value="">Все объекты</option>
-                      <option value="office">Офис</option>
-                      <option value="warehouse">Склад</option>
-                      <option value="shop">Магазин</option>
-                      <option value="cafe_restaurant">Кафе/Ресторан</option>
-                      <option value="industrial">Производство</option>
-                      <option value="salon">Салон</option>
-                      <option value="recreation">Развлечения</option>
-                      <option value="other">Другое</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-secondary-700 mb-1.5">Город</label>
-                    <select
-                      className="input input-sm"
-                      value={filters.city || ''}
-                      onChange={(e) => handleFilterChange('city', e.target.value || undefined)}
-                    >
-                      <option value="">Все города</option>
-                      <option value="Ташкент">Ташкент</option>
-                      <option value="Самарканд">Самарканд</option>
-                      <option value="Бухара">Бухара</option>
-                      <option value="Хива">Хива</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-secondary-700 mb-1.5">Площадь (м²)</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        placeholder="От"
-                        className="input input-sm"
-                        value={filters.minArea || ''}
-                        onChange={(e) => handleFilterChange('minArea', e.target.value ? Number(e.target.value) : undefined)}
-                      />
-                      <input
-                        type="number"
-                        placeholder="До"
-                        className="input input-sm"
-                        value={filters.maxArea || ''}
-                        onChange={(e) => handleFilterChange('maxArea', e.target.value ? Number(e.target.value) : undefined)}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-secondary-700 mb-1.5">Цена (сум)</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        placeholder="От"
-                        className="input input-sm"
-                        value={filters.minPrice || ''}
-                        onChange={(e) => handleFilterChange('minPrice', e.target.value ? Number(e.target.value) : undefined)}
-                      />
-                      <input
-                        type="number"
-                        placeholder="До"
-                        className="input input-sm"
-                        value={filters.maxPrice || ''}
-                        onChange={(e) => handleFilterChange('maxPrice', e.target.value ? Number(e.target.value) : undefined)}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t border-secondary-100 space-y-3">
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
-                        checked={filters.isVerified || false}
-                        onChange={(e) => handleFilterChange('isVerified', e.target.checked || undefined)}
-                      />
-                      <span className="text-sm text-secondary-700 group-hover:text-primary-600">Только проверенные</span>
-                    </label>
-
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
-                        checked={filters.hasVideo || false}
-                        onChange={(e) => handleFilterChange('hasVideo', e.target.checked || undefined)}
-                      />
-                      <span className="text-sm text-secondary-700 group-hover:text-primary-600">С видео</span>
-                    </label>
-
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
-                        checked={filters.hasTour360 || false}
-                        onChange={(e) => handleFilterChange('hasTour360', e.target.checked || undefined)}
-                      />
-                      <span className="text-sm text-secondary-700 group-hover:text-primary-600">С 3D-туром</span>
-                    </label>
-                  </div>
-                </div>
+                {filtersContent}
               </div>
             </aside>
           )}

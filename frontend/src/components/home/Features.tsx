@@ -59,24 +59,24 @@ export default function Features() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
   return (
-    <section className="py-24 bg-gradient-to-b from-secondary-50/50 to-white">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-20">
-          <div className="inline-block mb-6 px-4 py-1.5 bg-white border border-secondary-100 rounded-full shadow-sm hover:shadow-md transition-shadow">
+    <section className="py-14 sm:py-16 lg:py-24 bg-gradient-to-b from-secondary-50/50 to-white">
+      <div className="container">
+        <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-10 sm:mb-14 lg:mb-20">
+          <div className="inline-block mb-4 sm:mb-6 px-4 py-1.5 bg-white border border-secondary-100 rounded-full shadow-sm hover:shadow-md transition-shadow">
             <span className="text-[10px] font-bold text-secondary-500 uppercase tracking-[0.2em]">Наши преимущества</span>
           </div>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-secondary-900 font-display tracking-tight leading-[1.1]">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 sm:mb-6 text-secondary-900 font-display tracking-tight leading-[1.1]">
             Стандарт профессиональной <br className="hidden md:block" />
             <span className="text-primary-600 italic">коммерции</span>
           </h2>
-          <p className="text-xl text-secondary-500 font-medium">
+          <p className="text-base sm:text-xl text-secondary-500 font-medium">
             Мы переосмыслили процесс поиска недвижимости, внедрив технологии <br className="hidden md:block" />
             проверки и визуализации мирового уровня.
           </p>
         </div>
         
         {/* Modern grid layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {features.map((feature, index) => {
             const Icon = feature.icon
             const isSelected = selectedFeature === index
@@ -88,7 +88,7 @@ export default function Features() {
                 onClick={() => setSelectedFeature(index)}
                 onMouseEnter={() => setHoveredIndex(index)}
                 onMouseLeave={() => setHoveredIndex(null)}
-                className={`group relative text-left p-8 rounded-[32px] border-2 transition-all duration-300 overflow-hidden ${
+                className={`group relative text-left p-5 sm:p-8 rounded-3xl sm:rounded-[32px] border-2 transition-all duration-300 overflow-hidden ${
                   isSelected
                     ? 'border-primary-500 bg-primary-50 shadow-xl'
                     : 'border-secondary-100 bg-white hover:border-primary-300 hover:shadow-lg'
@@ -104,8 +104,8 @@ export default function Features() {
                 />
 
                 <div className="relative z-10">
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-all duration-300 ${feature.bgColor} ${isHovered || isSelected ? 'scale-110' : ''}`}>
-                    <Icon className={`w-7 h-7 transition-all duration-300`} style={{
+                  <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 transition-all duration-300 ${feature.bgColor} ${isHovered || isSelected ? 'scale-110' : ''}`}>
+                    <Icon className={`w-6 h-6 sm:w-7 sm:h-7 transition-all duration-300`} style={{
                       color: feature.color.includes('green') ? 'rgb(34, 197, 94)' :
                              feature.color.includes('blue') ? 'rgb(59, 130, 246)' :
                              feature.color.includes('purple') ? 'rgb(147, 51, 234)' :
@@ -115,11 +115,11 @@ export default function Features() {
                     }} />
                   </div>
 
-                  <h3 className={`text-xl font-bold mb-2 transition-colors duration-300 ${isSelected ? 'text-primary-900' : 'text-secondary-900'}`}>
+                  <h3 className={`text-lg sm:text-xl font-bold mb-2 transition-colors duration-300 ${isSelected ? 'text-primary-900' : 'text-secondary-900'}`}>
                     {feature.title}
                   </h3>
 
-                  <p className={`text-sm transition-colors duration-300 ${isSelected ? 'text-primary-700' : 'text-secondary-500'} mb-4`}>
+                  <p className={`text-sm transition-colors duration-300 ${isSelected ? 'text-primary-700' : 'text-secondary-500'} mb-3 sm:mb-4`}>
                     {feature.description}
                   </p>
 
@@ -143,7 +143,7 @@ export default function Features() {
         </div>
 
         {/* Bottom accent */}
-        <div className="mt-16 text-center">
+        <div className="mt-10 sm:mt-16 text-center">
           <p className="text-secondary-600 font-medium">
             🎯 Выбирайте надежную платформу для ваших коммерческих решений
           </p>

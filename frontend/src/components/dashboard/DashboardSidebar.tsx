@@ -33,16 +33,17 @@ export default function DashboardSidebar() {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const { user, logout } = useAuthStore()
+  const desktopCollapsed = collapsed
 
   const filteredMenuItems = menuItems.filter(item => 
     item.roles.includes(user?.role || 'guest')
   )
 
   return (
-    <aside className={`bg-white border-r border-secondary-200 flex flex-col transition-all duration-300 ${collapsed ? 'w-20' : 'w-64'}`}>
+    <aside className={`bg-white border-b lg:border-b-0 lg:border-r border-secondary-200 flex flex-col transition-all duration-300 w-full ${desktopCollapsed ? 'lg:w-20' : 'lg:w-64'}`}>
       {/* Logo */}
-      <div className="p-4 border-b border-secondary-200 flex items-center justify-between">
-        {!collapsed && (
+      <div className="p-3 lg:p-4 border-b border-secondary-200 flex items-center justify-between">
+        {!desktopCollapsed && (
           <Link href="/dashboard" className="flex items-center gap-2">
             <div className="bg-primary-600 p-2 rounded-lg text-white">
               <Building2 className="h-5 w-5" />
@@ -52,19 +53,19 @@ export default function DashboardSidebar() {
         )}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-2 hover:bg-secondary-50 rounded-lg text-secondary-500 transition-colors"
+          className="hidden lg:inline-flex p-2 hover:bg-secondary-50 rounded-lg text-secondary-500 transition-colors"
         >
-          {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+          {desktopCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
         </button>
       </div>
 
       {/* User Info */}
-      <div className="p-4 border-b border-secondary-200">
-        <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+      <div className="hidden lg:block p-4 border-b border-secondary-200">
+        <div className={`flex items-center gap-3 ${desktopCollapsed ? 'justify-center' : ''}`}>
           <div className="bg-primary-100 text-primary-600 rounded-full p-2">
             <Users className="w-5 h-5" />
           </div>
-          {!collapsed && (
+          {!desktopCollapsed && (
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-secondary-900 truncate">{user?.phone}</p>
               <p className="text-xs text-secondary-500 capitalize">{user?.role}</p>
@@ -74,7 +75,8 @@ export default function DashboardSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 p-3 lg:p-4 overflow-x-auto lg:overflow-y-auto">
+        <div className="flex lg:flex-col items-center lg:items-stretch gap-2 lg:gap-1 min-w-max lg:min-w-0">
         {filteredMenuItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
@@ -83,37 +85,38 @@ export default function DashboardSidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+              className={`flex items-center gap-2 lg:gap-3 px-3 py-2 lg:py-2.5 rounded-lg transition-all whitespace-nowrap ${
                 isActive
                   ? 'bg-primary-50 text-primary-600 font-medium'
                   : 'text-secondary-600 hover:bg-secondary-50 hover:text-secondary-900'
-              } ${collapsed ? 'justify-center' : ''}`}
-              title={collapsed ? item.label : undefined}
+              } ${desktopCollapsed ? 'lg:justify-center' : ''}`}
+              title={desktopCollapsed ? item.label : undefined}
             >
               <Icon className="w-5 h-5 flex-shrink-0" />
-              {!collapsed && <span className="text-sm">{item.label}</span>}
+              <span className={`text-sm ${desktopCollapsed ? 'lg:hidden' : ''}`}>{item.label}</span>
             </Link>
           )
         })}
+        </div>
       </nav>
 
       {/* Footer Actions */}
-      <div className="p-4 border-t border-secondary-200 space-y-1">
+      <div className="hidden lg:block p-4 border-t border-secondary-200 space-y-1">
         <Link
           href="/"
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-secondary-600 hover:bg-secondary-50 hover:text-secondary-900 transition-all ${collapsed ? 'justify-center' : ''}`}
-          title={collapsed ? 'На главную' : undefined}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-secondary-600 hover:bg-secondary-50 hover:text-secondary-900 transition-all ${desktopCollapsed ? 'justify-center' : ''}`}
+          title={desktopCollapsed ? 'На главную' : undefined}
         >
           <Building2 className="w-5 h-5 flex-shrink-0" />
-          {!collapsed && <span className="text-sm">На главную</span>}
+          {!desktopCollapsed && <span className="text-sm">На главную</span>}
         </Link>
         <button
           onClick={logout}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-600 hover:bg-red-50 transition-all ${collapsed ? 'justify-center' : ''}`}
-          title={collapsed ? 'Выйти' : undefined}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-600 hover:bg-red-50 transition-all ${desktopCollapsed ? 'justify-center' : ''}`}
+          title={desktopCollapsed ? 'Выйти' : undefined}
         >
           <LogOut className="w-5 h-5 flex-shrink-0" />
-          {!collapsed && <span className="text-sm">Выйти</span>}
+          {!desktopCollapsed && <span className="text-sm">Выйти</span>}
         </button>
       </div>
     </aside>

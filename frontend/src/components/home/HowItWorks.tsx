@@ -38,25 +38,25 @@ export default function HowItWorks() {
   const [activeStep, setActiveStep] = useState(0)
 
   return (
-    <section className="py-24 bg-gradient-to-b from-secondary-50 to-white relative overflow-hidden">
+    <section className="py-14 sm:py-16 lg:py-24 bg-gradient-to-b from-secondary-50 to-white relative overflow-hidden">
       {/* Decorative elements */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-primary-100 rounded-full blur-3xl opacity-20"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-100 rounded-full blur-3xl opacity-20"></div>
+      <div className="absolute top-0 left-0 w-64 h-64 sm:w-96 sm:h-96 bg-primary-100 rounded-full blur-3xl opacity-20"></div>
+      <div className="absolute bottom-0 right-0 w-64 h-64 sm:w-96 sm:h-96 bg-blue-100 rounded-full blur-3xl opacity-20"></div>
       
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-16">
+      <div className="container relative z-10">
+        <div className="text-center mb-10 sm:mb-16">
           <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-primary-100 border border-primary-200">
             <span className="text-sm font-medium text-primary-700">Простой процесс</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-secondary-900">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 text-secondary-900">
             Как это работает?
           </h2>
-          <p className="text-lg text-secondary-500 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-secondary-500 max-w-2xl mx-auto">
             Четыре простых шага к вашему идеальному коммерческому помещению
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 relative">
           {/* Animated connection line */}
           <div className="hidden lg:block absolute top-24 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary-200 to-transparent"></div>
           
@@ -69,27 +69,27 @@ export default function HowItWorks() {
                 {/* Step card with enhanced interactivity */}
                 <button
                   onClick={() => setActiveStep(index)}
-                  className={`group w-full bg-white rounded-2xl p-8 border-2 transition-all duration-300 text-left ${
+                  className={`group w-full bg-white rounded-2xl p-5 sm:p-8 border-2 transition-all duration-300 text-left ${
                     isActive
                       ? 'border-primary-500 shadow-xl scale-105 bg-primary-50'
                       : 'border-secondary-100 hover:border-primary-200 hover:shadow-lg'
                   }`}
                 >
                   {/* Step number badge */}
-                  <div className={`absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br ${step.color} rounded-xl shadow-lg flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300`}>
-                    <span className="text-white font-bold text-lg">{step.number}</span>
+                  <div className={`absolute -top-3 -right-3 sm:-top-4 sm:-right-4 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br ${step.color} rounded-xl shadow-lg flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300`}>
+                    <span className="text-white font-bold text-base sm:text-lg">{step.number}</span>
                   </div>
 
                   {/* Icon */}
-                  <div className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br ${step.color} rounded-xl mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                    <Icon className="h-8 w-8 text-white" />
+                  <div className={`inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br ${step.color} rounded-xl mb-4 sm:mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                    <Icon className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                   </div>
 
                   {/* Content */}
-                  <h3 className={`text-xl font-bold mb-3 transition-colors duration-300 ${isActive ? 'text-primary-900' : 'text-secondary-900 group-hover:text-primary-600'}`}>
+                  <h3 className={`text-lg sm:text-xl font-bold mb-2 sm:mb-3 transition-colors duration-300 ${isActive ? 'text-primary-900' : 'text-secondary-900 group-hover:text-primary-600'}`}>
                     {step.title}
                   </h3>
-                  <p className={`transition-colors duration-300 ${isActive ? 'text-primary-700' : 'text-secondary-600'} leading-relaxed`}>
+                  <p className={`text-sm sm:text-base transition-colors duration-300 ${isActive ? 'text-primary-700' : 'text-secondary-600'} leading-relaxed`}>
                     {step.description}
                   </p>
 
@@ -120,7 +120,7 @@ export default function HowItWorks() {
         </div>
 
         {/* Progress indicator */}
-        <div className="flex justify-center gap-2 mt-12">
+        <div className="flex justify-center gap-2 mt-8 sm:mt-12">
           {steps.map((_, index) => (
             <button
               key={index}
@@ -133,10 +133,10 @@ export default function HowItWorks() {
         </div>
 
         {/* CTA */}
-        <div className="text-center mt-16">
+        <div className="text-center mt-10 sm:mt-16">
           <a
             href="/properties"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-500/40 hover:-translate-y-0.5 active:translate-y-0 active:shadow-lg"
+            className="inline-flex items-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-500/40 hover:-translate-y-0.5 active:translate-y-0 active:shadow-lg"
           >
             Начать поиск
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

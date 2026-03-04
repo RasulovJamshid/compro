@@ -15,6 +15,7 @@ import MapView from '@/components/map/MapView'
 import { getProperty, saveProperty, unsaveProperty } from '@/lib/api/properties'
 import type { Property } from '@/lib/types'
 import ComparisonButton, { useComparison } from '@/components/comparison/ComparisonButton'
+import Tour360Viewer from '@/components/properties/Tour360Viewer'
 
 export default function PropertyDetailPage() {
   const params = useParams()
@@ -411,6 +412,22 @@ export default function PropertyDetailPage() {
               <h2 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-secondary-900">Описание</h2>
               <p className="text-sm sm:text-base text-secondary-700 whitespace-pre-line leading-relaxed">{property.description}</p>
             </div>
+
+            {/* 360° Tour */}
+            {property.hasTour360 && property.tour360Url && (
+              <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
+                <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-secondary-900 flex items-center gap-2">
+                  <Box className="w-5 h-5 text-primary-600" />
+                  360° Виртуальный тур
+                </h2>
+                <div className="rounded-xl overflow-hidden">
+                  <Tour360Viewer 
+                    imageUrl={property.tour360Url} 
+                    title={property.title}
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Characteristics */}
             <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">

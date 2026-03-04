@@ -146,31 +146,32 @@ function ComparePageContent() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="container py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
               <Link href="/properties" className="text-gray-600 hover:text-gray-900">
-                <ArrowLeft className="w-6 h-6" />
+                <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
               </Link>
-              <div>
-                <h1 className="text-2xl font-bold">Property Comparison</h1>
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-2xl font-bold truncate">Property Comparison</h1>
                 <p className="text-sm text-gray-600">Comparing {properties.length} properties</p>
               </div>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowSaveDialog(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm sm:text-base"
               >
                 <Save className="w-4 h-4" />
-                Save Comparison
+                <span className="hidden sm:inline">Save Comparison</span>
+                <span className="sm:hidden">Save</span>
               </button>
               <button
                 onClick={() => window.print()}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm sm:text-base"
               >
                 <Download className="w-4 h-4" />
-                Export
+                <span className="hidden sm:inline">Export</span>
               </button>
             </div>
           </div>
@@ -178,25 +179,25 @@ function ComparePageContent() {
       </div>
 
       {/* Summary Stats */}
-      <div className="container mx-auto px-4 py-6">
+      <div className="container py-4 sm:py-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <p className="text-sm text-gray-600">Average Price</p>
-            <p className="text-2xl font-bold">{formatPrice(summary.avgPrice)}</p>
+            <p className="text-xl sm:text-2xl font-bold">{formatPrice(summary.avgPrice)}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <p className="text-sm text-gray-600">Price Range</p>
-            <p className="text-2xl font-bold">
+            <p className="text-xl sm:text-2xl font-bold">
               {formatNumber(summary.lowestPrice)} - {formatNumber(summary.highestPrice)}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <p className="text-sm text-gray-600">Avg Price/m²</p>
-            <p className="text-2xl font-bold">{formatPrice(summary.avgPricePerSqm)}</p>
+            <p className="text-xl sm:text-2xl font-bold">{formatPrice(summary.avgPricePerSqm)}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <p className="text-sm text-gray-600">Average Area</p>
-            <p className="text-2xl font-bold">{formatNumber(summary.avgArea)} m²</p>
+            <p className="text-xl sm:text-2xl font-bold">{formatNumber(summary.avgArea)} m²</p>
           </div>
         </div>
 
@@ -450,7 +451,7 @@ function ComparePageContent() {
       {/* Save Dialog */}
       {showSaveDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <div className="bg-white rounded-lg p-5 sm:p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold mb-4">Save Comparison</h3>
             <input
               type="text"
@@ -459,7 +460,7 @@ function ComparePageContent() {
               placeholder="Enter comparison name"
               className="w-full px-4 py-2 border rounded-lg mb-4"
             />
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <button
                 onClick={handleSaveComparison}
                 disabled={saving}

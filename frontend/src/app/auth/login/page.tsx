@@ -61,16 +61,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         <div className="card">
-          <div className="p-8">
-            <h2 className="text-3xl font-bold text-center mb-8">
+          <div className="p-5 sm:p-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8">
               Вход в систему
             </h2>
 
             {step === 'phone' ? (
-              <form onSubmit={handleSendCode} className="space-y-6">
+              <form onSubmit={handleSendCode} className="space-y-5 sm:space-y-6">
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                     Номер телефона
@@ -105,7 +105,7 @@ export default function LoginPage() {
                 </button>
               </form>
             ) : (
-              <form onSubmit={handleVerifyCode} className="space-y-6">
+              <form onSubmit={handleVerifyCode} className="space-y-5 sm:space-y-6">
                 <div>
                   <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-2">
                     Код подтверждения
@@ -116,7 +116,7 @@ export default function LoginPage() {
                     placeholder="123456"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
-                    className="input text-center text-2xl tracking-widest"
+                    className="input text-center text-xl sm:text-2xl tracking-widest"
                     maxLength={6}
                     required
                   />

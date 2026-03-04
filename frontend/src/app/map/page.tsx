@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState, useEffect, useRef, useCallback } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, ChevronRight, X, List, MapPin, ArrowLeft } from 'lucide-react'
 import MapView from '@/components/map/MapView'
 import PropertyCard from '@/components/properties/PropertyCard'
 import { getProperties } from '@/lib/api/properties'
 import type { Property, PropertyFilters } from '@/lib/types'
 
-export default function MapPage() {
+function MapPageContent() {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [initialLoadCompleted, setInitialLoadCompleted] = useState(false)
@@ -33,6 +33,7 @@ export default function MapPage() {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const propertiesRef = useRef(properties)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   // Handle responsive check safely
   useEffect(() => {
@@ -41,6 +42,50 @@ export default function MapPage() {
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
+
+  useEffect(() => {
+    const parsedFilters: PropertyFilters = {}
+
+    const q = searchParams.get('q')
+    if (q) parsedFilters.q = q
+
+    const dealType = searchParams.get('dealType')
+    if (dealType) parsedFilters.dealType = dealType as PropertyFilters['dealType']
+
+    const propertyType = searchParams.get('propertyType')
+    if (propertyType) parsedFilters.propertyType = propertyType as PropertyFilters['propertyType']
+
+    const city = searchParams.get('city')
+    if (city) parsedFilters.city = city
+
+    const district = searchParams.get('district')
+    if (district) parsedFilters.district = district
+
+    const minPrice = searchParams.get('minPrice')
+    if (minPrice) parsedFilters.minPrice = Number(minPrice)
+
+    const maxPrice = searchParams.get('maxPrice')
+    if (maxPrice) parsedFilters.maxPrice = Number(maxPrice)
+
+    const minArea = searchParams.get('minArea')
+    if (minArea) parsedFilters.minArea = Number(minArea)
+
+    const maxArea = searchParams.get('maxArea')
+    if (maxArea) parsedFilters.maxArea = Number(maxArea)
+
+    const isVerified = searchParams.get('isVerified')
+    if (isVerified === 'true') parsedFilters.isVerified = true
+
+    const hasVideo = searchParams.get('hasVideo')
+    if (hasVideo === 'true') parsedFilters.hasVideo = true
+
+    const hasTour360 = searchParams.get('hasTour360')
+    if (hasTour360 === 'true') parsedFilters.hasTour360 = true
+
+    if (Object.keys(parsedFilters).length > 0) {
+      setFilters((prev) => (JSON.stringify(prev) === JSON.stringify(parsedFilters) ? prev : parsedFilters))
+    }
+  }, [searchParams])
 
   useEffect(() => {
     propertiesRef.current = properties
@@ -156,6 +201,30 @@ export default function MapPage() {
     setFilters({})
   }
 
+  const buildListQuery = () => {
+    const params = new URLSearchParams()
+
+    if (filters.q) params.set('q', String(filters.q))
+    if (filters.dealType) params.set('dealType', String(filters.dealType))
+    if (filters.propertyType) params.set('propertyType', String(filters.propertyType))
+    if (filters.city) params.set('city', String(filters.city))
+    if (filters.district) params.set('district', String(filters.district))
+    if (filters.minPrice) params.set('minPrice', String(filters.minPrice))
+    if (filters.maxPrice) params.set('maxPrice', String(filters.maxPrice))
+    if (filters.minArea) params.set('minArea', String(filters.minArea))
+    if (filters.maxArea) params.set('maxArea', String(filters.maxArea))
+    if (filters.isVerified) params.set('isVerified', 'true')
+    if (filters.hasVideo) params.set('hasVideo', 'true')
+    if (filters.hasTour360) params.set('hasTour360', 'true')
+
+    return params.toString()
+  }
+
+  const goToListPage = () => {
+    const query = buildListQuery()
+    router.push(query ? `/properties?${query}` : '/properties')
+  }
+
   // Trigger map resize when sidebars change
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -207,11 +276,11 @@ export default function MapPage() {
         }`}>
         <div className="flex items-center gap-2 md:gap-3 pointer-events-auto">
           <button
-            onClick={() => router.push('/')}
+            onClick={goToListPage}
             className="h-10 md:h-11 px-3 md:px-4 bg-white/90 backdrop-blur-md border border-white shadow-soft rounded-xl flex items-center gap-2 text-secondary-900 hover:bg-white transition-all group active:scale-95"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-            <span className="text-xs md:text-sm font-semibold tracking-tight hidden sm:inline">Назад</span>
+            <span className="text-xs md:text-sm font-semibold tracking-tight hidden sm:inline">К списку</span>
           </button>
 
           {!showFilterSidebar && (
@@ -261,7 +330,15 @@ export default function MapPage() {
           )}
         </div>
 
-        <div className="pointer-events-auto hidden md:block">
+        <div className="pointer-events-auto hidden md:flex items-center gap-2">
+          <button
+            onClick={goToListPage}
+            className="h-11 px-4 bg-white/90 backdrop-blur-md border border-white shadow-soft rounded-xl flex items-center gap-2 text-secondary-900 hover:bg-white transition-all active:scale-95"
+          >
+            <ChevronRight className="w-4 h-4" />
+            <span className="text-sm font-semibold tracking-tight">Страница списка</span>
+          </button>
+
           {!showListSidebar && (
             <button
               onClick={() => setShowListSidebar(true)}
@@ -284,7 +361,8 @@ export default function MapPage() {
             <div className="flex items-center gap-3">
               {isMobile && (
                 <button
-                  onClick={() => router.push('/')}
+                  onClick={() => setShowFilterSidebar(false)}
+                  aria-label="Закрыть фильтры"
                   className="p-1.5 -ml-2 hover:bg-secondary-100 rounded-lg transition-colors text-secondary-500"
                 >
                   <ArrowLeft className="w-5 h-5" />
@@ -461,7 +539,8 @@ export default function MapPage() {
             <div className="flex items-center gap-3">
               {isMobile && (
                 <button
-                  onClick={() => router.push('/')}
+                  onClick={() => setMobileView('map')}
+                  aria-label="Назад к карте"
                   className="p-1.5 -ml-2 hover:bg-secondary-100 rounded-lg transition-colors text-secondary-500"
                 >
                   <ArrowLeft className="w-5 h-5" />
@@ -572,5 +651,22 @@ export default function MapPage() {
         }
       `}</style>
     </div>
+  )
+}
+
+export default function MapPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-screen w-full bg-secondary-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-10 h-10 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-sm text-secondary-500">Загрузка карты...</p>
+          </div>
+        </div>
+      }
+    >
+      <MapPageContent />
+    </Suspense>
   )
 }

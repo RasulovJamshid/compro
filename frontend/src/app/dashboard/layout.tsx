@@ -8,7 +8,7 @@ export default function DashboardLayout({
 }) {
   return (
     <RoleGuard allowedRoles={['admin', 'moderator']}>
-      <div className="flex h-screen overflow-hidden bg-secondary-50">
+      <div className="flex flex-col lg:flex-row min-h-screen lg:h-screen overflow-hidden bg-secondary-50">
         <DashboardSidebar />
         <main className="flex-1 overflow-y-auto">
           {children}

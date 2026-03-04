@@ -63,59 +63,59 @@ export default function Testimonials() {
   }
 
   return (
-    <section className="py-24 bg-white relative overflow-hidden">
+    <section className="py-14 sm:py-16 lg:py-24 bg-white relative overflow-hidden">
       {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-primary-100 to-blue-100 rounded-full blur-3xl opacity-30"></div>
+      <div className="absolute top-0 right-0 w-64 h-64 sm:w-96 sm:h-96 bg-gradient-to-br from-primary-100 to-blue-100 rounded-full blur-3xl opacity-30"></div>
       
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-16">
+      <div className="container relative z-10">
+        <div className="text-center mb-10 sm:mb-16">
           <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-yellow-100 border border-yellow-200">
             <span className="text-sm font-medium text-yellow-700 flex items-center gap-2">
               <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
               Отзывы клиентов
             </span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-secondary-900">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 text-secondary-900">
             Что говорят наши клиенты
           </h2>
-          <p className="text-lg text-secondary-500 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-secondary-500 max-w-2xl mx-auto">
             Более 15,000 довольных клиентов уже нашли свои идеальные помещения
           </p>
         </div>
 
         <div className="max-w-6xl mx-auto">
           {/* Main testimonial with smooth transition */}
-          <div className="bg-gradient-to-br from-secondary-900 to-primary-900 rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden mb-8 transition-all duration-500">
+          <div className="bg-gradient-to-br from-secondary-900 to-primary-900 rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-12 shadow-2xl relative overflow-hidden mb-6 sm:mb-8 transition-all duration-500">
             {/* Quote icon */}
-            <Quote className="absolute top-8 right-8 w-24 h-24 text-white/10" />
+            <Quote className="absolute top-4 sm:top-8 right-4 sm:right-8 w-16 h-16 sm:w-24 sm:h-24 text-white/10" />
             
             <div className="relative z-10">
               {/* Rating */}
-              <div className="flex items-center gap-1 mb-6">
+              <div className="flex items-center gap-1 mb-4 sm:mb-6">
                 {[...Array(testimonials[activeIndex].rating)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                  <Star key={i} className="w-4 h-4 sm:w-5 sm:h-5 fill-yellow-400 text-yellow-400" />
                 ))}
               </div>
 
               {/* Text with fade animation */}
-              <p className="text-xl md:text-2xl text-white mb-8 leading-relaxed font-light min-h-[80px] transition-all duration-500">
+              <p className="text-base sm:text-xl md:text-2xl text-white mb-6 sm:mb-8 leading-relaxed font-light min-h-[64px] sm:min-h-[80px] transition-all duration-500">
                 "{testimonials[activeIndex].text}"
               </p>
 
               {/* Author section */}
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-xl shadow-lg">
                   {testimonials[activeIndex].avatar}
                 </div>
                 <div>
-                  <div className="text-white font-bold text-lg">{testimonials[activeIndex].name}</div>
+                  <div className="text-white font-bold text-base sm:text-lg">{testimonials[activeIndex].name}</div>
                   <div className="text-primary-200 text-sm">{testimonials[activeIndex].role}</div>
                   <div className="text-primary-300 text-xs">{testimonials[activeIndex].company}</div>
                 </div>
               </div>
 
               {/* Navigation arrows */}
-              <div className="flex gap-2 mt-8">
+              <div className="flex gap-2 mt-6 sm:mt-8">
                 <button
                   onClick={goToPrevious}
                   className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all"
@@ -135,7 +135,7 @@ export default function Testimonials() {
           </div>
 
           {/* Thumbnail navigation with progress indicator */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             {testimonials.map((testimonial, index) => (
               <button
                 key={index}
@@ -143,7 +143,7 @@ export default function Testimonials() {
                   setActiveIndex(index)
                   setAutoPlay(false)
                 }}
-                className={`p-4 rounded-xl border-2 transition-all duration-300 text-left relative overflow-hidden group ${
+                className={`p-3 sm:p-4 rounded-xl border-2 transition-all duration-300 text-left relative overflow-hidden group ${
                   activeIndex === index
                     ? 'border-primary-500 bg-primary-50 shadow-lg scale-105'
                     : 'border-secondary-200 bg-white hover:border-primary-300 hover:shadow-md hover:scale-102'
@@ -180,7 +180,7 @@ export default function Testimonials() {
           </div>
 
           {/* Auto-play indicator */}
-          <div className="flex justify-center gap-1 mt-8">
+          <div className="flex justify-center gap-1 mt-6 sm:mt-8">
             {testimonials.map((_, index) => (
               <div
                 key={index}

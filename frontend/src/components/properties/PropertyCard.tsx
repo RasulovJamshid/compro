@@ -37,7 +37,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   return (
     <Link href={`/properties/${property.id}`} className="group block bg-white rounded-2xl border border-secondary-200 overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
       {/* Image */}
-      <div className="relative h-56 bg-secondary-100 overflow-hidden">
+      <div className="relative h-48 sm:h-56 bg-secondary-100 overflow-hidden">
         {coverImage ? (
           <Image
             src={coverImage.watermarkedUrl || coverImage.url}
@@ -76,41 +76,41 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
         
         {/* Bottom Price inside image area for visual impact */}
-        <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+        <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 flex justify-between items-end">
           <div className="text-white">
-            <div className="text-2xl font-extrabold drop-shadow-lg tracking-tight">
-              {property.price.toLocaleString('ru-RU')} <span className="text-base font-semibold opacity-90 font-sans">сум{property.dealType === 'rent' ? '/мес' : ''}</span>
+            <div className="text-xl sm:text-2xl font-extrabold drop-shadow-lg tracking-tight">
+              {property.price.toLocaleString('ru-RU')} <span className="text-sm sm:text-base font-semibold opacity-90 font-sans">сум{property.dealType === 'rent' ? '/мес' : ''}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="p-5">
-        <div className="flex justify-between items-start mb-3">
+      <div className="p-4 sm:p-5">
+        <div className="flex justify-between items-start mb-2.5 sm:mb-3 gap-2">
           <div className="text-xs font-bold uppercase tracking-wider text-secondary-500 bg-secondary-100 px-2 py-1 rounded-md">
             {propertyTypeLabels[property.propertyType]}
           </div>
           {property.isVerified && (
-            <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md flex items-center gap-1">
+            <span className="text-[11px] sm:text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md flex items-center gap-1 whitespace-nowrap">
               <CheckCircle2 className="h-3.5 w-3.5" />
               Проверено
             </span>
           )}
         </div>
 
-        <h3 className="font-bold text-lg mb-3 line-clamp-2 text-secondary-900 group-hover:text-primary-600 transition-colors leading-snug h-[3.5rem]">
+        <h3 className="font-bold text-base sm:text-lg mb-2.5 sm:mb-3 line-clamp-2 text-secondary-900 group-hover:text-primary-600 transition-colors leading-snug min-h-[3rem] sm:h-[3.5rem]">
           {property.title}
         </h3>
 
-        <div className="space-y-4">
-          <div className="flex items-start gap-2.5 text-sm text-secondary-600">
+        <div className="space-y-3.5 sm:space-y-4">
+          <div className="flex items-start gap-2.5 text-xs sm:text-sm text-secondary-600">
             <MapPin className="h-4 w-4 text-secondary-400 flex-shrink-0 mt-0.5" />
             <span className="line-clamp-2 leading-relaxed">{property.address || `${property.district}, ${property.city}`}</span>
           </div>
 
-          <div className="flex items-center gap-4 pt-4 border-t border-secondary-100">
-            <div className="flex items-center gap-2 text-sm text-secondary-700 font-semibold bg-secondary-50 px-3 py-1.5 rounded-lg">
+          <div className="flex items-center gap-3 sm:gap-4 pt-3.5 sm:pt-4 border-t border-secondary-100">
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-secondary-700 font-semibold bg-secondary-50 px-2.5 sm:px-3 py-1.5 rounded-lg">
               <Square className="h-4 w-4 text-primary-500" />
               <span>{property.area} м²</span>
             </div>

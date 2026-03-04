@@ -46,14 +46,14 @@ export default function PricingPage() {
   const isPopular = (code: string) => code === 'premium_3m'
 
   return (
-    <div className="min-h-screen py-16 bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen py-12 sm:py-16 bg-gradient-to-b from-blue-50 to-white">
       <div className="container">
-        <div className="text-center mb-12">
-          <div className="flex justify-center mb-4">
-            <Crown className="w-16 h-16 text-yellow-500" />
+        <div className="text-center mb-8 sm:mb-12">
+          <div className="flex justify-center mb-3 sm:mb-4">
+            <Crown className="w-12 h-12 sm:w-16 sm:h-16 text-yellow-500" />
           </div>
-          <h1 className="text-4xl font-bold mb-4">Тарифные планы</h1>
-          <p className="text-xl text-gray-600">
+          <h1 className="text-2xl sm:text-4xl font-bold mb-3 sm:mb-4">Тарифные планы</h1>
+          <p className="text-base sm:text-xl text-gray-600">
             Выберите подходящий тариф для полного доступа
           </p>
         </div>
@@ -68,7 +68,7 @@ export default function PricingPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8 max-w-6xl mx-auto">
               {plans.map((plan) => {
                 const popular = isPopular(plan.code)
                 return (
@@ -86,11 +86,11 @@ export default function PricingPage() {
                       </div>
                     )}
                     
-                    <div className="p-8">
-                      <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                    <div className="p-5 sm:p-8">
+                      <h3 className="text-xl sm:text-2xl font-bold mb-2">{plan.name}</h3>
                       <p className="text-gray-600 text-sm mb-6">{plan.description}</p>
                       <div className="mb-6">
-                        <span className="text-4xl font-bold text-blue-600">{formatPrice(plan.price)}</span>
+                        <span className="text-3xl sm:text-4xl font-bold text-blue-600">{formatPrice(plan.price)}</span>
                         <span className="text-gray-600"> сум</span>
                         <p className="text-gray-500 mt-1">{plan.durationDays} дней</p>
                       </div>
@@ -118,9 +118,9 @@ export default function PricingPage() {
               })}
             </div>
 
-            <div className="mt-16 max-w-3xl mx-auto">
-              <div className="bg-white rounded-lg p-8 shadow">
-                <h3 className="text-xl font-bold mb-4">Преимущества Premium</h3>
+            <div className="mt-10 sm:mt-16 max-w-3xl mx-auto">
+              <div className="bg-white rounded-lg p-5 sm:p-8 shadow">
+                <h3 className="text-lg sm:text-xl font-bold mb-4">Преимущества Premium</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-start gap-3">
                     <Check className="w-5 h-5 text-green-500 mt-1" />
@@ -154,7 +154,7 @@ export default function PricingPage() {
               </div>
             </div>
 
-            <div className="mt-12 text-center text-gray-600">
+            <div className="mt-8 sm:mt-12 text-center text-gray-600">
               <p className="mb-2">Принимаем оплату через <span className="font-semibold">Payme</span> и <span className="font-semibold">Click</span></p>
               <p className="text-sm">Безопасные платежи с защитой данных</p>
             </div>

@@ -158,6 +158,7 @@ async function main() {
     const price = area * pricePerSqm;
     const status = faker.helpers.arrayElement([...statuses]);
 
+    const hasTour360 = faker.datatype.boolean();
     const property = await prisma.property.create({
       data: {
         title: `${propertyType === 'office' ? 'Офис' : propertyType === 'warehouse' ? 'Склад' : propertyType === 'shop' ? 'Торговое помещение' : propertyType === 'cafe_restaurant' ? 'Кафе/Ресторан' : propertyType === 'industrial' ? 'Производственное помещение' : propertyType === 'salon' ? 'Салон' : propertyType === 'recreation' ? 'Развлекательный центр' : 'Другое'} ${area}м² в ${city}`,
@@ -177,7 +178,8 @@ async function main() {
         totalFloors: faker.number.int({ min: 1, max: 25 }),
         hasParking: faker.datatype.boolean(),
         hasVideo: faker.datatype.boolean(),
-        hasTour360: faker.datatype.boolean(),
+        hasTour360,
+        tour360Url: hasTour360 ? 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg' : null,
         isVerified: status === 'active' ? true : false,
         isTop: faker.datatype.boolean({ probability: 0.2 }),
         status: status as any,
