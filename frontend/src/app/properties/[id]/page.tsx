@@ -27,6 +27,7 @@ export default function PropertyDetailPage() {
   const [isSaved, setIsSaved] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [tour360ModalOpen, setTour360ModalOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [headerVisible, setHeaderVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
@@ -60,6 +61,17 @@ export default function PropertyDetailPage() {
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [lastScrollY])
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (tour360ModalOpen) setTour360ModalOpen(false)
+        if (lightboxOpen) setLightboxOpen(false)
+      }
+    }
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [tour360ModalOpen, lightboxOpen])
 
   const fetchProperty = async (id: string) => {
     setLoading(true)
@@ -326,6 +338,28 @@ export default function PropertyDetailPage() {
                   ))}
                 </div>
               )}
+              
+              {/* Quick Action Buttons */}
+              <div className="p-3 pt-0 flex flex-wrap gap-2">
+                {property.hasTour360 && property.tour360Url && (
+                  <button
+                    onClick={() => setTour360ModalOpen(true)}
+                    className="flex-1 min-w-[200px] bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-4 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                  >
+                    <Box className="w-5 h-5" />
+                    360° Виртуальный тур
+                  </button>
+                )}
+                {property.hasVideo && property.videos && property.videos.length > 0 && (
+                  <button
+                    onClick={() => window.open(property.videos![0].url, '_blank')}
+                    className="flex-1 min-w-[200px] bg-gradient-to-r from-secondary-600 to-secondary-700 hover:from-secondary-700 hover:to-secondary-800 text-white px-4 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                  >
+                    <Video className="w-5 h-5" />
+                    Смотреть видео
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Lightbox Modal */}
@@ -419,22 +453,6 @@ export default function PropertyDetailPage() {
               <h2 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-secondary-900">{t('Property.description')}</h2>
               <p className="text-sm sm:text-base text-secondary-700 whitespace-pre-line leading-relaxed">{property.description}</p>
             </div>
-
-            {/* 360° Tour */}
-            {property.hasTour360 && property.tour360Url && (
-              <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
-                <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-secondary-900 flex items-center gap-2">
-                  <Box className="w-5 h-5 text-primary-600" />
-                  360° Виртуальный тур
-                </h2>
-                <div className="rounded-xl overflow-hidden">
-                  <Tour360Viewer 
-                    imageUrl={property.tour360Url} 
-                    title={property.title}
-                  />
-                </div>
-              </div>
-            )}
 
             {/* Building Details */}
             <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
@@ -905,6 +923,60 @@ export default function PropertyDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* 360° Tour Modal */}
+          {tour360ModalOpen && property.hasTour360 && property.tour360Url && (
+            <div className="fixed inset-0 bg-black/95 z-50 flex flex-col">
+              {/* Modal Header */}
+              <div className="bg-black/80 backdrop-blur-sm border-b border-white/10 px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Box className="w-6 h-6 text-primary-400" />
+                  <div>
+                    <h3 className="text-white font-bold text-lg">{property.title}</h3>
+                    <p className="text-secondary-300 text-sm">360° Виртуальный тур</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setTour360ModalOpen(false)}
+                  className="text-white hover:text-secondary-300 transition-colors p-2 hover:bg-white/10 rounded-lg"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              {/* Tour Viewer */}
+              <div className="flex-1 relative">
+                <Tour360Viewer 
+                  imageUrl={property.tour360Url} 
+                  title={property.title}
+                  tourConfig={property.virtualTourConfig}
+                />
+              </div>
+              
+              {/* Modal Footer */}
+              <div className="bg-black/80 backdrop-blur-sm border-t border-white/10 px-4 py-3">
+                <div className="flex items-center justify-between text-sm text-secondary-300">
+                  <div className="flex items-center gap-4">
+                    <span className="flex items-center gap-1.5">
+                      <MapPin className="w-4 h-4" />
+                      {property.city}, {property.district}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Ruler className="w-4 h-4" />
+                      {property.area} м²
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setTour360ModalOpen(false)}
+                    className="text-white hover:text-secondary-300 transition-colors flex items-center gap-2 px-4 py-2 hover:bg-white/10 rounded-lg"
+                  >
+                    <span>Закрыть</span>
+                    <kbd className="px-2 py-1 bg-white/10 rounded text-xs">ESC</kbd>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Sidebar */}
           <div className="space-y-3 sm:space-y-4">
