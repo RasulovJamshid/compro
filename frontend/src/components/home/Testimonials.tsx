@@ -2,45 +2,51 @@
 
 import { Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { useScrollAnimation } from '@/hooks/useScrollAnimation'
+import { useTranslations } from 'next-intl'
 
-const testimonials = [
+const getTestimonials = (t: any) => [
   {
-    name: 'Алишер Каримов',
-    role: 'Владелец сети кафе',
-    avatar: 'AK',
+    name: t('t1Name'),
+    role: t('t1Role'),
+    company: 'Coffee House',
+    text: t('t1Text'),
     rating: 5,
-    text: 'Нашли идеальное помещение для нашего нового кафе всего за неделю! Отличный сервис, проверенные объекты и удобный поиск.',
-    company: 'Coffee House Chain'
+    avatar: 'АК'
   },
   {
-    name: 'Дилноза Рахимова',
-    role: 'Директор логистической компании',
-    avatar: 'DR',
+    name: t('t2Name'),
+    role: t('t2Role'),
+    company: 'Logistics Pro',
+    text: t('t2Text'),
     rating: 5,
-    text: 'Искали склад больше месяца на других платформах. Здесь нашли за 3 дня! Все документы в порядке, владелец адекватный.',
-    company: 'Logistics Pro'
+    avatar: 'ДР'
   },
   {
-    name: 'Бахтиёр Усманов',
-    role: 'Основатель IT-компании',
-    avatar: 'BU',
+    name: t('t3Name'),
+    role: t('t3Role'),
+    company: 'Tech Solutions',
+    text: t('t3Text'),
     rating: 5,
-    text: 'Переезжали в новый офис. Платформа помогла сравнить десятки вариантов и выбрать лучший. Рекомендую всем!',
-    company: 'Tech Solutions'
+    avatar: 'БУ'
   },
   {
-    name: 'Нигора Азимова',
-    role: 'Владелица салона красоты',
-    avatar: 'NA',
+    name: t('t4Name'),
+    role: t('t4Role'),
+    company: 'Beauty Style',
+    text: t('t4Text'),
     rating: 5,
-    text: 'Очень удобно, что можно посмотреть 360-тур и фото до визита. Сэкономила кучу времени! Нашла помещение мечты.',
-    company: 'Beauty Studio'
-  },
+    avatar: 'НА'
+  }
 ]
 
 export default function Testimonials() {
+  const { ref, isVisible } = useScrollAnimation({ threshold: 0.2 })
   const [activeIndex, setActiveIndex] = useState(0)
   const [autoPlay, setAutoPlay] = useState(true)
+  const tTestimonials = useTranslations('Testimonials')
+  
+  const testimonials = getTestimonials(tTestimonials)
 
   useEffect(() => {
     if (!autoPlay) return
@@ -63,29 +69,31 @@ export default function Testimonials() {
   }
 
   return (
-    <section className="py-14 sm:py-16 lg:py-24 bg-white relative overflow-hidden">
+    <section ref={ref} className="py-16 sm:py-20 lg:py-28 bg-white relative overflow-hidden">
       {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-64 h-64 sm:w-96 sm:h-96 bg-gradient-to-br from-primary-100 to-blue-100 rounded-full blur-3xl opacity-30"></div>
+      <div className="absolute top-0 right-0 w-64 h-64 sm:w-80 sm:h-80 bg-gradient-to-br from-primary-100 to-accent-100 rounded-full blur-[100px] opacity-25 pointer-events-none"></div>
       
       <div className="container relative z-10">
         <div className="text-center mb-10 sm:mb-16">
-          <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-yellow-100 border border-yellow-200">
-            <span className="text-sm font-medium text-yellow-700 flex items-center gap-2">
-              <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-              Отзывы клиентов
-            </span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 text-secondary-900">
-            Что говорят наши клиенты
+          <p className="text-sm font-bold text-primary-600 uppercase tracking-wider mb-3">{tTestimonials('subtitle')}</p>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3 sm:mb-4 text-secondary-900">
+            {tTestimonials('title')}
           </h2>
           <p className="text-base sm:text-lg text-secondary-500 max-w-2xl mx-auto">
-            Более 15,000 довольных клиентов уже нашли свои идеальные помещения
+            {tTestimonials('desc')}
           </p>
         </div>
 
         <div className="max-w-6xl mx-auto">
           {/* Main testimonial with smooth transition */}
-          <div className="bg-gradient-to-br from-secondary-900 to-primary-900 rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-12 shadow-2xl relative overflow-hidden mb-6 sm:mb-8 transition-all duration-500">
+          <div 
+            className="bg-gradient-to-br from-secondary-950 via-primary-950 to-secondary-900 rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-12 shadow-elevated relative overflow-hidden mb-6 sm:mb-8 transition-all duration-500"
+            style={{
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+              transition: 'all 0.6s ease-out'
+            }}
+          >
             {/* Quote icon */}
             <Quote className="absolute top-4 sm:top-8 right-4 sm:right-8 w-16 h-16 sm:w-24 sm:h-24 text-white/10" />
             
@@ -104,13 +112,13 @@ export default function Testimonials() {
 
               {/* Author section */}
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-xl shadow-lg">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-lg">
                   {testimonials[activeIndex].avatar}
                 </div>
                 <div>
                   <div className="text-white font-bold text-base sm:text-lg">{testimonials[activeIndex].name}</div>
-                  <div className="text-primary-200 text-sm">{testimonials[activeIndex].role}</div>
-                  <div className="text-primary-300 text-xs">{testimonials[activeIndex].company}</div>
+                  <div className="text-primary-200/80 text-sm">{testimonials[activeIndex].role}</div>
+                  <div className="text-primary-300/60 text-xs">{testimonials[activeIndex].company}</div>
                 </div>
               </div>
 
@@ -118,15 +126,15 @@ export default function Testimonials() {
               <div className="flex gap-2 mt-6 sm:mt-8">
                 <button
                   onClick={goToPrevious}
-                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all"
-                  title="Предыдущий"
+                  className="btn btn-icon bg-white/10 hover:bg-white/20 text-white !rounded-full"
+                  title={tTestimonials('prev')}
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <button
                   onClick={goToNext}
-                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all"
-                  title="Следующий"
+                  className="btn btn-icon bg-white/10 hover:bg-white/20 text-white !rounded-full"
+                  title={tTestimonials('next')}
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -143,10 +151,10 @@ export default function Testimonials() {
                   setActiveIndex(index)
                   setAutoPlay(false)
                 }}
-                className={`p-3 sm:p-4 rounded-xl border-2 transition-all duration-300 text-left relative overflow-hidden group ${
+                className={`p-3 sm:p-4 rounded-xl border transition-all duration-300 text-left relative overflow-hidden group ${
                   activeIndex === index
-                    ? 'border-primary-500 bg-primary-50 shadow-lg scale-105'
-                    : 'border-secondary-200 bg-white hover:border-primary-300 hover:shadow-md hover:scale-102'
+                    ? 'border-primary-200 bg-primary-50/60 shadow-elevated'
+                    : 'border-secondary-100/80 bg-white hover:border-primary-200 shadow-card hover:shadow-card-hover'
                 }`}
               >
                 <div className="flex items-center gap-3 mb-2">

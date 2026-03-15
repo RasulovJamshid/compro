@@ -1,12 +1,9 @@
 import type { Metadata } from 'next'
 import Hero from '@/components/home/Hero'
-import Categories from '@/components/home/Categories'
-import MarketInsights from '@/components/home/MarketInsights'
-import CTA from '@/components/home/CTA'
 import PropertyList from '@/components/properties/PropertyList'
 import { generateStructuredData } from '@/lib/utils/seo'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Plus } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Коммерческая недвижимость в Ташкенте | Аренда и продажа офисов, складов, магазинов',
@@ -41,50 +38,46 @@ export default function Home() {
         }}
       />
 
-      {/* Hero with Search - LoopNet Style */}
+      {/* Hero with Search */}
       <Hero />
 
-      {/* Featured Listings */}
-      <section className="py-14 sm:py-16 lg:py-20 bg-white">
+      {/* Featured Listings — content first */}
+      <section className="py-8 sm:py-12 bg-white">
         <div className="container">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4">
-            <div>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-secondary-900 mb-2 sm:mb-3">
-                Рекомендуемые объекты
-              </h2>
-              <p className="text-base sm:text-lg md:text-xl text-secondary-600">
-                Новые и популярные предложения для вашего бизнеса
-              </p>
-            </div>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg sm:text-xl font-bold text-secondary-900">
+              Новые объекты
+            </h2>
             <Link
               href="/properties"
-              className="hidden md:inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-semibold text-base lg:text-lg transition-colors"
+              className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors flex items-center gap-1"
             >
-              Смотреть все объекты
-              <ArrowRight className="w-5 h-5" />
+              Все
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
           <PropertyList />
-          <div className="mt-6 sm:mt-10 text-center md:hidden">
-            <Link
-              href="/properties"
-              className="inline-flex items-center gap-2 px-5 py-3.5 sm:px-6 sm:py-4 bg-secondary-50 border border-secondary-200 rounded-xl font-bold text-secondary-900 hover:bg-secondary-100 hover:border-secondary-300 transition-all w-full justify-center text-base sm:text-lg"
-            >
-              Смотреть все объекты
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
         </div>
       </section>
 
-      {/* Property Types with Images */}
-      <Categories />
-
-      {/* Market Insights & Statistics */}
-      <MarketInsights />
-
-      {/* CTA Section */}
-      <CTA />
+      {/* Simple CTA — one block, no fluff */}
+      <section className="py-10 sm:py-14 bg-secondary-50 border-t border-secondary-100">
+        <div className="container text-center max-w-lg">
+          <h2 className="text-xl sm:text-2xl font-bold text-secondary-900 mb-3">
+            Есть объект для размещения?
+          </h2>
+          <p className="text-sm text-secondary-500 mb-5">
+            Разместите объявление бесплатно и получайте заявки от арендаторов и покупателей.
+          </p>
+          <Link
+            href="/announcements/entity"
+            className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm px-6 py-3 rounded-xl transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Добавить объявление
+          </Link>
+        </div>
+      </section>
     </>
   )
 }

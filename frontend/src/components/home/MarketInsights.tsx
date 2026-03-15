@@ -1,98 +1,76 @@
 'use client'
 
-import { TrendingUp, Building2, MousePointerClick, Users } from 'lucide-react'
-import Image from 'next/image'
+import { TrendingUp, Building2, Users, Search } from 'lucide-react'
+import { useScrollAnimation } from '@/hooks/useScrollAnimation'
+import { useTranslations } from 'next-intl'
 
-const features = [
+const getInsights = (t: any) => [
   {
     icon: Users,
-    title: 'Самая большая аудитория',
-    description: 'Более 100,000 уникальных посетителей ежемесячно ищут коммерческую недвижимость на нашей платформе.'
+    title: t('f1Title'),
+    description: t('f1Desc'),
   },
   {
     icon: Building2,
-    title: 'Максимальный охват рынка',
-    description: 'Тысячи актуальных предложений от собственников, застройщиков и ведущих агентств недвижимости.'
-  },
-  {
-    icon: MousePointerClick,
-    title: 'Эффективные инструменты',
-    description: 'Продвинутая аналитика, умный поиск и инструменты продвижения для быстрого заключения сделок.'
+    title: t('f2Title'),
+    description: t('f2Desc'),
   },
   {
     icon: TrendingUp,
-    title: 'Высокая конверсия',
-    description: 'Целевой трафик B2B сегмента обеспечивает качественные лиды и реальные просмотры.'
+    title: t('f3Title'),
+    description: t('f3Desc'),
+  },
+  {
+    icon: Search,
+    title: t('f4Title'),
+    description: t('f4Desc'),
   }
 ]
 
 export default function MarketInsights() {
+  const { ref, isVisible } = useScrollAnimation({ threshold: 0.15 })
+  const tMarket = useTranslations('MarketInsights')
+
+  const insights = getInsights(tMarket)
+
   return (
-    <section className="py-14 sm:py-16 lg:py-20 bg-secondary-50">
-      <div className="container">
+    <section ref={ref} className="py-16 sm:py-24 bg-white">
+      <div className="container max-w-5xl">
         
-        <div className="flex flex-col lg:flex-row gap-8 sm:gap-12 items-center">
-          {/* Content */}
-          <div className="lg:w-1/2">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-secondary-900 mb-4 sm:mb-6 leading-tight">
-              Ведущая платформа <br />коммерческой недвижимости
-            </h2>
-            <p className="text-base sm:text-lg md:text-xl text-secondary-600 mb-6 sm:mb-10">
-              Compro.uz — это профессиональный инструмент для поиска, аренды и продажи коммерческой недвижимости в Узбекистане. Мы объединяем арендаторов, покупателей и владельцев бизнеса.
-            </p>
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-secondary-900 mb-4 tracking-tight">
+            {tMarket('titlePart1')} {tMarket('titlePart2')}
+          </h2>
+          <p className="text-base sm:text-lg text-secondary-500 max-w-2xl mx-auto">
+            {tMarket('desc1')}
+          </p>
+        </div>
 
-            <div className="grid sm:grid-cols-2 gap-5 sm:gap-8">
-              {features.map((feature, index) => {
-                const Icon = feature.icon
-                return (
-                  <div key={index}>
-                    <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-secondary-200 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <Icon className="w-6 h-6 text-primary-600" />
-                    </div>
-                    <h3 className="text-lg sm:text-xl font-bold text-secondary-900 mb-2">
-                      {feature.title}
-                    </h3>
-                    <p className="text-sm sm:text-base text-secondary-600 leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Image/Visual */}
-          <div className="lg:w-1/2 relative">
-            <div className="relative h-[420px] sm:h-[520px] lg:h-[600px] w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl">
-              <Image
-                src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop"
-                alt="Современный бизнес центр"
-                fill
-                className="object-cover hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              
-              {/* Floating Stats Card */}
-              <div className="absolute bottom-4 sm:bottom-8 left-4 sm:left-8 right-4 sm:right-8 bg-white/95 backdrop-blur-md rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl border border-white/20 transform hover:-translate-y-2 transition-transform duration-300">
-                <div className="flex items-center justify-around">
-                  <div className="text-center">
-                    <div className="text-xl sm:text-3xl md:text-4xl font-extrabold text-secondary-900">2.5K+</div>
-                    <div className="text-[10px] sm:text-sm font-semibold text-secondary-600 mt-1 uppercase tracking-wider">Объектов</div>
-                  </div>
-                  <div className="w-px h-12 sm:h-16 bg-secondary-200"></div>
-                  <div className="text-center">
-                    <div className="text-xl sm:text-3xl md:text-4xl font-extrabold text-secondary-900">100K+</div>
-                    <div className="text-[10px] sm:text-sm font-semibold text-secondary-600 mt-1 uppercase tracking-wider">Визитов/мес</div>
-                  </div>
-                  <div className="w-px h-12 sm:h-16 bg-secondary-200"></div>
-                  <div className="text-center">
-                    <div className="text-xl sm:text-3xl md:text-4xl font-extrabold text-primary-600">#1</div>
-                    <div className="text-[10px] sm:text-sm font-semibold text-secondary-600 mt-1 uppercase tracking-wider">Платформа</div>
-                  </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+          {insights.map((feature, index) => {
+            const Icon = feature.icon
+            return (
+              <div 
+                key={index} 
+                className="group p-6 bg-secondary-50 card card-hover text-center flex flex-col items-center !border-secondary-100"
+                style={{
+                  opacity: isVisible ? 1 : 0,
+                  transform: isVisible ? 'translateY(0)' : 'translateY(15px)',
+                  transition: `all 0.5s ease-out ${index * 100}ms`
+                }}
+              >
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm group-hover:text-primary-600 transition-colors duration-300 text-secondary-400">
+                  <Icon className="w-6 h-6" />
                 </div>
+                <h3 className="text-base font-bold text-secondary-900 mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-sm text-secondary-500">
+                  {feature.description}
+                </p>
               </div>
-            </div>
-          </div>
+            )
+          })}
         </div>
 
       </div>

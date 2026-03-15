@@ -71,7 +71,7 @@ export default function ProfilePage() {
               </p>
               <button
                 onClick={() => router.push('/pricing')}
-                className="btn btn-primary"
+                className="btn btn-md btn-primary"
               >
                 Выбрать тариф
               </button>
@@ -85,13 +85,13 @@ export default function ProfilePage() {
             <div className="space-y-3">
               <button
                 onClick={() => router.push('/saved')}
-                className="w-full btn btn-outline text-left"
+                className="w-full btn btn-md btn-outline justify-start"
               >
                 Сохраненные объекты
               </button>
               <button
                 onClick={handleLogout}
-                className="w-full btn btn-secondary text-left"
+                className="w-full btn btn-md btn-secondary justify-start"
               >
                 Выйти из аккаунта
               </button>

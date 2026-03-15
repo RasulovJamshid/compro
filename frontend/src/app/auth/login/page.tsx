@@ -2,11 +2,13 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { sendVerificationCode, verifyCode } from '@/lib/api/auth'
 import { useAuthStore } from '@/lib/store/authStore'
 import { formatPhoneNumber, unformatPhoneNumber, isValidPhoneNumber } from '@/lib/utils/phoneMask'
 
 export default function LoginPage() {
+  const t = useTranslations('Auth')
   const router = useRouter()
   const { setUser } = useAuthStore()
   const [step, setStep] = useState<'phone' | 'code'>('phone')
@@ -26,7 +28,7 @@ export default function LoginPage() {
     setError('')
     
     if (!isValidPhoneNumber(phone)) {
-      setError('Неверный формат номера телефона')
+      setError(t('invalidPhone'))
       return
     }
     
@@ -37,7 +39,7 @@ export default function LoginPage() {
       await sendVerificationCode(cleanPhone)
       setStep('code')
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Ошибка отправки кода')
+      setError(err.response?.data?.message || t('sendCodeError'))
     } finally {
       setLoading(false)
     }
@@ -54,7 +56,7 @@ export default function LoginPage() {
       setUser(response.user)
       router.push('/')
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Неверный код')
+      setError(err.response?.data?.message || t('invalidCode'))
     } finally {
       setLoading(false)
     }
@@ -99,7 +101,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full btn btn-primary"
+                  className="w-full btn btn-lg btn-primary"
                 >
                   {loading ? 'Отправка...' : 'Получить код'}
                 </button>
@@ -116,7 +118,7 @@ export default function LoginPage() {
                     placeholder="123456"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
-                    className="input text-center text-xl sm:text-2xl tracking-widest"
+                    className="input input-lg text-center text-xl sm:text-2xl tracking-widest"
                     maxLength={6}
                     required
                   />
@@ -134,7 +136,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full btn btn-primary"
+                  className="w-full btn btn-lg btn-primary"
                 >
                   {loading ? 'Проверка...' : 'Войти'}
                 </button>
@@ -146,7 +148,7 @@ export default function LoginPage() {
                     setCode('')
                     setError('')
                   }}
-                  className="w-full btn btn-secondary"
+                  className="w-full btn btn-lg btn-secondary"
                 >
                   Изменить номер
                 </button>

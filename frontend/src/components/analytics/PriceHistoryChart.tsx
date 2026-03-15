@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 interface PriceHistoryChartProps {
   data: Array<{
     price: number;
@@ -11,6 +13,8 @@ interface PriceHistoryChartProps {
 }
 
 export default function PriceHistoryChart({ data }: PriceHistoryChartProps) {
+  const tAnalytics = useTranslations('Analytics');
+  const tProperty = useTranslations('Property');
   const sortedData = [...data].sort((a, b) => 
     new Date(a.changedAt).getTime() - new Date(b.changedAt).getTime()
   );
@@ -78,7 +82,7 @@ export default function PriceHistoryChart({ data }: PriceHistoryChartProps) {
                     className="cursor-pointer hover:r-6 transition-all"
                   />
                   <title>
-                    {new Date(item.changedAt).toLocaleDateString()}: {item.price.toLocaleString()} сум
+                    {new Date(item.changedAt).toLocaleDateString()}: {item.price.toLocaleString()} {tProperty('currency')}
                     {item.reason && `\n${item.reason}`}
                   </title>
                 </g>
@@ -109,7 +113,7 @@ export default function PriceHistoryChart({ data }: PriceHistoryChartProps) {
             <>
               <span className="text-red-600">↑</span>
               <span className="text-sm text-gray-600">
-                Price increased by{' '}
+                {tAnalytics('priceIncreased')}{' '}
                 {(
                   ((sortedData[sortedData.length - 1].price - sortedData[0].price) /
                     sortedData[0].price) *
@@ -122,7 +126,7 @@ export default function PriceHistoryChart({ data }: PriceHistoryChartProps) {
             <>
               <span className="text-green-600">↓</span>
               <span className="text-sm text-gray-600">
-                Price decreased by{' '}
+                {tAnalytics('priceDecreased')}{' '}
                 {(
                   ((sortedData[0].price - sortedData[sortedData.length - 1].price) /
                     sortedData[0].price) *

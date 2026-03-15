@@ -69,7 +69,7 @@ export default function SavedPropertiesPage() {
             </p>
             <button
               onClick={() => router.push('/properties')}
-              className="btn btn-primary"
+              className="btn btn-lg btn-primary"
             >
               Перейти к объектам
             </button>

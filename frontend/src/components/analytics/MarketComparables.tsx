@@ -5,11 +5,15 @@ import { analyticsApi, MarketComparables as ComparablesData } from '@/lib/api/an
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import Link from 'next/link';
 
+import { useTranslations } from 'next-intl';
+
 interface MarketComparablesProps {
   propertyId: string;
 }
 
 export default function MarketComparables({ propertyId }: MarketComparablesProps) {
+  const tAnalytics = useTranslations('Analytics');
+  const tProperty = useTranslations('Property');
   const [data, setData] = useState<ComparablesData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,7 +36,7 @@ export default function MarketComparables({ propertyId }: MarketComparablesProps
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow-sm p-6">
-        <h3 className="text-lg font-semibold mb-4">Market Comparables</h3>
+        <h3 className="text-lg font-semibold mb-4">{tAnalytics('marketComparables')}</h3>
         <div className="flex items-center justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
@@ -46,22 +50,22 @@ export default function MarketComparables({ propertyId }: MarketComparablesProps
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
-      <h3 className="text-lg font-semibold mb-4">Market Comparables</h3>
+      <h3 className="text-lg font-semibold mb-4">{tAnalytics('marketComparables')}</h3>
 
       {/* Market Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600">Market Listings</p>
+          <p className="text-sm text-gray-600">{tAnalytics('marketListings')}</p>
           <p className="text-2xl font-bold">{marketStats.totalListings}</p>
         </div>
         <div className="p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600">Avg. Price</p>
+          <p className="text-sm text-gray-600">{tAnalytics('avgPrice')}</p>
           <p className="text-2xl font-bold">
-            {marketStats.avgPrice.toLocaleString()} сум
+            {marketStats.avgPrice.toLocaleString()} {tProperty('currency')}
           </p>
         </div>
         <div className="p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600">Price Position</p>
+          <p className="text-sm text-gray-600">{tAnalytics('pricePosition')}</p>
           <div className="flex items-center gap-2">
             {marketStats.pricePosition === 'above' && (
               <>
@@ -82,7 +86,7 @@ export default function MarketComparables({ propertyId }: MarketComparablesProps
             {marketStats.pricePosition === 'average' && (
               <>
                 <Minus className="w-5 h-5 text-gray-600" />
-                <span className="text-lg font-bold text-gray-600">Average</span>
+                <span className="text-lg font-bold text-gray-600">{tAnalytics('average')}</span>
               </>
             )}
           </div>
@@ -112,17 +116,17 @@ export default function MarketComparables({ propertyId }: MarketComparablesProps
                 <div className="space-y-1 text-sm text-gray-600">
                   <p>{property.area} m²</p>
                   <p className="font-semibold text-gray-900">
-                    {property.price.toLocaleString()} сум
+                    {property.price.toLocaleString()} {tProperty('currency')}
                   </p>
                   {property.pricePerSqm && (
                     <p className="text-xs">
-                      {property.pricePerSqm.toLocaleString()} сум/m²
+                      {property.pricePerSqm.toLocaleString()} {tProperty('currency')}/m²
                     </p>
                   )}
                   <p className="text-xs">{property.district}</p>
                   {property.buildingClass && (
                     <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                      Class {property.buildingClass}
+                      {tAnalytics('class')} {property.buildingClass}
                     </span>
                   )}
                 </div>
@@ -132,7 +136,7 @@ export default function MarketComparables({ propertyId }: MarketComparablesProps
         </div>
       ) : (
         <p className="text-center text-gray-500 py-8">
-          No comparable properties found
+          {tAnalytics('noComparables')}
         </p>
       )}
     </div>

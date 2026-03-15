@@ -195,7 +195,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading || !isStepValid()}
-                className="w-full py-3 px-4 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full btn btn-lg btn-primary"
               >
                 {loading ? 'Отправка...' : 'Получить код'}
                 <ArrowRight className="w-5 h-5" />
@@ -207,35 +207,34 @@ export default function RegisterPage() {
             <form onSubmit={handleVerifyCode} className="space-y-5">
               <div>
                 <label htmlFor="code" className="block text-sm font-medium text-secondary-700 mb-2 text-center">
-                  Код подтверждения
+                  Код из SMS
                 </label>
                 <input
                   id="code"
                   type="text"
-                  placeholder="000000"
+                  maxLength={6}
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-4 py-4 border-2 border-secondary-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 text-center text-3xl tracking-[0.5em] font-bold transition-all"
-                  maxLength={6}
-                  required
-                  autoFocus
+                  className="input input-lg text-center text-3xl tracking-[0.5em] font-bold"
+                  placeholder="000000"
+                  disabled={loading}
                 />
                 <p className="mt-2 text-sm text-secondary-500 text-center">
-                  Введите 6-значный код из SMS
+                  Отправлен на номер {phone}
                 </p>
               </div>
 
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-sm flex items-start gap-2">
                   <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>{error}</span>
+                  <p>{error}</p>
                 </div>
               )}
 
               <button
                 type="submit"
                 disabled={loading || code.length !== 6}
-                className="w-full py-3 px-4 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full btn btn-lg btn-primary"
               >
                 {loading ? 'Проверка...' : 'Завершить регистрацию'}
                 <CheckCircle className="w-5 h-5" />
@@ -248,7 +247,7 @@ export default function RegisterPage() {
                   setCode('')
                   setError('')
                 }}
-                className="w-full py-3 px-4 border-2 border-secondary-300 text-secondary-700 font-semibold rounded-xl hover:bg-secondary-50 transition-all"
+                className="w-full btn btn-lg btn-outline"
               >
                 Изменить номер
               </button>

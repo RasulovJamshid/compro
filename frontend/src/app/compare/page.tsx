@@ -103,7 +103,7 @@ function ComparePageContent() {
 
   const formatPrice = (price?: number) => {
     if (!price) return 'N/A';
-    return `${formatNumber(price)} сум`;
+    return `${formatNumber(price)} UZS`;
   };
 
   const getBestValue = (values: (number | null | undefined)[], higher = false) => {
@@ -161,7 +161,7 @@ function ComparePageContent() {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowSaveDialog(true)}
-                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm sm:text-base font-medium"
+                className="btn btn-sm btn-primary"
               >
                 <Save className="w-4 h-4" />
                 <span className="hidden sm:inline">{t('saveComparison')}</span>
@@ -169,7 +169,7 @@ function ComparePageContent() {
               </button>
               <button
                 onClick={() => window.print()}
-                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 border border-secondary-300 rounded-lg hover:bg-secondary-50 transition-colors text-sm sm:text-base font-medium text-secondary-700"
+                className="btn btn-sm btn-outline"
               >
                 <Download className="w-4 h-4" />
                 <span className="hidden sm:inline">{t('export')}</span>
@@ -216,7 +216,7 @@ function ComparePageContent() {
                       <button
                         onClick={() => removeProperty(property.id)}
                         className="absolute top-2 right-2 p-1 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                        title="Remove"
+                        title={t('Breadcrumbs.remove')}
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -466,13 +466,13 @@ function ComparePageContent() {
               <button
                 onClick={handleSaveComparison}
                 disabled={saving}
-                className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 font-medium transition-colors"
+                className="flex-1 btn btn-md btn-primary"
               >
                 {saving ? t('saving') : tCommon('save')}
               </button>
               <button
                 onClick={() => setShowSaveDialog(false)}
-                className="flex-1 px-4 py-2.5 border border-secondary-300 rounded-lg hover:bg-secondary-50 font-medium transition-colors text-secondary-700"
+                className="flex-1 btn btn-md btn-outline"
               >
                 {tCommon('cancel')}
               </button>

@@ -1,34 +1,35 @@
 'use client'
 
-import { Search, FileCheck, Key, Sparkles } from 'lucide-react'
+import { Search, FileCheck, Phone, Sparkles } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 
-const steps = [
+const getSteps = (t: any) => [
   {
     icon: Search,
-    title: 'Найдите объект',
-    description: 'Используйте удобные фильтры для поиска идеального помещения. Просматривайте фото, видео и 360-туры.',
+    title: t('s1Title'),
+    description: t('s1Desc'),
     color: 'from-blue-500 to-blue-600',
     number: '01'
   },
   {
     icon: FileCheck,
-    title: 'Проверьте документы',
-    description: 'Все объекты проходят проверку. Получите доступ к документам и юридической информации.',
-    color: 'from-green-500 to-green-600',
+    title: t('s2Title'),
+    description: t('s2Desc'),
+    color: 'from-emerald-500 to-emerald-600',
     number: '02'
   },
   {
-    icon: Key,
-    title: 'Свяжитесь с владельцем',
-    description: 'Напрямую связывайтесь с собственником или агентом. Договаривайтесь о просмотре и условиях.',
-    color: 'from-purple-500 to-purple-600',
+    icon: Phone,
+    title: t('s3Title'),
+    description: t('s3Desc'),
+    color: 'from-violet-500 to-violet-600',
     number: '03'
   },
   {
     icon: Sparkles,
-    title: 'Заключите сделку',
-    description: 'Используйте наши шаблоны договоров и рекомендации для безопасной сделки.',
+    title: t('s4Title'),
+    description: t('s4Desc'),
     color: 'from-orange-500 to-orange-600',
     number: '04'
   },
@@ -36,23 +37,23 @@ const steps = [
 
 export default function HowItWorks() {
   const [activeStep, setActiveStep] = useState(0)
+  const tHowItWorks = useTranslations('HowItWorks')
+  const steps = getSteps(tHowItWorks)
 
   return (
-    <section className="py-14 sm:py-16 lg:py-24 bg-gradient-to-b from-secondary-50 to-white relative overflow-hidden">
+    <section className="py-16 sm:py-20 lg:py-28 bg-gradient-to-b from-secondary-50 to-white relative overflow-hidden">
       {/* Decorative elements */}
-      <div className="absolute top-0 left-0 w-64 h-64 sm:w-96 sm:h-96 bg-primary-100 rounded-full blur-3xl opacity-20"></div>
-      <div className="absolute bottom-0 right-0 w-64 h-64 sm:w-96 sm:h-96 bg-blue-100 rounded-full blur-3xl opacity-20"></div>
+      <div className="absolute top-0 left-0 w-64 h-64 sm:w-80 sm:h-80 bg-primary-200 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
+      <div className="absolute bottom-0 right-0 w-64 h-64 sm:w-80 sm:h-80 bg-accent-200 rounded-full blur-[100px] opacity-15 pointer-events-none"></div>
       
       <div className="container relative z-10">
         <div className="text-center mb-10 sm:mb-16">
-          <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-primary-100 border border-primary-200">
-            <span className="text-sm font-medium text-primary-700">Простой процесс</span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 text-secondary-900">
-            Как это работает?
+          <p className="text-sm font-bold text-primary-600 uppercase tracking-wider mb-3">{tHowItWorks('subtitle')}</p>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3 sm:mb-4 text-secondary-900">
+            {tHowItWorks('title')}
           </h2>
           <p className="text-base sm:text-lg text-secondary-500 max-w-2xl mx-auto">
-            Четыре простых шага к вашему идеальному коммерческому помещению
+            {tHowItWorks('desc')}
           </p>
         </div>
 
@@ -69,10 +70,10 @@ export default function HowItWorks() {
                 {/* Step card with enhanced interactivity */}
                 <button
                   onClick={() => setActiveStep(index)}
-                  className={`group w-full bg-white rounded-2xl p-5 sm:p-8 border-2 transition-all duration-300 text-left ${
+                  className={`group w-full bg-white rounded-2xl p-5 sm:p-7 border transition-all duration-300 text-left ${
                     isActive
-                      ? 'border-primary-500 shadow-xl scale-105 bg-primary-50'
-                      : 'border-secondary-100 hover:border-primary-200 hover:shadow-lg'
+                      ? 'border-primary-200 shadow-elevated bg-primary-50/60'
+                      : 'border-secondary-100/80 shadow-card hover:shadow-card-hover hover:border-primary-200'
                   }`}
                 >
                   {/* Step number badge */}
@@ -98,7 +99,7 @@ export default function HowItWorks() {
                     <div className="mt-4 pt-4 border-t border-primary-200">
                       <div className="text-xs font-semibold text-primary-700 flex items-center gap-2">
                         <div className="w-2 h-2 bg-primary-600 rounded-full animate-pulse"></div>
-                        Выбранный шаг
+                        {tHowItWorks('selectedStep')}
                       </div>
                     </div>
                   )}
@@ -136,9 +137,9 @@ export default function HowItWorks() {
         <div className="text-center mt-10 sm:mt-16">
           <a
             href="/properties"
-            className="inline-flex items-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-500/40 hover:-translate-y-0.5 active:translate-y-0 active:shadow-lg"
+            className="btn btn-lg btn-primary"
           >
-            Начать поиск
+            {tHowItWorks('btn')}
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>

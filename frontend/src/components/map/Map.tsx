@@ -56,8 +56,7 @@ function MapEvents({ onBoundsChange }: { onBoundsChange?: (bounds: L.LatLngBound
 
 function Map({ properties, center, zoom, onMarkerClick, onBoundsChange, selectedPropertyId }: MapProps) {
   const formatPrice = (price: number) => {
-    // Match visual like: "UZS 2 810 205"
-    return 'UZS ' + price.toLocaleString('ru-RU')
+    return price.toLocaleString('ru-RU') + ' UZS'
   }
 
   const createPriceIcon = (price: number, isSelected: boolean = false) => {
@@ -65,44 +64,60 @@ function Map({ properties, center, zoom, onMarkerClick, onBoundsChange, selected
       ? (price / 1000000).toFixed(1) + ' млн'
       : (price / 1000).toFixed(0) + ' т.'
     
-    const bgColor = isSelected ? '#1d4ed8' : '#FFFFFF'
-    const textColor = isSelected ? '#FFFFFF' : '#1e293b'
-    const borderColor = isSelected ? '#FFFFFF' : '#e2e8f0'
-    const boxShadow = isSelected
-      ? '0 10px 15px -3px rgba(29, 78, 216, 0.3), 0 4px 6px -2px rgba(29, 78, 216, 0.1)'
-      : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+    // Modern colors and styling
+    const bgColor = isSelected ? '#2563b5' : '#ffffff' // primary-600 vs white
+    const textColor = isSelected ? '#ffffff' : '#0f172a' // white vs secondary-900
+    const borderColor = isSelected ? '#1a4a92' : '#cbd5e1' // primary-700 vs secondary-300
+    const ringColor = isSelected ? 'rgba(37, 99, 181, 0.3)' : 'rgba(0, 0, 0, 0.05)'
+    
+    const scale = isSelected ? 'scale(1.05)' : 'scale(1)'
+    const zIndex = isSelected ? '1000' : '500'
 
     return L.divIcon({
       className: 'custom-price-marker',
       html: `
-        <div style="transform: translate(-50%, -50%);">
+        <div style="
+          transform: translate(-50%, -100%) ${scale};
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          position: absolute;
+          z-index: ${zIndex};
+        ">
           <div style="
             background-color: ${bgColor};
             color: ${textColor};
             border: 1px solid ${borderColor};
-            padding: 6px 12px;
-            border-radius: 99px;
-            box-shadow: ${boxShadow};
-            font-weight: 800;
-            font-size: 13px;
-            letter-spacing: -0.01em;
+            padding: 4px 10px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px -1px ${ringColor}, 0 2px 4px -2px ${ringColor};
+            font-weight: 700;
+            font-size: 12px;
             white-space: nowrap;
             cursor: pointer;
             position: relative;
-            z-index: ${isSelected ? '1000' : '500'};
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
-            gap: 4px;
-            width: 100px;
+            justify-content: center;
+            letter-spacing: -0.01em;
           ">
-            ${isSelected ? '<span style="width: 6px; height: 6px; background: white; border-radius: 50%;"></span>' : ''}
             ${formattedPrice}
+            <!-- Small tail for the marker -->
+            <div style="
+              position: absolute;
+              bottom: -5px;
+              left: 50%;
+              transform: translateX(-50%) rotate(45deg);
+              width: 8px;
+              height: 8px;
+              background-color: ${bgColor};
+              border-right: 1px solid ${borderColor};
+              border-bottom: 1px solid ${borderColor};
+              z-index: -1;
+            "></div>
           </div>
         </div>
       `,
       iconSize: [0, 0],
-      iconAnchor: [0, 0]
+      iconAnchor: [0, 0] // the container handles translating -50% and -100% so it points exactly at the lat/lng
     })
   }
 

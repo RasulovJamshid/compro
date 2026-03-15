@@ -6,12 +6,14 @@ import { Eye, MessageSquare, Share2, TrendingUp, Clock, MousePointer } from 'luc
 import ViewsChart from './ViewsChart';
 import PriceHistoryChart from './PriceHistoryChart';
 import MarketComparables from './MarketComparables';
+import { useTranslations } from 'next-intl';
 
 interface PropertyAnalyticsProps {
   propertyId: string;
 }
 
 export default function PropertyAnalytics({ propertyId }: PropertyAnalyticsProps) {
+  const t = useTranslations('Analytics');
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -69,16 +71,16 @@ export default function PropertyAnalytics({ propertyId }: PropertyAnalyticsProps
         />
         <MetricCard
           icon={<Share2 className="w-5 h-5" />}
-          label="Shares"
+          label={t('shares')}
           value={analytics.shareCount.toLocaleString()}
-          subtitle="Total shares"
+          subtitle={t('totalShares')}
           color="purple"
         />
         <MetricCard
           icon={<Clock className="w-5 h-5" />}
-          label="Avg. Duration"
+          label={t('avgDuration')}
           value={`${analytics.avgViewDuration}s`}
-          subtitle="Per view"
+          subtitle={t('perView')}
           color="orange"
         />
       </div>

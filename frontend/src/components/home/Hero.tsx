@@ -1,236 +1,121 @@
 'use client'
 
-import { Search, MapPin, Building2, DollarSign, Maximize } from 'lucide-react'
+import { Search, MapPin, Building2, Map } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-
 import { useTranslations } from 'next-intl'
+import Link from 'next/link'
 
 export default function Hero() {
   const router = useRouter()
   const t = useTranslations()
   const [activeTab, setActiveTab] = useState<'sale' | 'rent'>('rent')
   const [searchQuery, setSearchQuery] = useState('')
-  const [propertyType, setPropertyType] = useState('all')
-  const [minPrice, setMinPrice] = useState('')
-  const [maxPrice, setMaxPrice] = useState('')
-  const [minArea, setMinArea] = useState('')
-  const [maxArea, setMaxArea] = useState('')
-
-  const normalizeRange = (minValue: string, maxValue: string) => {
-    const min = Number(minValue)
-    const max = Number(maxValue)
-
-    const hasMin = Number.isFinite(min) && min > 0
-    const hasMax = Number.isFinite(max) && max > 0
-
-    if (!hasMin && !hasMax) return { min: null, max: null }
-    if (hasMin && !hasMax) return { min, max: null }
-    if (!hasMin && hasMax) return { min: null, max }
-
-    return min <= max ? { min, max } : { min: max, max: min }
-  }
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     const params = new URLSearchParams()
-
-    const normalizedPrice = normalizeRange(minPrice, maxPrice)
-    const normalizedArea = normalizeRange(minArea, maxArea)
-
     if (searchQuery.trim()) params.append('q', searchQuery.trim())
-    if (propertyType !== 'all') params.append('propertyType', propertyType)
-    if (normalizedPrice.min !== null) params.append('minPrice', String(normalizedPrice.min))
-    if (normalizedPrice.max !== null) params.append('maxPrice', String(normalizedPrice.max))
-    if (normalizedArea.min !== null) params.append('minArea', String(normalizedArea.min))
-    if (normalizedArea.max !== null) params.append('maxArea', String(normalizedArea.max))
     params.append('dealType', activeTab)
     router.push(`/properties?${params.toString()}`)
   }
 
+  const quickFilters = [
+    { id: 'office', label: t('Property.office'), icon: Building2 },
+    { id: 'warehouse', label: t('Property.warehouse'), icon: Building2 },
+    { id: 'shop', label: t('Property.shop'), icon: Building2 },
+    { id: 'cafe_restaurant', label: t('Property.cafeRestaurant'), icon: Building2 },
+  ]
+
   return (
-    <section className="relative min-h-[560px] sm:min-h-[640px] lg:min-h-[800px] flex items-center justify-center pt-20 sm:pt-24 pb-10 sm:pb-12 overflow-hidden">
-      {/* Background Image & Overlays */}
-      <div
-        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transform scale-105"
-        style={{
-          backgroundImage: 'url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop")',
-        }}
-      >
-        {/* Stronger gradient overlay for excellent text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/80" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/35 via-transparent to-black/25" />
-      </div>
+    <section className="bg-white pt-12 pb-8 sm:pt-20 sm:pb-12">
+      <div className="container max-w-4xl">
+        {/* Heading */}
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-secondary-900 mb-4 tracking-tight">
+            {t('HomePage.heroTitle')}
+          </h1>
+          <p className="text-base sm:text-lg text-secondary-500 max-w-2xl mx-auto">
+            {t('HomePage.heroSubtitle')}
+          </p>
+        </div>
 
-      <div className="container relative z-10 w-full max-w-6xl">
-        <div className="mx-auto">
-          
-          {/* Heading */}
-          <div className="text-center mb-8 sm:mb-12 transform transition-all">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold text-white mb-4 sm:mb-6 drop-shadow-xl leading-tight max-w-4xl mx-auto text-balance">
-              {t('HomePage.heroTitle')} <br className="hidden md:block" />
-              <span className="text-primary-500 drop-shadow-md">{t('HomePage.heroHighlight')}</span>
-            </h1>
-            <p className="text-base sm:text-xl md:text-2xl text-white/95 drop-shadow-lg font-medium max-w-2xl mx-auto">
-              {t('HomePage.heroSubtitle')}
-            </p>
-          </div>
-
-          {/* Search Box - Modern Glassmorphism Style */}
-          <div className="bg-white/95 backdrop-blur-xl rounded-xl sm:rounded-2xl shadow-2xl overflow-visible border border-white/40">
-            
-            {/* Tabs */}
-            <div className="flex border-b border-secondary-200/60">
+        {/* Minimalist Search */}
+        <div className="max-w-3xl mx-auto">
+          {/* Tabs */}
+          <div className="flex justify-center mb-6">
+            <div className="inline-flex bg-secondary-50 p-1 rounded-full border border-secondary-100">
               <button
                 type="button"
                 onClick={() => setActiveTab('rent')}
-                className={`flex-1 px-4 sm:px-6 py-4 sm:py-5 font-bold text-base sm:text-lg transition-all duration-300 rounded-tl-xl sm:rounded-tl-2xl ${
+                className={`btn btn-sm !rounded-full ${
                   activeTab === 'rent'
-                    ? 'bg-white text-primary-600 border-b-2 border-primary-600 shadow-[0_4px_20px_-10px_rgba(227,24,55,0.3)] relative z-10'
-                    : 'bg-secondary-50/50 text-secondary-500 hover:bg-white/80 hover:text-secondary-900'
+                    ? 'btn-primary'
+                    : 'btn-ghost'
                 }`}
-                aria-pressed={activeTab === 'rent'}
               >
                 {t('Property.rent')}
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('sale')}
-                className={`flex-1 px-4 sm:px-6 py-4 sm:py-5 font-bold text-base sm:text-lg transition-all duration-300 rounded-tr-xl sm:rounded-tr-2xl ${
+                className={`btn btn-sm !rounded-full ${
                   activeTab === 'sale'
-                    ? 'bg-white text-primary-600 border-b-2 border-primary-600 shadow-[0_4px_20px_-10px_rgba(227,24,55,0.3)] relative z-10'
-                    : 'bg-secondary-50/50 text-secondary-500 hover:bg-white/80 hover:text-secondary-900'
+                    ? 'btn-primary'
+                    : 'btn-ghost'
                 }`}
-                aria-pressed={activeTab === 'sale'}
               >
                 {t('Property.sale')}
               </button>
             </div>
+          </div>
 
-            {/* Search Form */}
-            <form onSubmit={handleSearch} className="p-4 sm:p-6 md:p-8 space-y-4">
-              {/* Top Row: Location and Property Type */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                {/* Location Search */}
-                <div className="md:col-span-8">
-                  <div className="relative group h-full">
-                    <label htmlFor="hero-search-location" className="sr-only">
-                      Локация
-                    </label>
-                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-secondary-400 group-focus-within:text-primary-600 transition-colors" />
-                    <input
-                      id="hero-search-location"
-                      type="text"
-                      placeholder={t('HomePage.searchPlaceholder')}
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full h-full min-h-[54px] sm:min-h-[60px] pl-12 sm:pl-14 pr-4 py-3 sm:py-4 text-base sm:text-lg border-2 border-secondary-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all bg-white"
-                    />
-                  </div>
-                </div>
+          {/* Search Bar */}
+          <form onSubmit={handleSearch} className="relative">
+            <div className="flex items-center bg-white border-2 border-secondary-100 rounded-full shadow-sm hover:border-primary-200 focus-within:border-primary-500 focus-within:shadow-md transition-all p-1.5 pl-4 sm:pl-6">
+              <Search className="w-5 h-5 text-secondary-400 flex-shrink-0" />
+              <input
+                type="text"
+                placeholder={t('HomePage.searchPlaceholder')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 bg-transparent border-none focus:outline-none focus:ring-0 text-base sm:text-lg px-3 py-3 text-secondary-900 placeholder:text-secondary-400 w-full"
+              />
+              <button
+                type="submit"
+                className="btn btn-md btn-primary !rounded-full hidden sm:flex"
+              >
+                {t('HomePage.searchButton')}
+              </button>
+            </div>
+            {/* Mobile Search Button */}
+            <button
+              type="submit"
+              className="btn btn-md btn-primary w-full mt-3 sm:hidden"
+            >
+              {t('HomePage.searchButton')}
+            </button>
+          </form>
 
-                {/* Property Type */}
-                <div className="md:col-span-4">
-                  <div className="relative h-full group">
-                    <label htmlFor="hero-property-type" className="sr-only">
-                      Тип недвижимости
-                    </label>
-                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-secondary-400 group-focus-within:text-primary-600 transition-colors" />
-                    <select
-                      id="hero-property-type"
-                      value={propertyType}
-                      onChange={(e) => setPropertyType(e.target.value)}
-                      className="w-full h-full min-h-[54px] sm:min-h-[60px] pl-12 sm:pl-14 pr-4 py-3 sm:py-4 text-base sm:text-lg border-2 border-secondary-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 appearance-none bg-white cursor-pointer transition-all font-medium text-secondary-900"
-                    >
-                      <option value="all">Любой тип</option>
-                      <option value="office">Офисы</option>
-                      <option value="warehouse">Склады</option>
-                      <option value="shop">Магазины</option>
-                      <option value="cafe_restaurant">Общепит</option>
-                      <option value="industrial">Производство</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Row: Filters & Search Button */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                {/* Price Range */}
-                <div className="md:col-span-4">
-                  <label className="block text-xs font-bold text-secondary-500 uppercase tracking-wider mb-2 ml-1">
-                    {activeTab === 'rent' ? 'Цена за месяц (сум)' : 'Стоимость (сум)'}
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <div className="relative flex-1 group">
-                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 group-focus-within:text-primary-600 transition-colors" />
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        min="0"
-                        placeholder="От"
-                        value={minPrice}
-                        onChange={(e) => setMinPrice(e.target.value)}
-                        className="w-full pl-9 pr-3 py-3.5 border-2 border-secondary-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all bg-white"
-                      />
-                    </div>
-                    <span className="text-secondary-400">-</span>
-                    <div className="relative flex-1 group">
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        min="0"
-                        placeholder="До"
-                        value={maxPrice}
-                        onChange={(e) => setMaxPrice(e.target.value)}
-                        className="w-full px-4 py-3.5 border-2 border-secondary-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all bg-white"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Area Range */}
-                <div className="md:col-span-4">
-                  <label className="block text-xs font-bold text-secondary-500 uppercase tracking-wider mb-2 ml-1">Площадь (м²)</label>
-                  <div className="flex items-center gap-2">
-                    <div className="relative flex-1 group">
-                      <Maximize className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 group-focus-within:text-primary-600 transition-colors" />
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        min="0"
-                        placeholder="От"
-                        value={minArea}
-                        onChange={(e) => setMinArea(e.target.value)}
-                        className="w-full pl-9 pr-3 py-3.5 border-2 border-secondary-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all bg-white"
-                      />
-                    </div>
-                    <span className="text-secondary-400">-</span>
-                    <div className="relative flex-1 group">
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        min="0"
-                        placeholder="До"
-                        value={maxArea}
-                        onChange={(e) => setMaxArea(e.target.value)}
-                        className="w-full px-4 py-3.5 border-2 border-secondary-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all bg-white"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Search Button */}
-                <div className="md:col-span-4">
-                  <button
-                    type="submit"
-                    className="w-full h-full min-h-[52px] sm:min-h-[56px] px-6 bg-primary-600 hover:bg-primary-700 active:scale-95 text-white font-bold text-base sm:text-lg rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:shadow-primary-600/20"
-                  >
-                    <Search className="w-5 h-5" />
-                    Показать результаты
-                  </button>
-                </div>
-              </div>
-            </form>
+          {/* Quick Filters */}
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-8">
+            {quickFilters.map((filter) => (
+              <button
+                key={filter.id}
+                onClick={() => router.push(`/properties?propertyType=${filter.id}&dealType=${activeTab}`)}
+                className="btn btn-sm btn-outline !rounded-full"
+              >
+                <filter.icon className="w-4 h-4" />
+                {filter.label}
+              </button>
+            ))}
+            <Link
+              href="/map"
+              className="btn btn-sm btn-outline !rounded-full !border-primary-200 !text-primary-700 hover:!bg-primary-50 ml-auto sm:ml-2"
+            >
+              <Map className="w-4 h-4" />
+              На карте
+            </Link>
           </div>
         </div>
       </div>

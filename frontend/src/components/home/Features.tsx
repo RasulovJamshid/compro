@@ -1,54 +1,55 @@
 'use client'
 
-import { CheckCircle, Camera, Video, MapPin, Zap, Shield } from 'lucide-react'
+import { Shield, Target, Map, LineChart, MessageSquare, Zap } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 
-const features = [
+const getFeatures = (t: any) => [
   {
-    icon: CheckCircle,
-    title: 'Проверенные объекты',
-    description: 'Все объекты проходят модерацию и проверку',
-    details: 'Каждое объявление проходит ручную верификацию. Мы проверяем юридическую чистоту и соответствие фактических данных.',
+    icon: Shield,
+    title: t('f1Title'),
+    description: t('f1Desc'),
+    details: t('f1Det'),
     color: 'from-green-500 to-green-600',
     bgColor: 'bg-green-50'
   },
   {
-    icon: Camera,
-    title: 'Профессиональная съёмка',
-    description: 'Качественные фото от профессиональных фотографов',
-    details: 'Все фото обработаны и водяные знаки нанесены профессионально для защиты авторских прав.',
+    icon: Target,
+    title: t('f2Title'),
+    description: t('f2Desc'),
+    details: t('f2Det'),
     color: 'from-blue-500 to-blue-600',
     bgColor: 'bg-blue-50'
   },
   {
-    icon: Video,
-    title: '360-туры и видео',
-    description: 'Виртуальные туры и видеообзоры объектов',
-    details: 'Осмотрите помещение со всех сторон не выходя из офиса с помощью панорам 360°.',
+    icon: LineChart,
+    title: t('f3Title'),
+    description: t('f3Desc'),
+    details: t('f3Det'),
     color: 'from-purple-500 to-purple-600',
     bgColor: 'bg-purple-50'
   },
   {
-    icon: MapPin,
-    title: 'Точная локация',
-    description: 'Интерактивная карта с точными адресами',
-    details: 'Интерактивные карты с инфраструктурой и транспортной доступностью для удобного выбора.',
-    color: 'from-red-500 to-red-600',
-    bgColor: 'bg-red-50'
+    icon: MessageSquare,
+    title: t('f4Title'),
+    description: t('f4Desc'),
+    details: t('f4Det'),
+    color: 'from-blue-500 to-blue-600',
+    bgColor: 'bg-blue-50'
   },
   {
     icon: Zap,
-    title: 'Быстрый поиск',
-    description: 'Умный алгоритм подбора',
-    details: 'Фильтры работают мгновенно, находя идеальные варианты в миллисекунды.',
+    title: t('f5Title'),
+    description: t('f5Desc'),
+    details: t('f5Det'),
     color: 'from-yellow-500 to-yellow-600',
     bgColor: 'bg-yellow-50'
   },
   {
     icon: Shield,
-    title: 'Безопасность сделок',
-    description: 'Защита ваших интересов',
-    details: 'Рекомендации и шаблоны договоров от юридических специалистов.',
+    title: t('f6Title'),
+    description: t('f6Desc'),
+    details: t('f6Det'),
     color: 'from-indigo-500 to-indigo-600',
     bgColor: 'bg-indigo-50'
   },
@@ -57,21 +58,21 @@ const features = [
 export default function Features() {
   const [selectedFeature, setSelectedFeature] = useState(0)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const tFeatures = useTranslations('Features')
+  
+  const features = getFeatures(tFeatures)
 
   return (
-    <section className="py-14 sm:py-16 lg:py-24 bg-gradient-to-b from-secondary-50/50 to-white">
+    <section className="py-16 sm:py-20 lg:py-28 bg-gradient-to-b from-secondary-50/50 to-white">
       <div className="container">
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-10 sm:mb-14 lg:mb-20">
-          <div className="inline-block mb-4 sm:mb-6 px-4 py-1.5 bg-white border border-secondary-100 rounded-full shadow-sm hover:shadow-md transition-shadow">
-            <span className="text-[10px] font-bold text-secondary-500 uppercase tracking-[0.2em]">Наши преимущества</span>
-          </div>
-          <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 sm:mb-6 text-secondary-900 font-display tracking-tight leading-[1.1]">
-            Стандарт профессиональной <br className="hidden md:block" />
-            <span className="text-primary-600 italic">коммерции</span>
+          <p className="text-sm font-bold text-primary-600 uppercase tracking-wider mb-3">{tFeatures('subtitle')}</p>
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold mb-4 sm:mb-6 text-secondary-900 font-display tracking-tight leading-[1.1]">
+            {tFeatures('titlePart1')} <br className="hidden md:block" />
+            <span className="text-primary-600">{tFeatures('titlePart2')}</span>
           </h2>
-          <p className="text-base sm:text-xl text-secondary-500 font-medium">
-            Мы переосмыслили процесс поиска недвижимости, внедрив технологии <br className="hidden md:block" />
-            проверки и визуализации мирового уровня.
+          <p className="text-base sm:text-lg text-secondary-500 max-w-2xl">
+            {tFeatures('desc')}
           </p>
         </div>
         
@@ -88,10 +89,10 @@ export default function Features() {
                 onClick={() => setSelectedFeature(index)}
                 onMouseEnter={() => setHoveredIndex(index)}
                 onMouseLeave={() => setHoveredIndex(null)}
-                className={`group relative text-left p-5 sm:p-8 rounded-3xl sm:rounded-[32px] border-2 transition-all duration-300 overflow-hidden ${
+                className={`group relative text-left p-5 sm:p-7 rounded-2xl sm:rounded-3xl border transition-all duration-300 overflow-hidden ${
                   isSelected
-                    ? 'border-primary-500 bg-primary-50 shadow-xl'
-                    : 'border-secondary-100 bg-white hover:border-primary-300 hover:shadow-lg'
+                    ? 'border-primary-200 bg-primary-50/70 shadow-elevated'
+                    : 'border-secondary-100/80 bg-white hover:border-primary-200 shadow-card hover:shadow-card-hover'
                 }`}
               >
                 {/* Background gradient */}
@@ -144,8 +145,8 @@ export default function Features() {
 
         {/* Bottom accent */}
         <div className="mt-10 sm:mt-16 text-center">
-          <p className="text-secondary-600 font-medium">
-            🎯 Выбирайте надежную платформу для ваших коммерческих решений
+          <p className="text-secondary-500 font-medium text-sm">
+            {tFeatures('footerText')}
           </p>
         </div>
       </div>
