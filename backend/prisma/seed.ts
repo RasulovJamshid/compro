@@ -274,7 +274,7 @@ async function main() {
         amenities: faker.helpers.arrayElements(['cafeteria', 'gym', 'conference_room', 'reception', 'storage', 'shower'], { min: 0, max: 4 }),
         hasVideo: faker.datatype.boolean(),
         hasTour360,
-        tour360Url: hasTour360 ? 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg' : null,
+        tour360Url: hasTour360 ? null : null, // Null will trigger fallback to sample image in frontend
         virtualTourConfig,
         isVerified: status === 'active' ? true : false,
         isTop: faker.datatype.boolean({ probability: 0.2 }),

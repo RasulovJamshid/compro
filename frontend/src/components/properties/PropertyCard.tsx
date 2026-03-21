@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { MapPin, Square, Heart, View } from 'lucide-react'
+import { MapPin, Square, Heart, View, ArrowRight } from 'lucide-react'
 import type { Property } from '@/lib/types'
 
 import { useTranslations } from 'next-intl'
@@ -15,7 +15,7 @@ interface PropertyCardProps {
 export default function PropertyCard({ property, variant = 'default' }: PropertyCardProps) {
   const t = useTranslations('Property')
   const coverImage = property.images?.find(img => img.isCover) || property.images?.[0]
-  
+
   // Assume property might have a 360 view (you can adjust the field name based on actual data)
   const has360View = (property as any).has360View || (property as any).virtualTourUrl
 
@@ -45,7 +45,7 @@ export default function PropertyCard({ property, variant = 'default' }: Property
 
   if (isCompact) {
     return (
-      <Link href={`/properties/${property.id}`} className="group flex overflow-hidden card card-hover">
+      <Link href={`/properties/${property.id}`} className="group flex overflow-hidden bg-white rounded-xl shadow-sm hover:shadow-lg hover:ring-1 hover:ring-primary-200 ring-1 ring-secondary-100 transition-all duration-300 hover:-translate-y-0.5">
         {/* Image - Left Side */}
         <div className="relative w-32 min-w-[8rem] bg-secondary-100 overflow-hidden">
           {coverImage ? (
@@ -71,23 +71,23 @@ export default function PropertyCard({ property, variant = 'default' }: Property
         {/* Content - Right Side */}
         <div className="p-3 flex flex-col flex-1 min-w-0">
           <div className="flex justify-between items-start gap-2 mb-1">
-            <span className="text-xs font-bold text-secondary-500 bg-secondary-50 px-2 py-0.5 rounded uppercase tracking-wider">
+            <span className="text-xs font-bold text-secondary-600 bg-secondary-100/50 px-2 py-0.5 rounded uppercase tracking-wider">
               {dealTypeLabels[property.dealType]}
             </span>
             <button
               onClick={handleFavoriteClick}
-              className="text-secondary-400 hover:text-red-500 transition-colors active:scale-90"
+              className="text-secondary-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-full transition-all active:scale-90"
             >
               <Heart className="h-4 w-4" />
             </button>
           </div>
-          
+
           <h3 className="text-sm font-bold text-secondary-900 line-clamp-1 mb-1 group-hover:text-primary-600 transition-colors">
             {property.title}
           </h3>
 
           <div className="flex items-baseline gap-1 mb-2">
-            <span className="text-base font-extrabold text-primary-700">
+            <span className="text-base font-black text-primary-700">
               {property.price.toLocaleString('ru-RU')}
             </span>
             <span className="text-[10px] text-secondary-500 font-medium">
@@ -112,7 +112,7 @@ export default function PropertyCard({ property, variant = 'default' }: Property
 
   // Default Grid View
   return (
-    <Link href={`/properties/${property.id}`} className="group flex flex-col overflow-hidden card card-hover">
+    <Link href={`/properties/${property.id}`} className="group flex flex-col overflow-hidden bg-white rounded-2xl shadow-sm hover:shadow-xl ring-1 ring-secondary-100 hover:ring-primary-200 transition-all duration-300 hover:-translate-y-1">
       {/* Image */}
       <div className="relative aspect-[4/3] bg-secondary-100 overflow-hidden">
         {coverImage ? (
@@ -120,7 +120,7 @@ export default function PropertyCard({ property, variant = 'default' }: Property
             src={coverImage.watermarkedUrl || coverImage.url}
             alt={property.title}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            className="object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
           />
         ) : (
           <div className="flex items-center justify-center h-full text-secondary-300">
@@ -128,14 +128,16 @@ export default function PropertyCard({ property, variant = 'default' }: Property
           </div>
         )}
 
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0 pointer-events-none" />
+
         {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2">
-          <span className="badge badge-white text-secondary-900">
+        <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
+          <span className="bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-md text-xs font-bold text-secondary-900 shadow-sm">
             {dealTypeLabels[property.dealType]}
           </span>
           {has360View && (
-            <span className="badge badge-primary">
-              <View className="w-3 h-3" />
+            <span className="bg-primary-600 text-white px-2.5 py-1 rounded-md text-xs font-bold shadow-sm flex items-center gap-1.5 w-fit">
+              <View className="w-3.5 h-3.5" />
               360°
             </span>
           )}
@@ -150,20 +152,19 @@ export default function PropertyCard({ property, variant = 'default' }: Property
         </button>
       </div>
 
-      {/* Content */}
-      <div className="p-4 flex flex-col flex-1">
+      <div className="p-5 flex flex-col flex-1 relative bg-white">
         {/* Price */}
-        <div className="flex items-baseline gap-1 mb-2">
-          <span className="text-lg font-bold text-secondary-900">
+        <div className="flex items-baseline gap-1.5 mb-3">
+          <span className="text-xl font-black text-primary-700">
             {property.price.toLocaleString('ru-RU')}
           </span>
-          <span className="text-xs text-secondary-500 font-medium">
+          <span className="text-xs text-secondary-500 font-bold uppercase tracking-wider">
             {t('currency')}{property.dealType === 'rent' ? `/${t('month')}` : ''}
           </span>
         </div>
 
         {/* Title */}
-        <h3 className="text-sm font-semibold text-secondary-900 line-clamp-1 mb-1.5 group-hover:text-primary-600 transition-colors">
+        <h3 className="text-base font-bold text-secondary-900 line-clamp-2 mb-2 group-hover:text-primary-600 transition-colors duration-300 leading-tight">
           {property.title}
         </h3>
 
@@ -174,12 +175,15 @@ export default function PropertyCard({ property, variant = 'default' }: Property
         </div>
 
         {/* Footer info */}
-        <div className="mt-auto flex items-center gap-3 text-sm font-medium text-secondary-700">
-          <div className="flex items-center gap-1 bg-secondary-50 px-2.5 py-1 rounded-md">
+        <div className="mt-auto flex items-center gap-2 text-sm font-semibold text-secondary-700 pt-4 border-t border-secondary-50">
+          <div className="flex items-center gap-1.5 bg-primary-50 px-3 py-1.5 rounded-lg text-primary-700">
             <span>{property.area} м²</span>
           </div>
-          <div className="flex items-center gap-1 bg-secondary-50 px-2.5 py-1 rounded-md text-secondary-500">
+          <div className="flex items-center gap-1.5 bg-secondary-50 px-3 py-1.5 rounded-lg text-secondary-600">
             {propertyTypeLabels[property.propertyType]}
+          </div>
+          <div className="ml-auto opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+            <ArrowRight className="w-5 h-5 text-primary-600" />
           </div>
         </div>
       </div>

@@ -549,7 +549,7 @@ export default function PropertyDetailPage() {
                     {property.floor && (
                       <div className="flex items-start gap-2.5 p-2.5 bg-secondary-50 rounded-lg">
                         <div className="p-2 bg-primary-50 rounded-lg flex-shrink-0"><Building2 className="w-4 h-4 text-primary-600" /></div>
-                        <div><p className="text-xs text-secondary-500 mb-0.5">{t('PropertyDetails.floorFull')}</p><p className="font-bold text-secondary-900">{property.floor}{property.totalFloors && ` {t('PropertyDetails.from')} ${property.totalFloors}`}</p></div>
+                        <div><p className="text-xs text-secondary-500 mb-0.5">{t('PropertyDetails.floorFull')}</p><p className="font-bold text-secondary-900">{property.floor}{property.totalFloors && ` ${t('PropertyDetails.from')} ${property.totalFloors}`}</p></div>
                       </div>
                     )}
                     {property.buildingClass && (
@@ -610,13 +610,13 @@ export default function PropertyDetailPage() {
                     {property.hasParking && (
                       <div className="flex items-start gap-2.5 p-2.5 bg-secondary-50 rounded-lg">
                         <div className="p-2 bg-primary-50 rounded-lg flex-shrink-0"><Car className="w-4 h-4 text-primary-600" /></div>
-                        <div><p className="text-xs text-secondary-500 mb-0.5">{t('PropertyDetails.parking')}</p><p className="font-bold text-secondary-900">{property.parkingSpaces ? `${property.parkingSpaces} {t('PropertyDetails.places')}` : t('PropertyDetails.has')}</p></div>
+                        <div><p className="text-xs text-secondary-500 mb-0.5">{t('PropertyDetails.parking')}</p><p className="font-bold text-secondary-900">{property.parkingSpaces ? `${property.parkingSpaces} ${t('PropertyDetails.places')}` : t('PropertyDetails.has')}</p></div>
                       </div>
                     )}
                     {property.hasElevator && (
                       <div className="flex items-start gap-2.5 p-2.5 bg-secondary-50 rounded-lg">
                         <div className="p-2 bg-primary-50 rounded-lg flex-shrink-0"><TrendingUp className="w-4 h-4 text-primary-600" /></div>
-                        <div><p className="text-xs text-secondary-500 mb-0.5">{t('PropertyDetails.elevators')}</p><p className="font-bold text-secondary-900">{property.elevatorCount ? `${property.elevatorCount} {t('PropertyDetails.pcs')}` : t('PropertyDetails.has')}</p></div>
+                        <div><p className="text-xs text-secondary-500 mb-0.5">{t('PropertyDetails.elevators')}</p><p className="font-bold text-secondary-900">{property.elevatorCount ? `${property.elevatorCount} ${t('PropertyDetails.pcs')}` : t('PropertyDetails.has')}</p></div>
                       </div>
                     )}
                     {property.loadingDocks !== null && property.loadingDocks !== undefined && (
@@ -647,7 +647,7 @@ export default function PropertyDetailPage() {
                     {property.powerSupply && (
                       <div className="flex items-start gap-2.5 p-2.5 bg-secondary-50 rounded-lg">
                         <div className="p-2 bg-primary-50 rounded-lg flex-shrink-0"><Zap className="w-4 h-4 text-primary-600" /></div>
-                        <div><p className="text-xs text-secondary-500 mb-0.5">{t('PropertyDetails.electricity')}</p><p className="font-bold text-secondary-900">{property.powerSupply}{property.powerCapacity ? `, ${property.powerCapacity} {t('PropertyDetails.kw')}` : ''}</p></div>
+                        <div><p className="text-xs text-secondary-500 mb-0.5">{t('PropertyDetails.electricity')}</p><p className="font-bold text-secondary-900">{property.powerSupply}{property.powerCapacity ? `, ${property.powerCapacity} ${t('PropertyDetails.kw')}` : ''}</p></div>
                       </div>
                     )}
                     {property.hvacType && (
@@ -741,7 +741,7 @@ export default function PropertyDetailPage() {
                         <div className="p-2 bg-yellow-100 rounded-lg flex-shrink-0"><User className="w-4 h-4 text-yellow-700" /></div>
                         <div>
                           <p className="text-xs text-yellow-700 mb-0.5">{t('PropertyDetails.currentTenant')}</p>
-                          <p className="font-bold text-yellow-900">{property.currentTenant}{property.leaseExpiryDate && ` ({t('PropertyDetails.until')} ${new Date(property.leaseExpiryDate).toLocaleDateString('ru-RU')})`}</p>
+                          <p className="font-bold text-yellow-900">{property.currentTenant}{property.leaseExpiryDate && ` (${t('PropertyDetails.until')} ${new Date(property.leaseExpiryDate).toLocaleDateString('ru-RU')})`}</p>
                         </div>
                       </div>
                     )}

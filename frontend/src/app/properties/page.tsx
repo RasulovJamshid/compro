@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import {
   Search, MapPin, Building2, ChevronLeft, ChevronRight,
-  Grid3x3, List, SlidersHorizontal, ArrowUpDown
+  Grid3x3, List, SlidersHorizontal, ArrowUpDown, X
 } from 'lucide-react'
 import PropertyCard from '@/components/properties/PropertyCard'
 import { getProperties } from '@/lib/api/properties'
@@ -35,6 +35,7 @@ export default function PropertiesPage() {
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
   const [filters, setFilters] = useState<PropertyFilters>({})
   const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(12)
   const [total, setTotal] = useState(0)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [sortBy, setSortBy] = useState<SortOption>('newest')
@@ -43,15 +44,13 @@ export default function PropertiesPage() {
   const trackFilter = useAnalyticsStore((state) => state.trackFilter)
   const trackSearch = useAnalyticsStore((state) => state.trackSearch)
 
-  const limit = 12
-
   // Handle scroll to hide header
   useEffect(() => {
     let lastScrollY = window.scrollY
-    
+
     const handleScroll = () => {
       const currentScrollY = window.scrollY
-      
+
       // Hide on scroll down, show on scroll up. Also always show when near top.
       if (currentScrollY < 50) {
         setScrolled(false)
@@ -60,7 +59,7 @@ export default function PropertiesPage() {
       } else if (currentScrollY < lastScrollY) {
         setScrolled(false)
       }
-      
+
       lastScrollY = currentScrollY
     }
 
@@ -75,7 +74,7 @@ export default function PropertiesPage() {
     } else {
       document.body.classList.remove('hide-main-header')
     }
-    
+
     // Cleanup on unmount
     return () => {
       document.body.classList.remove('hide-main-header')
@@ -83,7 +82,7 @@ export default function PropertiesPage() {
   }, [scrolled])
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchProperties() }, [filters, page, sortBy])
+  useEffect(() => { fetchProperties() }, [filters, page, limit, sortBy])
 
   const fetchProperties = async () => {
     setLoading(true)
@@ -157,7 +156,7 @@ export default function PropertiesPage() {
       <ApiErrorHandler error={error} onDismiss={() => setError(null)} />
 
       {/* ── Sticky search + actions bar ────────────────────────────────── */}
-      <div 
+      <div
         className={`fixed z-40 bg-white/90 backdrop-blur-xl border-b border-secondary-100 py-3 left-0 right-0 transition-all duration-300 ${scrolled ? 'top-0 shadow-sm' : 'top-[48px] sm:top-[48px]'}`}
       >
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
@@ -231,7 +230,40 @@ export default function PropertiesPage() {
 
       {/* ── Main Layout (Full Width) ─────────────────────────────────────── */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pt-[170px] sm:pt-[120px]">
-        
+
+        {/* ── Active Filters ─────────────────────────────────────── */}
+        {activeFilterCount > 0 && (
+          <div className="flex flex-wrap gap-2 mb-6 items-center">
+            <span className="text-sm font-semibold text-secondary-900 mr-1">{tFilters('activeFilters')}:</span>
+            {Object.entries(filters).map(([key, val]) => {
+              if (key === 'q' || val === undefined || val === '' || val === false) return null;
+              let label = String(val);
+              if (key === 'dealType') label = val === 'rent' ? t('Property.rent') : t('Property.sale');
+              if (key === 'propertyType') label = t(`Property.${val}`) || val;
+              if (typeof val === 'boolean') label = tFilters(key);
+
+              return (
+                <span key={key} className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary-50 text-primary-700 text-xs sm:text-sm font-bold rounded-full shadow-sm ring-1 ring-primary-100">
+                  <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span> {label}
+                  <button onClick={() => {
+                    const newF = { ...filters };
+                    delete newF[key as keyof PropertyFilters];
+                    handleApplyFilters(newF);
+                  }} className="hover:text-red-500 hover:bg-white rounded-full p-0.5 transition-all">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </span>
+              )
+            })}
+            <button
+              onClick={clearFilters}
+              className="text-sm font-semibold text-secondary-500 hover:text-red-500 transition-colors underline decoration-dotted underline-offset-2 ml-2"
+            >
+              {tPage('clearFilters')}
+            </button>
+          </div>
+        )}
+
         {/* ── Results header ──────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
           <p className="text-lg font-bold text-secondary-900">
@@ -289,28 +321,68 @@ export default function PropertiesPage() {
           <>
             <div className={gridClass}>
               {properties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
+                <PropertyCard key={property.id} property={property} variant={viewMode === 'list' ? 'compact' : 'default'} />
               ))}
             </div>
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-2 mt-10 mb-6">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="w-10 h-10 rounded-full border border-secondary-200 hover:bg-secondary-50 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-all bg-white shadow-sm"
-                >
-                  <ChevronLeft className="w-5 h-5 text-secondary-700" />
-                </button>
-                <span className="px-4 text-sm font-bold text-secondary-900">{page} / {totalPages}</span>
-                <button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="w-10 h-10 rounded-full border border-secondary-200 hover:bg-secondary-50 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-all bg-white shadow-sm"
-                >
-                  <ChevronRight className="w-5 h-5 text-secondary-700" />
-                </button>
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-10 mb-6 bg-secondary-50 p-4 rounded-2xl border border-secondary-100">
+
+                {/* Items per page selector */}
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-secondary-600 font-medium">{tPage('itemsPerPage')}:</span>
+                  <select
+                    value={limit}
+                    onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+                    className="bg-white border border-secondary-200 text-secondary-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 px-3 py-2 font-bold cursor-pointer shadow-sm hover:border-primary-300 transition-colors"
+                  >
+                    <option value={12}>12</option>
+                    <option value={24}>24</option>
+                    <option value={48}>48</option>
+                    <option value={96}>96</option>
+                  </select>
+                </div>
+
+                <div className="flex justify-center items-center gap-1.5 sm:gap-2">
+                  <button
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="w-10 h-10 rounded-full border border-secondary-200 hover:bg-secondary-100 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-all bg-white shadow-sm active:scale-95"
+                  >
+                    <ChevronLeft className="w-5 h-5 text-secondary-700" />
+                  </button>
+
+                  {/* Dynamic Page Numbers */}
+                  <div className="flex items-center gap-1">
+                    {[...Array(totalPages)].map((_, i) => {
+                      const p = i + 1;
+                      if (p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1)) {
+                        return (
+                          <button
+                            key={p}
+                            onClick={() => setPage(p)}
+                            className={`w-10 h-10 rounded-full text-sm font-bold transition-all shadow-sm active:scale-95 ${page === p ? 'bg-primary-600 text-white border border-primary-600 shadow-md ring-2 ring-primary-600/20' : 'bg-white border border-secondary-200 text-secondary-700 hover:bg-secondary-50 hover:border-secondary-300'}`}
+                          >
+                            {p}
+                          </button>
+                        );
+                      }
+                      if (p === page - 2 || p === page + 2) {
+                        return <span key={p} className="text-secondary-400 px-1">...</span>;
+                      }
+                      return null;
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                    className="w-10 h-10 rounded-full border border-secondary-200 hover:bg-secondary-100 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-all bg-white shadow-sm active:scale-95"
+                  >
+                    <ChevronRight className="w-5 h-5 text-secondary-700" />
+                  </button>
+                </div>
               </div>
             )}
           </>
