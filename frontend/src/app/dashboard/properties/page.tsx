@@ -78,9 +78,18 @@ export default function DashboardPropertiesPage() {
   return (
     <div className="p-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-secondary-900 mb-2">Управление объектами</h1>
-        <p className="text-secondary-500">Просмотр и модерация объявлений</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-secondary-900 mb-2">Управление объектами</h1>
+          <p className="text-secondary-500">Просмотр и модерация объявлений</p>
+        </div>
+        <a
+          href="/dashboard/properties/new"
+          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2"
+        >
+          <span className="text-xl">+</span>
+          Добавить объект
+        </a>
       </div>
 
       {/* Filters */}
@@ -214,6 +223,13 @@ export default function DashboardPropertiesPage() {
                             </button>
                           </>
                         )}
+                        <a
+                          href={`/dashboard/properties/${property.id}`}
+                          className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                          title="Редактировать"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </a>
                         <a
                           href={`/properties/${property.id}`}
                           target="_blank"

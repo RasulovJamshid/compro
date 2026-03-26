@@ -36,6 +36,25 @@
   scrollbar-width: none;
 }
 
+/* Header Hide/Show Animations */
+.header-transition {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+.header-hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sticky-bar-optimized {
+  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sticky-bar-top {
+  top: 0 !important;
+}
+
 /* Base styles for common components */
 @layer components {
   /* Buttons */

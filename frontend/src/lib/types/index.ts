@@ -78,6 +78,7 @@ export interface Property {
   images?: PropertyImage[]
   videos?: PropertyVideo[]
   tour360Url?: string
+  panorama360Id?: string
   virtualTourConfig?: any
   contactName?: string
   contactPhone?: string

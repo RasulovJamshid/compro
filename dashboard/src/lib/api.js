@@ -112,4 +112,11 @@ export const uploadApi = {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
   },
+  uploadPanorama: (file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return apiClient.post('/panorama/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
 }

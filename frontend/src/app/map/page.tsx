@@ -2,13 +2,14 @@
 
 import { Suspense, useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Search, X, List, MapPin, ArrowLeft, SlidersHorizontal } from 'lucide-react'
+import { Search, X, List, MapPin, ArrowLeft, SlidersHorizontal, Building2, View } from 'lucide-react'
 import MapView from '@/components/map/MapView'
 import PropertyCard from '@/components/properties/PropertyCard'
 import { getProperties } from '@/lib/api/properties'
 import type { Property, PropertyFilters } from '@/lib/types'
 import { useTranslations } from 'next-intl'
 import PropertyFilterDrawer from '@/components/properties/PropertyFilterDrawer'
+import ApiErrorHandler from '@/components/common/ApiErrorHandler'
 
 function MapPageContent() {
   const tMap = useTranslations('Map')
@@ -16,12 +17,13 @@ function MapPageContent() {
   const t = useTranslations()
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [initialLoadCompleted, setInitialLoadCompleted] = useState(false)
   const [showFilterDrawer, setShowFilterDrawer] = useState(false)
   const [showListSidebar, setShowListSidebar] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
   const [mobileView, setMobileView] = useState<'map' | 'list'>('map')
-  const [searchAsMove, setSearchAsMove] = useState(true)
+  const [searchAsMove, setSearchAsMove] = useState(false)
   const [hasMoved, setHasMoved] = useState(false)
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
   const [hoveredProperty, setHoveredProperty] = useState<Property | null>(null)
@@ -140,7 +142,7 @@ function MapPageContent() {
 
   useEffect(() => {
     // Only auto-fetch on bounds change if toggle is on
-    if (searchAsMove) {
+    if (searchAsMove || !initialLoadCompleted) {
       fetchPropertiesWithBounds()
       setHasMoved(false)
     } else if (initialLoadCompleted) {
@@ -174,6 +176,7 @@ function MapPageContent() {
     }
 
     setLoading(true)
+    setError(null)
     try {
       const data = await getProperties({
         ...filters,
@@ -190,6 +193,8 @@ function MapPageContent() {
     } catch (error) {
       console.error('Failed to fetch properties:', error)
       setProperties([])
+      setVisibleProperties([])
+      setError('Не удалось обновить объекты на карте. Попробуйте еще раз.')
     } finally {
       setLoading(false)
     }
@@ -267,106 +272,198 @@ function MapPageContent() {
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-secondary-50 font-sans">
+      <ApiErrorHandler error={error} onDismiss={() => setError(null)} />
 
       {/* Background Map - Hidden on mobile if mobileView is 'list' */}
-      <div className={`absolute inset-0 z-0 transition-opacity duration-300 ${mobileView === 'list' ? 'opacity-0 md:opacity-100' : 'opacity-100'}`}>
+      <div className={`absolute inset-0 z-0 transition-opacity duration-500 ${mobileView === 'list' ? 'opacity-0 md:opacity-100 scale-95 md:scale-100' : 'opacity-100 scale-100'}`}>
         <MapView
           properties={visibleProperties}
           center={mapState.center}
           zoom={mapState.zoom}
           onMarkerClick={(property) => {
-            router.push(`/properties/${property.id}`)
+            setSelectedProperty(property)
           }}
           onBoundsChange={handleBoundsChange}
           selectedPropertyId={selectedProperty?.id}
         />
+        
+        {/* Map Attribution and Native Controls Safety Zone */}
+        <div className="absolute bottom-24 md:bottom-6 right-2 md:right-4 z-10 h-10 w-10 pointer-events-none" />
       </div>
 
+      {/* Property Detail Modal (Mobile-friendly) */}
+      {selectedProperty && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-secondary-900/40 backdrop-blur-sm animate-in fade-in duration-300">
+          <div 
+            className="absolute inset-0" 
+            onClick={() => setSelectedProperty(null)} 
+          />
+          <div className="relative w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-500">
+            {/* Close Button */}
+            <button 
+              onClick={() => setSelectedProperty(null)}
+              className="absolute top-4 right-4 z-10 p-2 bg-white/80 backdrop-blur-md rounded-full text-secondary-900 shadow-md hover:bg-white transition-all"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Content using existing PropertyCard or a custom layout for the modal */}
+            <div className="flex flex-col">
+              <div className="relative h-56 sm:h-64 w-full bg-secondary-100">
+                {selectedProperty.images?.[0] ? (
+                  <img 
+                    src={selectedProperty.images[0].watermarkedUrl || selectedProperty.images[0].url} 
+                    alt={selectedProperty.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-secondary-300">
+                    <Building2 className="w-12 h-12" />
+                  </div>
+                )}
+                <div className="absolute top-4 left-4 flex gap-2">
+                  <span className="px-3 py-1 bg-primary-600 text-white rounded-lg text-xs font-black uppercase tracking-wider shadow-lg">
+                    {selectedProperty.dealType === 'rent' ? t('Property.rent') : t('Property.sale')}
+                  </span>
+                  {selectedProperty.isVerified && (
+                    <span className="px-3 py-1 bg-green-500 text-white rounded-lg text-xs font-black uppercase tracking-wider shadow-lg">
+                      {t('Filters.verifiedOnly')}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-6 sm:p-8">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <div className="text-2xl sm:text-3xl font-black text-primary-700 leading-none mb-1">
+                      {selectedProperty.price.toLocaleString('ru-RU')}
+                      <span className="text-sm font-bold text-secondary-400 ml-2 uppercase">UZS</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-sm text-secondary-500 font-medium">
+                      <MapPin className="w-4 h-4 text-secondary-400" />
+                      {selectedProperty.district}, {selectedProperty.city}
+                    </div>
+                  </div>
+                  {selectedProperty.hasTour360 && (
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="p-2.5 bg-primary-50 rounded-2xl text-primary-600 border border-primary-100">
+                        <View className="w-6 h-6" />
+                      </div>
+                      <span className="text-[10px] font-black text-primary-600 uppercase tracking-widest">360°</span>
+                    </div>
+                  )}
+                </div>
+
+                <h2 className="text-lg sm:text-xl font-bold text-secondary-900 mb-4 line-clamp-2 leading-tight">
+                  {selectedProperty.title}
+                </h2>
+
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  <div className="bg-secondary-50 p-4 rounded-2xl border border-secondary-100/50">
+                    <div className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1">Площадь</div>
+                    <div className="text-lg font-black text-secondary-900">{selectedProperty.area} м²</div>
+                  </div>
+                  <div className="bg-secondary-50 p-4 rounded-2xl border border-secondary-100/50">
+                    <div className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mb-1">Тип</div>
+                    <div className="text-lg font-black text-secondary-900 truncate">
+                      {t(`Property.${selectedProperty.propertyType}`) || selectedProperty.propertyType}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => router.push(`/properties/${selectedProperty.id}`)}
+                    className="btn btn-primary flex-1 !h-14 !rounded-2xl shadow-xl shadow-primary-500/20 text-base font-black uppercase tracking-widest"
+                  >
+                    Подробнее
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Toggle Bar */}
-      <div className="md:hidden fixed bottom-16 left-1/2 -translate-x-1/2 z-40 flex items-center p-0.5 bg-secondary-900/90 backdrop-blur-md rounded-full shadow-lg">
+      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center p-1 bg-secondary-900/90 backdrop-blur-md rounded-2xl shadow-2xl border border-white/10 ring-1 ring-black/20">
         <button
           onClick={() => setMobileView('map')}
-          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${mobileView === 'map' ? 'bg-white text-secondary-900' : 'text-white/60'}`}
+          className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 ${mobileView === 'map' ? 'bg-white text-secondary-900 shadow-sm' : 'text-white/70 hover:text-white'}`}
         >
-          <MapPin className="w-3 h-3" />
+          <MapPin className="w-4 h-4" />
           Карта
         </button>
+        <div className="w-px h-6 bg-white/10 mx-1" />
         <button
           onClick={() => {
             setMobileView('list')
             setShowListSidebar(true)
           }}
-          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${mobileView === 'list' ? 'bg-white text-secondary-900' : 'text-white/60'}`}
+          className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 ${mobileView === 'list' ? 'bg-white text-secondary-900 shadow-sm' : 'text-white/70 hover:text-white'}`}
         >
-          <List className="w-3 h-3" />
+          <List className="w-4 h-4" />
           Список
         </button>
       </div>
 
       {/* Top Controls */}
-      <div className={`absolute left-3 right-3 z-40 flex flex-wrap items-center justify-between pointer-events-none gap-2 transition-all duration-300 ${isMobile && mobileView === 'list' ? 'opacity-0 pointer-events-none' : 'opacity-100'} top-3`}>
-        {/* Left buttons */}
-        <div className="flex items-center gap-1.5 pointer-events-auto">
+      <div className={`absolute left-4 right-4 z-40 flex flex-col sm:flex-row items-center justify-between pointer-events-none gap-3 transition-all duration-300 ${isMobile && mobileView === 'list' ? 'opacity-0 pointer-events-none -translate-y-4' : 'opacity-100'} top-4`}>
+        {/* Left actions */}
+        <div className="flex items-center gap-2 pointer-events-auto w-full sm:w-auto">
           <button
             onClick={goToListPage}
-            className="btn btn-sm bg-white shadow-md text-secondary-700 hover:text-secondary-900 hover:bg-secondary-50 !rounded-full !px-4 !h-10"
+            className="btn bg-white/95 backdrop-blur-md shadow-lg text-secondary-700 hover:text-secondary-900 border border-secondary-200 !rounded-2xl !p-3 !h-12 w-12 sm:w-auto sm:!px-5 flex items-center justify-center"
+            title={t('Navigation.properties')}
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('Navigation.properties')}</span>
+            <ArrowLeft className="w-5 h-5 sm:mr-2" />
+            <span className="hidden sm:inline font-bold">{t('Navigation.properties')}</span>
           </button>
 
           <button
             onClick={() => setShowFilterDrawer(true)}
-            className="btn btn-sm bg-white shadow-md text-secondary-700 hover:text-secondary-900 hover:bg-secondary-50 !rounded-full !px-4 !h-10 relative"
+            className="btn bg-white/95 backdrop-blur-md shadow-lg text-secondary-700 hover:text-secondary-900 border border-secondary-200 !rounded-2xl !h-12 flex-1 sm:flex-none sm:!px-6 relative flex items-center justify-center gap-2"
           >
-            <SlidersHorizontal className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('Filters.title')}</span>
+            <SlidersHorizontal className="w-5 h-5" />
+            <span className="font-bold">{t('Filters.title')}</span>
             {activeFilterCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+              <span className="absolute -top-2 -right-2 w-6 h-6 bg-primary-600 text-white text-[11px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-md animate-in zoom-in duration-300">
                 {activeFilterCount}
               </span>
             )}
           </button>
         </div>
 
-        {/* Center: count + auto-search */}
-        <div className="pointer-events-auto flex items-center gap-2">
-          <div className="bg-white border border-secondary-200 shadow-md rounded-full px-4 py-2 flex items-center gap-3 text-xs sm:text-sm">
-            <span className="font-bold text-secondary-900">{visibleProperties.length} {tMap('results')}</span>
-            <div className="w-px h-4 bg-secondary-200" />
-            <label className="flex items-center gap-2 cursor-pointer">
-              <span className="text-[10px] sm:text-xs font-bold text-secondary-500 uppercase tracking-wider">Авто</span>
-              <div className="relative flex items-center">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={searchAsMove}
-                  onChange={(e) => setSearchAsMove(e.target.checked)}
-                />
-                <div className="w-8 h-4 bg-secondary-200 rounded-full peer peer-checked:after:translate-x-4 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-primary-600"></div>
-              </div>
-            </label>
+        {/* Center: status bar */}
+        <div className="pointer-events-auto flex items-center gap-2 w-full sm:w-auto">
+          <div className="bg-white/95 backdrop-blur-md border border-secondary-200 shadow-lg rounded-2xl px-5 py-3 flex items-center gap-4 text-sm w-full sm:w-auto justify-center sm:justify-start transition-all duration-300">
+            <span className="font-black text-secondary-900 whitespace-nowrap">{visibleProperties.length} {tMap('results')}</span>
+            
+            {hasMoved && (
+              <>
+                <div className="w-px h-5 bg-secondary-200 hidden sm:block" />
+                <button
+                  onClick={() => { fetchPropertiesWithBounds(); setHasMoved(false) }}
+                  className="flex items-center gap-2 text-primary-600 hover:text-primary-700 font-bold transition-all animate-in fade-in slide-in-from-left-2"
+                >
+                  <Search className="w-4 h-4" />
+                  <span>Обновить область</span>
+                </button>
+              </>
+            )}
           </div>
-
-          {hasMoved && !searchAsMove && (
-            <button
-              onClick={() => { fetchPropertiesWithBounds(); setHasMoved(false) }}
-              className="btn btn-sm btn-primary !h-10 !px-5 !rounded-full"
-            >
-              Искать здесь
-            </button>
-          )}
         </div>
 
-        {/* Right buttons */}
+        {/* Right actions */}
         <div className="pointer-events-auto hidden md:flex items-center gap-1.5">
           {!showListSidebar && (
             <button
               onClick={() => setShowListSidebar(true)}
-              className="btn btn-sm bg-white shadow-md text-secondary-700 hover:text-secondary-900 hover:bg-secondary-50 !rounded-full !px-4 !h-10"
+              className="btn bg-white/95 backdrop-blur-md shadow-lg text-secondary-700 hover:text-secondary-900 border border-secondary-200 !rounded-2xl !p-3 !h-12 w-12 sm:w-auto sm:!px-5 flex items-center justify-center gap-2"
             >
-              <List className="w-4 h-4" />
-              <span>Список</span>
+              <List className="w-5 h-5" />
+              <span className="font-bold">Список</span>
             </button>
           )}
         </div>
@@ -437,6 +534,20 @@ function MapPageContent() {
               <div className="flex flex-col items-center justify-center h-full space-y-4">
                 <div className="w-10 h-10 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin shadow-sm" />
                 <p className="text-sm font-medium text-secondary-500">{tMap('searching')}</p>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center h-full text-center px-6">
+                <div className="w-16 h-16 bg-white shadow-sm border border-secondary-100 rounded-full flex items-center justify-center mb-4">
+                  <MapPin className="w-8 h-8 text-secondary-300" />
+                </div>
+                <h3 className="text-base font-bold text-secondary-900 mb-2">Не удалось загрузить объекты</h3>
+                <p className="text-sm text-secondary-500 mb-4">{error}</p>
+                <button
+                  onClick={fetchPropertiesWithBounds}
+                  className="btn btn-md btn-primary"
+                >
+                  Повторить
+                </button>
               </div>
             ) : visibleProperties.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center px-6">

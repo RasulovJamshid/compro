@@ -13,37 +13,46 @@ export default function Header() {
   const t = useTranslations('Navigation')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [isHidden, setIsHidden] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
   const { user, isAuthenticated } = useAuthStore()
   const pathname = usePathname()
 
   const isHome = pathname === '/'
+  const isPropertiesPage = pathname === '/properties'
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
 
   const closeMobileMenu = () => setMobileMenuOpen(false)
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 10)
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+      setScrolled(currentScrollY > 10)
+
+      if (isPropertiesPage) {
+        if (currentScrollY > 100) {
+          if (currentScrollY > lastScrollY) {
+            setIsVisible(false) // Scrolling down
+          } else {
+            setIsVisible(true) // Scrolling up
+          }
+        } else {
+          setIsVisible(true)
+        }
+      } else {
+        setIsVisible(true)
+      }
+
+      setLastScrollY(currentScrollY)
+    }
+
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [lastScrollY, isPropertiesPage])
 
-  // Listen for mutations on body to see if we should hide header
   useEffect(() => {
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === 'class') {
-          setIsHidden(document.body.classList.contains('hide-main-header'))
-        }
-      })
-    })
-
-    observer.observe(document.body, { attributes: true })
-    
-    // Initial check
-    setIsHidden(document.body.classList.contains('hide-main-header'))
-
-    return () => observer.disconnect()
-  }, [])
+    setMobileMenuOpen(false)
+  }, [pathname])
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileMenuOpen(false) }
@@ -62,20 +71,20 @@ export default function Header() {
     : 'bg-white border-b border-secondary-100'
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${headerBg} ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}>
+    <header className={`fixed top-0 left-0 right-0 z-50 header-transition ${isVisible ? '' : 'header-hidden'} ${headerBg}`}>
       <nav className="container flex items-center justify-between h-12" aria-label={t('mainNav')}>
         {/* Left: Logo */}
         <Logo variant={isDark ? 'light' : 'dark'} />
 
         {/* Center: Desktop Navigation */}
         <div className="hidden lg:flex items-center gap-1">
-          <Link href="/properties" className={`text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${isDark ? 'text-white/70 hover:text-white' : 'text-secondary-600 hover:text-secondary-900'}`}>
+          <Link href="/properties" className={`text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${isActive('/properties') ? isDark ? 'bg-white/10 text-white' : 'bg-secondary-100 text-secondary-900' : isDark ? 'text-white/70 hover:text-white' : 'text-secondary-600 hover:text-secondary-900'}`}>
             {t('properties')}
           </Link>
-          <Link href="/map" className={`text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${isDark ? 'text-white/70 hover:text-white' : 'text-secondary-600 hover:text-secondary-900'}`}>
+          <Link href="/map" className={`text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${isActive('/map') ? isDark ? 'bg-white/10 text-white' : 'bg-secondary-100 text-secondary-900' : isDark ? 'text-white/70 hover:text-white' : 'text-secondary-600 hover:text-secondary-900'}`}>
             {t('map')}
           </Link>
-          <Link href="/pricing" className={`text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${isDark ? 'text-white/70 hover:text-white' : 'text-secondary-600 hover:text-secondary-900'}`}>
+          <Link href="/pricing" className={`text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${isActive('/pricing') ? isDark ? 'bg-white/10 text-white' : 'bg-secondary-100 text-secondary-900' : isDark ? 'text-white/70 hover:text-white' : 'text-secondary-600 hover:text-secondary-900'}`}>
             {t('pricing')}
           </Link>
         </div>
@@ -127,13 +136,13 @@ export default function Header() {
       {mobileMenuOpen && (
         <div className={`lg:hidden border-t px-4 pb-4 pt-2 ${isDark ? 'bg-secondary-950 border-white/10' : 'bg-white border-secondary-100'}`}>
           <div className="flex flex-col gap-1">
-            <Link href="/properties" className={`px-3 py-2 rounded-lg text-sm font-medium ${isDark ? 'text-white/80 hover:text-white' : 'text-secondary-700 hover:bg-secondary-50'}`} onClick={closeMobileMenu}>
+            <Link href="/properties" className={`px-3 py-2 rounded-lg text-sm font-medium ${isActive('/properties') ? isDark ? 'bg-white/10 text-white' : 'bg-secondary-100 text-secondary-900' : isDark ? 'text-white/80 hover:text-white' : 'text-secondary-700 hover:bg-secondary-50'}`} onClick={closeMobileMenu}>
               {t('properties')}
             </Link>
-            <Link href="/map" className={`px-3 py-2 rounded-lg text-sm font-medium ${isDark ? 'text-white/80 hover:text-white' : 'text-secondary-700 hover:bg-secondary-50'}`} onClick={closeMobileMenu}>
+            <Link href="/map" className={`px-3 py-2 rounded-lg text-sm font-medium ${isActive('/map') ? isDark ? 'bg-white/10 text-white' : 'bg-secondary-100 text-secondary-900' : isDark ? 'text-white/80 hover:text-white' : 'text-secondary-700 hover:bg-secondary-50'}`} onClick={closeMobileMenu}>
               {t('map')}
             </Link>
-            <Link href="/pricing" className={`px-3 py-2 rounded-lg text-sm font-medium ${isDark ? 'text-white/80 hover:text-white' : 'text-secondary-700 hover:bg-secondary-50'}`} onClick={closeMobileMenu}>
+            <Link href="/pricing" className={`px-3 py-2 rounded-lg text-sm font-medium ${isActive('/pricing') ? isDark ? 'bg-white/10 text-white' : 'bg-secondary-100 text-secondary-900' : isDark ? 'text-white/80 hover:text-white' : 'text-secondary-700 hover:bg-secondary-50'}`} onClick={closeMobileMenu}>
               {t('pricing')}
             </Link>
 

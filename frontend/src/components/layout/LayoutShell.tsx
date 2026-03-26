@@ -8,15 +8,17 @@ import BottomNav from './BottomNav'
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isMapPage = pathname === '/map'
+  const isAuthPage = pathname.startsWith('/auth')
+  const hideChrome = isMapPage || isAuthPage
 
   return (
     <>
-      {!isMapPage && <Header />}
+      {!hideChrome && <Header />}
       <main className="flex-grow pb-14 lg:pb-0">
         {children}
       </main>
-      {!isMapPage && <Footer />}
-      {!isMapPage && <BottomNav />}
+      {!hideChrome && <Footer />}
+      {!hideChrome && <BottomNav />}
     </>
   )
 }

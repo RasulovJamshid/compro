@@ -51,7 +51,7 @@ async function bootstrap() {
       ];
 
   // Serve static files from uploads directory with CORS headers
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
     setHeaders: (res, path) => {
       // Set CORS headers for static files

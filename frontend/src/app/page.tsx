@@ -45,15 +45,15 @@ export default async function Home() {
       <Hero />
 
       {/* Featured Listings — content first */}
-      <section className="py-8 sm:py-12 bg-white">
+      <section className="py-10 sm:py-14 bg-white">
         <div className="container">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg sm:text-xl font-bold text-secondary-900">
+          <div className="flex items-center justify-between mb-6 sm:mb-8">
+            <h2 className="text-xl sm:text-2xl font-bold text-secondary-900">
               {t('newProperties')}
             </h2>
             <Link
               href="/properties"
-              className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors flex items-center gap-1"
+              className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors flex items-center gap-1 flex-shrink-0"
             >
               {t('all')}
               <ArrowRight className="w-4 h-4" />
@@ -64,22 +64,22 @@ export default async function Home() {
       </section>
 
       {/* Dynamic Gradient CTA */}
-      <section className="py-16 sm:py-24 bg-gradient-to-br from-primary-900 via-primary-800 to-accent-900 relative overflow-hidden">
+      <section className="py-14 sm:py-24 bg-gradient-to-br from-primary-900 via-primary-800 to-accent-900 relative overflow-hidden">
         {/* Abstract shapes */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-white/5 blur-3xl"></div>
           <div className="absolute bottom-0 right-0 w-full h-1/2 bg-gradient-to-t from-black/20 to-transparent"></div>
         </div>
-        <div className="container relative z-10 text-center max-w-2xl">
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-white mb-4 tracking-tight">
+        <div className="container relative z-10 text-center max-w-2xl px-6 sm:px-4">
+          <h2 className="text-2xl sm:text-4xl font-extrabold text-white mb-3 sm:mb-4 tracking-tight">
             {t('haveProperty')}
           </h2>
-          <p className="text-base sm:text-lg text-primary-100 mb-8 max-w-xl mx-auto">
+          <p className="text-sm sm:text-lg text-primary-100 mb-7 sm:mb-8 max-w-xl mx-auto">
             {t('postFree')}
           </p>
           <Link
-            href="/announcements/entity"
-            className="inline-flex items-center gap-2 bg-white hover:bg-secondary-50 text-primary-900 font-bold text-base px-8 py-4 rounded-xl shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+            href="/auth/register"
+            className="inline-flex items-center gap-2 bg-white hover:bg-secondary-50 text-primary-900 font-bold text-sm sm:text-base px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
           >
             <Plus className="w-5 h-5" />
             {t('addAd')}

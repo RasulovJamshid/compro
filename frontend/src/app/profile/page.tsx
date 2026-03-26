@@ -3,16 +3,32 @@
 import { useAuthStore } from '@/lib/store/authStore'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { Loader2 } from 'lucide-react'
 
 export default function ProfilePage() {
-  const { user, isAuthenticated, logout } = useAuthStore()
+  const { user, isAuthenticated, isLoading, logout } = useAuthStore()
   const router = useRouter()
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/auth/login')
+    if (isLoading) {
+      return
     }
-  }, [isAuthenticated, router])
+
+    if (!isAuthenticated) {
+      router.replace('/auth/login')
+    }
+  }, [isAuthenticated, isLoading, router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-secondary-50 flex items-center justify-center px-4">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary-600 mx-auto mb-3" />
+          <p className="text-sm text-secondary-600">Загружаем профиль...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!isAuthenticated || !user) {
     return null
@@ -20,7 +36,6 @@ export default function ProfilePage() {
 
   const handleLogout = () => {
     logout()
-    router.push('/')
   }
 
   return (

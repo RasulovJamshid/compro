@@ -4,6 +4,7 @@ import { useEffect, useRef, memo } from 'react'
 import { MapContainer, TileLayer, Marker, ZoomControl, Popup, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { MapPin, Square, View, ExternalLink, Info } from 'lucide-react'
 import type { Property } from '@/lib/types'
 
 interface MapProps {
@@ -56,21 +57,20 @@ function MapEvents({ onBoundsChange }: { onBoundsChange?: (bounds: L.LatLngBound
 
 function Map({ properties, center, zoom, onMarkerClick, onBoundsChange, selectedPropertyId }: MapProps) {
   const formatPrice = (price: number) => {
-    return price.toLocaleString('ru-RU') + ' UZS'
+    if (price >= 1000000) return (price / 1000000).toLocaleString('ru-RU') + ' млн'
+    return (price / 1000).toLocaleString('ru-RU') + ' т.'
   }
 
   const createPriceIcon = (price: number, isSelected: boolean = false) => {
-    const formattedPrice = price >= 1000000 
-      ? (price / 1000000).toFixed(1) + ' млн'
-      : (price / 1000).toFixed(0) + ' т.'
+    const formattedPrice = formatPrice(price)
     
     // Modern colors and styling
-    const bgColor = isSelected ? '#2563b5' : '#ffffff' // primary-600 vs white
-    const textColor = isSelected ? '#ffffff' : '#0f172a' // white vs secondary-900
-    const borderColor = isSelected ? '#1a4a92' : '#cbd5e1' // primary-700 vs secondary-300
-    const ringColor = isSelected ? 'rgba(37, 99, 181, 0.3)' : 'rgba(0, 0, 0, 0.05)'
+    const bgColor = isSelected ? '#2563eb' : '#ffffff' 
+    const textColor = isSelected ? '#ffffff' : '#0f172a' 
+    const borderColor = isSelected ? '#1d4ed8' : '#e2e8f0'
+    const shadowOpacity = isSelected ? '0.2' : '0.1'
     
-    const scale = isSelected ? 'scale(1.05)' : 'scale(1)'
+    const scale = isSelected ? 'scale(1.1)' : 'scale(1)'
     const zIndex = isSelected ? '1000' : '500'
 
     return L.divIcon({
@@ -78,7 +78,7 @@ function Map({ properties, center, zoom, onMarkerClick, onBoundsChange, selected
       html: `
         <div style="
           transform: translate(-50%, -100%) ${scale};
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
           position: absolute;
           z-index: ${zIndex};
         ">
@@ -86,24 +86,24 @@ function Map({ properties, center, zoom, onMarkerClick, onBoundsChange, selected
             background-color: ${bgColor};
             color: ${textColor};
             border: 1px solid ${borderColor};
-            padding: 4px 10px;
-            border-radius: 20px;
-            box-shadow: 0 4px 6px -1px ${ringColor}, 0 2px 4px -2px ${ringColor};
-            font-weight: 700;
-            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, ${shadowOpacity}), 0 4px 6px -4px rgba(0, 0, 0, ${shadowOpacity});
+            font-weight: 800;
+            font-size: 13px;
             white-space: nowrap;
             cursor: pointer;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            letter-spacing: -0.01em;
+            letter-spacing: -0.02em;
           ">
             ${formattedPrice}
             <!-- Small tail for the marker -->
             <div style="
               position: absolute;
-              bottom: -5px;
+              bottom: -4px;
               left: 50%;
               transform: translateX(-50%) rotate(45deg);
               width: 8px;
@@ -117,7 +117,7 @@ function Map({ properties, center, zoom, onMarkerClick, onBoundsChange, selected
         </div>
       `,
       iconSize: [0, 0],
-      iconAnchor: [0, 0] // the container handles translating -50% and -100% so it points exactly at the lat/lng
+      iconAnchor: [0, 0]
     })
   }
 
@@ -147,7 +147,9 @@ function Map({ properties, center, zoom, onMarkerClick, onBoundsChange, selected
           position={[property.latitude, property.longitude]}
           icon={createPriceIcon(property.price, property.id === selectedPropertyId)}
           eventHandlers={{
-            click: () => onMarkerClick?.(property),
+            click: () => {
+              onMarkerClick?.(property)
+            },
             mouseover: (e) => {
               e.target.openPopup()
             },
@@ -158,19 +160,62 @@ function Map({ properties, center, zoom, onMarkerClick, onBoundsChange, selected
         >
           <Popup
             closeButton={false}
-            offset={[0, -28]}
-            className="!p-0 !border-none"
+            offset={[0, -20]}
+            className="property-map-popup"
+            maxWidth={260}
           >
-            <div className="px-3 py-2 bg-white rounded-xl shadow-lg border border-secondary-200 min-w-[180px] max-w-[220px]">
-              <div className="text-[11px] font-semibold text-secondary-900 mb-0.5 line-clamp-1">
-                {property.title}
+            <div className="flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden border border-secondary-100/50 group">
+              {/* Image Header */}
+              <div className="relative h-28 w-full bg-secondary-100 overflow-hidden">
+                {property.images?.[0] ? (
+                  <img 
+                    src={property.images[0].watermarkedUrl || property.images[0].url} 
+                    alt={property.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-secondary-300">
+                    <Square className="w-8 h-8" />
+                  </div>
+                )}
+                <div className="absolute top-2.5 left-2.5 flex gap-1">
+                  <span className="px-2 py-0.5 bg-white/95 backdrop-blur-md rounded-lg text-[10px] font-black text-secondary-900 uppercase shadow-sm">
+                    {property.dealType === 'rent' ? 'Аренда' : 'Продажа'}
+                  </span>
+                </div>
               </div>
-              <div className="text-[13px] font-bold text-primary-700 mb-0.5">
-                {property.price.toLocaleString('ru-RU')}{' '}
-                <span className="text-[10px] font-normal text-secondary-500">сум</span>
-              </div>
-              <div className="text-[11px] text-secondary-600 line-clamp-1">
-                {property.district}, {property.city}
+
+              {/* Content */}
+              <div className="p-4 bg-white">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="text-base font-black text-primary-600 leading-none">
+                    {property.price.toLocaleString('ru-RU')}
+                    <span className="text-[10px] font-bold text-secondary-400 ml-1 uppercase">UZS</span>
+                  </div>
+                  {property.hasTour360 && (
+                    <div className="p-1 bg-primary-50 rounded-lg border border-primary-100">
+                      <View className="w-3.5 h-3.5 text-primary-600" />
+                    </div>
+                  )}
+                </div>
+
+                <h3 className="text-[11px] font-bold text-secondary-900 line-clamp-2 leading-tight mb-2 group-hover:text-primary-600 transition-colors">
+                  {property.title}
+                </h3>
+
+                <div className="flex items-center gap-1.5 text-[10px] text-secondary-500 font-medium">
+                  <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-secondary-300" />
+                  <span className="truncate">{property.district}, {property.city}</span>
+                </div>
+                
+                <div className="mt-3 pt-3 border-t border-secondary-50 flex justify-between items-center">
+                  <span className="text-[10px] font-black text-secondary-700 bg-secondary-50 px-2 py-0.5 rounded-md">
+                    {property.area} м²
+                  </span>
+                  <span className="text-[9px] font-black text-primary-600 uppercase tracking-widest flex items-center gap-1">
+                    Клик для деталей <Info className="w-2.5 h-2.5" />
+                  </span>
+                </div>
               </div>
             </div>
           </Popup>
@@ -178,6 +223,27 @@ function Map({ properties, center, zoom, onMarkerClick, onBoundsChange, selected
       ))}
     </MapContainer>
   )
+}
+
+// Global styles for custom popup
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style')
+  style.innerHTML = `
+    .property-map-popup .leaflet-popup-content-wrapper {
+      padding: 0 !important;
+      border-radius: 16px !important;
+      overflow: hidden;
+      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
+    }
+    .property-map-popup .leaflet-popup-content {
+      margin: 0 !important;
+      width: 240px !important;
+    }
+    .property-map-popup .leaflet-popup-tip-container {
+      display: none !important;
+    }
+  `
+  document.head.appendChild(style)
 }
 
 // Memoize to prevent re-renders when center/zoom change

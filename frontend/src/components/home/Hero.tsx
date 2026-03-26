@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, MapPin, Building2, Map } from 'lucide-react'
+import { Search, Building2, Map } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -28,14 +28,14 @@ export default function Hero() {
   ]
 
   return (
-    <section className="relative bg-white pt-16 pb-12 sm:pt-24 sm:pb-16 overflow-hidden flex items-center justify-center">
+    <section className="relative bg-white pt-20 pb-14 sm:pt-24 sm:pb-16 overflow-hidden flex items-center justify-center">
       {/* Decorative subtle background gradients */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[50%] rounded-full bg-primary-100/50 blur-[100px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[50%] rounded-full bg-accent-100/40 blur-[100px] pointer-events-none" />
       <div className="container relative z-10 max-w-4xl">
         {/* Heading */}
-        <div className="text-center mb-10 sm:mb-14">
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-secondary-900 mb-5 tracking-tight leading-tight">
+        <div className="text-center mb-8 sm:mb-14">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-secondary-900 mb-4 sm:mb-5 tracking-tight leading-tight">
             {t('HomePage.heroTitle').split(' ').map((word: string, i: number, arr: string[]) =>
               i === arr.length - 1 || i === arr.length - 2 ? (
                 <span key={i} className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-accent-500">{word} </span>
@@ -44,7 +44,7 @@ export default function Hero() {
               )
             )}
           </h1>
-          <p className="text-base sm:text-lg text-secondary-500 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-lg text-secondary-500 max-w-2xl mx-auto px-2 sm:px-0">
             {t('HomePage.heroSubtitle')}
           </p>
         </div>
@@ -110,24 +110,26 @@ export default function Hero() {
           </div>
 
           {/* Quick Filters (Swipeable on Mobile) */}
-          <div className="flex overflow-x-auto sm:flex-wrap items-center sm:justify-center gap-3 sm:gap-4 mt-8 sm:mt-10 pb-4 sm:pb-0 scrollbar-hide snap-x px-4 sm:px-0 -mx-4 sm:mx-0">
-            {quickFilters.map((filter) => (
-              <button
-                key={filter.id}
-                onClick={() => router.push(`/properties?propertyType=${filter.id}&dealType=${activeTab}`)}
-                className="btn btn-sm sm:btn-md flex-shrink-0 snap-center bg-white border border-secondary-200 text-secondary-700 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 !rounded-full shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+          <div className="mt-7 sm:mt-10 -mx-4 sm:mx-0 px-4 sm:px-0 overflow-x-auto sm:overflow-visible scrollbar-hide">
+            <div className="flex items-center sm:flex-wrap sm:justify-center gap-2.5 sm:gap-4 pb-2 sm:pb-0 pr-4 sm:pr-0 snap-x snap-mandatory w-max sm:w-auto">
+              {quickFilters.map((filter) => (
+                <button
+                  key={filter.id}
+                  onClick={() => router.push(`/properties?propertyType=${filter.id}&dealType=${activeTab}`)}
+                  className="btn btn-sm sm:btn-md flex-shrink-0 snap-start bg-white border border-secondary-200 text-secondary-700 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 !rounded-full shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+                >
+                  <filter.icon className="w-4 h-4" />
+                  {filter.label}
+                </button>
+              ))}
+              <Link
+                href="/map"
+                className="btn flex-shrink-0 btn-sm sm:btn-md snap-start bg-gradient-to-r from-primary-50 to-primary-100 !border-primary-200 !text-primary-800 hover:from-primary-100 hover:to-primary-200 !rounded-full shadow-sm hover:shadow-md hover:-translate-y-0.5 sm:ml-2 transition-all duration-300 inline-flex items-center gap-2"
               >
-                <filter.icon className="w-4 h-4" />
-                {filter.label}
-              </button>
-            ))}
-            <Link
-              href="/map"
-              className="btn flex-shrink-0 btn-sm sm:btn-md snap-center bg-gradient-to-r from-primary-50 to-primary-100 !border-primary-200 !text-primary-800 hover:from-primary-100 hover:to-primary-200 !rounded-full shadow-sm hover:shadow-md hover:-translate-y-0.5 sm:ml-2 transition-all duration-300 inline-flex items-center gap-2 h-[34px] sm:h-auto"
-            >
-              <Map className="w-4 h-4" />
-              {t('HomePage.onMap')}
-            </Link>
+                <Map className="w-4 h-4" />
+                {t('HomePage.onMap')}
+              </Link>
+            </div>
           </div>
         </div>
       </div>

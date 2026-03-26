@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, Square, Heart, View, ArrowRight } from 'lucide-react'
@@ -12,7 +13,7 @@ interface PropertyCardProps {
   variant?: 'default' | 'compact'
 }
 
-export default function PropertyCard({ property, variant = 'default' }: PropertyCardProps) {
+const PropertyCard = memo(function PropertyCard({ property, variant = 'default' }: PropertyCardProps) {
   const t = useTranslations('Property')
   const coverImage = property.images?.find(img => img.isCover) || property.images?.[0]
 
@@ -120,7 +121,9 @@ export default function PropertyCard({ property, variant = 'default' }: Property
             src={coverImage.watermarkedUrl || coverImage.url}
             alt={property.title}
             fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
             className="object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
+            priority={property.isTop}
           />
         ) : (
           <div className="flex items-center justify-center h-full text-secondary-300">
@@ -152,10 +155,10 @@ export default function PropertyCard({ property, variant = 'default' }: Property
         </button>
       </div>
 
-      <div className="p-5 flex flex-col flex-1 relative bg-white">
+      <div className="p-4 sm:p-5 flex flex-col flex-1 relative bg-white">
         {/* Price */}
-        <div className="flex items-baseline gap-1.5 mb-3">
-          <span className="text-xl font-black text-primary-700">
+        <div className="flex items-baseline gap-1.5 mb-2 sm:mb-3">
+          <span className="text-lg sm:text-xl font-black text-primary-700">
             {property.price.toLocaleString('ru-RU')}
           </span>
           <span className="text-xs text-secondary-500 font-bold uppercase tracking-wider">
@@ -164,29 +167,31 @@ export default function PropertyCard({ property, variant = 'default' }: Property
         </div>
 
         {/* Title */}
-        <h3 className="text-base font-bold text-secondary-900 line-clamp-2 mb-2 group-hover:text-primary-600 transition-colors duration-300 leading-tight">
+        <h3 className="text-sm sm:text-base font-bold text-secondary-900 line-clamp-2 mb-1.5 sm:mb-2 group-hover:text-primary-600 transition-colors duration-300 leading-tight">
           {property.title}
         </h3>
 
         {/* Address */}
-        <div className="flex items-center gap-1.5 text-xs text-secondary-500 mb-4">
+        <div className="flex items-center gap-1.5 text-xs text-secondary-500 mb-3 sm:mb-4">
           <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
           <span className="truncate">{property.address || `${property.district}, ${property.city}`}</span>
         </div>
 
         {/* Footer info */}
-        <div className="mt-auto flex items-center gap-2 text-sm font-semibold text-secondary-700 pt-4 border-t border-secondary-50">
-          <div className="flex items-center gap-1.5 bg-primary-50 px-3 py-1.5 rounded-lg text-primary-700">
+        <div className="mt-auto flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-semibold text-secondary-700 pt-3 sm:pt-4 border-t border-secondary-50 min-w-0">
+          <div className="flex items-center gap-1 bg-primary-50 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-primary-700 flex-shrink-0">
             <span>{property.area} м²</span>
           </div>
-          <div className="flex items-center gap-1.5 bg-secondary-50 px-3 py-1.5 rounded-lg text-secondary-600">
-            {propertyTypeLabels[property.propertyType]}
+          <div className="flex items-center gap-1 bg-secondary-50 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-secondary-600 truncate min-w-0">
+            <span className="truncate">{propertyTypeLabels[property.propertyType]}</span>
           </div>
-          <div className="ml-auto opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-            <ArrowRight className="w-5 h-5 text-primary-600" />
+          <div className="ml-auto flex-shrink-0 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" />
           </div>
         </div>
       </div>
     </Link>
   )
-}
+})
+
+export default PropertyCard

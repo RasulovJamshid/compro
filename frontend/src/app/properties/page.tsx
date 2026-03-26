@@ -6,14 +6,14 @@ import {
   Grid3x3, List, SlidersHorizontal, ArrowUpDown, X
 } from 'lucide-react'
 import PropertyCard from '@/components/properties/PropertyCard'
-import { getProperties } from '@/lib/api/properties'
-import type { Property, PropertyFilters } from '@/lib/types'
 import ComparisonButton from '@/components/comparison/ComparisonButton'
 import ApiErrorHandler from '@/components/common/ApiErrorHandler'
 import { CardSkeleton } from '@/components/common/LoadingSkeleton'
 import { useAnalyticsStore } from '@/lib/store/analyticsStore'
 import { useTranslations } from 'next-intl'
 import PropertyFilterDrawer from '@/components/properties/PropertyFilterDrawer'
+import { useProperties } from '@/hooks/useProperties'
+import type { PropertyFilters } from '@/lib/types'
 
 type SortOption = 'newest' | 'oldest' | 'price_asc' | 'price_desc'
 
@@ -29,97 +29,64 @@ export default function PropertiesPage() {
   const tPage = useTranslations('PropertiesPage')
   const tFilters = useTranslations('Filters')
   const tSort = useTranslations('Sort')
-  const [properties, setProperties] = useState<Property[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
-  const [filters, setFilters] = useState<PropertyFilters>({})
-  const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(12)
-  const [total, setTotal] = useState(0)
+
+  const {
+    properties,
+    total,
+    loading,
+    error,
+    filters,
+    searchQuery,
+    setFilters,
+    clearFilters,
+    setSearch,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    sortBy,
+    setSortBy,
+    refresh
+  } = useProperties()
+
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [sortBy, setSortBy] = useState<SortOption>('newest')
-  const [scrolled, setScrolled] = useState(false)
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
+  const [headerVisible, setHeaderVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+      
+      // Calculate header visibility based on scroll direction
+      if (currentScrollY > 60) {
+        if (currentScrollY > lastScrollY) {
+          setHeaderVisible(false)
+        } else {
+          setHeaderVisible(true)
+        }
+      } else {
+        setHeaderVisible(true)
+      }
+      setLastScrollY(currentScrollY)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [lastScrollY])
 
   const trackFilter = useAnalyticsStore((state) => state.trackFilter)
   const trackSearch = useAnalyticsStore((state) => state.trackSearch)
 
-  // Handle scroll to hide header
-  useEffect(() => {
-    let lastScrollY = window.scrollY
-
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY
-
-      // Hide on scroll down, show on scroll up. Also always show when near top.
-      if (currentScrollY < 50) {
-        setScrolled(false)
-      } else if (currentScrollY > lastScrollY && currentScrollY > 50) {
-        setScrolled(true)
-      } else if (currentScrollY < lastScrollY) {
-        setScrolled(false)
-      }
-
-      lastScrollY = currentScrollY
-    }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  // Force header hidden class on body when scrolled on this specific page
-  useEffect(() => {
-    if (scrolled) {
-      document.body.classList.add('hide-main-header')
-    } else {
-      document.body.classList.remove('hide-main-header')
-    }
-
-    // Cleanup on unmount
-    return () => {
-      document.body.classList.remove('hide-main-header')
-    }
-  }, [scrolled])
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchProperties() }, [filters, page, limit, sortBy])
-
-  const fetchProperties = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await getProperties({ ...filters, page, limit, sortBy } as PropertyFilters & { page?: number; limit?: number; sortBy?: string })
-      setProperties(data.items || [])
-      setTotal(data.total || 0)
-    } catch (err: any) {
-      setError(err?.message || 'Ошибка при загрузке объектов')
-      setProperties([])
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleApplyFilters = (newFilters: PropertyFilters) => {
     setFilters(newFilters)
-    setPage(1)
     Object.entries(newFilters).forEach(([key, val]) => {
       if (val !== undefined && val !== '') trackFilter(key as any, val)
     })
   }
 
-  const handleSearch = (query: string) => {
-    setFilters(prev => {
-      const updated = { ...prev, q: query }
-      if (query) trackSearch(query, updated)
-      return updated
-    })
-    setPage(1)
-  }
-
-  const clearFilters = () => {
-    setFilters({})
-    setPage(1)
-    setError(null)
+  const handleSearchChange = (q: string) => {
+    setSearch(q)
+    if (q) trackSearch(q, filters)
   }
 
   const activeFilterCount = Object.entries(filters).filter(
@@ -152,45 +119,58 @@ export default function PropertiesPage() {
   const mapPageHref = buildMapQuery()
 
   return (
-    <div className="min-h-screen bg-white">
-      <ApiErrorHandler error={error} onDismiss={() => setError(null)} />
+    <div className="min-h-screen bg-white pt-[104px] sm:pt-[116px]">
+      <ApiErrorHandler error={error} onDismiss={() => {}} />
 
       {/* ── Sticky search + actions bar ────────────────────────────────── */}
-      <div
-        className={`fixed z-40 bg-white/90 backdrop-blur-xl border-b border-secondary-100 py-3 left-0 right-0 transition-all duration-300 ${scrolled ? 'top-0 shadow-sm' : 'top-[48px] sm:top-[48px]'}`}
-      >
-        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-          {/* Global Search */}
-          <div className="w-full sm:flex-1 max-w-2xl relative">
-            <div className="flex items-center bg-secondary-50 rounded-full px-4 py-2 border border-secondary-100 focus-within:border-primary-500 focus-within:bg-white transition-all shadow-sm">
-              <Search className="w-4 h-4 text-secondary-400 flex-shrink-0" />
-              <input
-                type="text"
-                placeholder={t('HomePage.searchPlaceholder')}
-                className="w-full pl-3 pr-2 py-0.5 text-sm bg-transparent border-none focus:outline-none focus:ring-0 text-secondary-900 placeholder:text-secondary-400"
-                value={filters.q || ''}
-                onChange={(e) => handleSearch(e.target.value)}
-              />
-            </div>
-          </div>
+      <div className={`sticky z-30 bg-white/95 backdrop-blur-xl border-b border-secondary-100 shadow-sm sticky-bar-optimized ${headerVisible ? 'top-12 sm:top-[60px]' : 'sticky-bar-top'}`}>
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-2.5 sm:py-3">
+          <div className="flex items-center gap-2 sm:gap-3">
 
-          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 scrollbar-hide">
-            {/* Unified Filters Button */}
+            {/* Search input */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-secondary-50 hover:bg-secondary-100/60 rounded-full px-2.5 sm:px-3.5 py-2 border border-secondary-200 focus-within:border-primary-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary-500/15 transition-all">
+                <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-secondary-400 flex-shrink-0" />
+                <input
+                  type="text"
+                  placeholder={t('HomePage.searchPlaceholder')}
+                  className="flex-1 text-xs sm:text-sm bg-transparent border-none focus:outline-none focus:ring-0 text-secondary-900 placeholder:text-secondary-400 min-w-0"
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => handleSearchChange('')}
+                    className="p-0.5 rounded-full text-secondary-400 hover:text-secondary-700 hover:bg-secondary-200 transition-all flex-shrink-0"
+                    aria-label="Clear search"
+                  >
+                    <X className="w-3 w-3 sm:w-3.5 sm:h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Filters button — turns solid when active */}
             <button
               onClick={() => setFilterDrawerOpen(true)}
-              className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary-50 hover:bg-secondary-100 text-secondary-900 text-sm font-bold transition-colors flex-shrink-0 border border-secondary-100"
+              className={`inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all flex-shrink-0 border ${
+                activeFilterCount > 0
+                  ? 'bg-primary-600 text-white border-primary-600 shadow-sm hover:bg-primary-700'
+                  : 'bg-secondary-50 hover:bg-secondary-100 text-secondary-800 border-secondary-200'
+              }`}
             >
-              <SlidersHorizontal className="w-4 h-4" />
-              <span>{t('Filters.title')}</span>
+              <SlidersHorizontal className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">{t('Filters.title')}</span>
               {activeFilterCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+                <span className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold bg-white text-primary-600 rounded-full flex-shrink-0">
                   {activeFilterCount}
                 </span>
               )}
             </button>
 
-            {/* View toggle */}
-            <div className="hidden sm:flex items-center bg-secondary-50 p-1 rounded-full border border-secondary-100 flex-shrink-0">
+            {/* View toggle — desktop only */}
+            <div className="hidden lg:flex items-center bg-secondary-50 p-1 rounded-full border border-secondary-200 flex-shrink-0">
               <button
                 onClick={() => setViewMode('grid')}
                 className={`p-1.5 rounded-full transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-primary-600' : 'text-secondary-500 hover:text-secondary-900'}`}
@@ -210,11 +190,12 @@ export default function PropertiesPage() {
             {/* Map link */}
             <a
               href={mapPageHref}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-secondary-900 hover:bg-black text-sm font-bold text-white transition-all shadow-sm active:scale-95 flex-shrink-0"
+              className="inline-flex items-center gap-1.5 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full bg-secondary-900 hover:bg-black text-sm font-bold text-white transition-all shadow-sm active:scale-95 flex-shrink-0"
             >
               <MapPin className="w-4 h-4" />
               <span className="hidden sm:inline">{t('Navigation.map')}</span>
             </a>
+
           </div>
         </div>
       </div>
@@ -229,11 +210,11 @@ export default function PropertiesPage() {
       />
 
       {/* ── Main Layout (Full Width) ─────────────────────────────────────── */}
-      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pt-[170px] sm:pt-[120px]">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
 
         {/* ── Active Filters ─────────────────────────────────────── */}
         {activeFilterCount > 0 && (
-          <div className="flex flex-wrap gap-2 mb-6 items-center">
+          <div className="flex flex-wrap gap-2 mb-4 items-center">
             <span className="text-sm font-semibold text-secondary-900 mr-1">{tFilters('activeFilters')}:</span>
             {Object.entries(filters).map(([key, val]) => {
               if (key === 'q' || val === undefined || val === '' || val === false) return null;
@@ -265,7 +246,7 @@ export default function PropertiesPage() {
         )}
 
         {/* ── Results header ──────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
           <p className="text-lg font-bold text-secondary-900">
             {loading ? tPage('loading') : (
               <>{tPage('found')} <span className="text-primary-600">{total}</span> {tPage('objects')}</>
@@ -275,7 +256,7 @@ export default function PropertiesPage() {
             <ArrowUpDown className="w-4 h-4 flex-shrink-0 text-secondary-400" />
             <select
               value={sortBy}
-              onChange={(e) => { setSortBy(e.target.value as SortOption); setPage(1) }}
+              onChange={(e) => { setSortBy(e.target.value as any); setPage(1) }}
               className="border-0 bg-transparent text-sm font-semibold text-secondary-900 focus:outline-none focus:ring-0 cursor-pointer appearance-none pr-4"
             >
               {(Object.entries(SORT_LABELS(tSort)) as [SortOption, string][]).map(([val, lbl]) => (
@@ -288,7 +269,7 @@ export default function PropertiesPage() {
         {/* ── Property grid / list ────────────────────────────────── */}
         {loading ? (
           <div className={gridClass}>
-            {[...Array(12)].map((_, i) => <CardSkeleton key={i} />)}
+            {[...Array(limit)].map((_, i) => <CardSkeleton key={i} />)}
           </div>
         ) : error ? (
           <div className="text-center py-20 bg-secondary-50 rounded-3xl border border-secondary-100 px-4">
@@ -298,7 +279,7 @@ export default function PropertiesPage() {
             <h3 className="text-xl font-bold text-secondary-900 mb-2">{tPage('errorLoad')}</h3>
             <p className="text-secondary-500 mb-6 max-w-md mx-auto">{error}</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <button onClick={fetchProperties} className="btn btn-lg btn-primary">
+              <button onClick={refresh} className="btn btn-lg btn-primary">
                 {tPage('retry')}
               </button>
               <button onClick={clearFilters} className="btn btn-lg btn-outline !rounded-full">

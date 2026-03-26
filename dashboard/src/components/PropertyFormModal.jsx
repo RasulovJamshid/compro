@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Upload, Image as ImageIcon, Video, Globe, Trash2, Plus } from 'lucide-react'
+import { X, Upload, Image as ImageIcon, Video, Globe, Trash2, Plus, Loader2 } from 'lucide-react'
 import { uploadApi } from '../lib/api'
 
 const PROPERTY_TYPES = [
@@ -76,6 +76,11 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
   const [videos, setVideos] = useState([])
   const [uploadingImages, setUploadingImages] = useState(false)
   const [uploadingVideos, setUploadingVideos] = useState(false)
+  const [uploadingPanorama, setUploadingPanorama] = useState(false)
+  const [panoramaFile, setPanoramaFile] = useState(null)
+  const [panoramaPreview, setPanoramaPreview] = useState(null)
+  const [panorama360Id, setPanorama360Id] = useState(null)
+  const [panoramaSourceUrl, setPanoramaSourceUrl] = useState(null)
   const [newSecurityFeature, setNewSecurityFeature] = useState('')
   const [newAmenity, setNewAmenity] = useState('')
 
@@ -127,10 +132,16 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
       })
       setImages(property.images || [])
       setVideos(property.videos || [])
+      setPanorama360Id(property.panorama360Id || null)
+      setPanoramaFile(null)
+      setPanoramaPreview(null)
     } else {
       // Reset form for new property
       setImages([])
       setVideos([])
+      setPanorama360Id(null)
+      setPanoramaFile(null)
+      setPanoramaPreview(null)
     }
   }, [property])
 
@@ -205,6 +216,43 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
     }
   }
 
+  const handlePanoramaUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      alert('Пожалуйста, загрузите изображение')
+      return
+    }
+
+    // Show local preview
+    const reader = new FileReader()
+    reader.onloadend = () => setPanoramaPreview(reader.result)
+    reader.readAsDataURL(file)
+
+    // Upload to server immediately
+    setUploadingPanorama(true)
+    try {
+      const { data } = await uploadApi.uploadPanorama(file)
+      setPanorama360Id(data.panoramaId)
+      setPanoramaSourceUrl(data.sourceUrl || null)
+      setPanoramaFile(file)
+    } catch (error) {
+      console.error('Failed to upload panorama:', error)
+      alert('Ошибка загрузки панорамы. Попробуйте снова.')
+      setPanoramaPreview(null)
+    } finally {
+      setUploadingPanorama(false)
+    }
+  }
+
+  const removePanorama = () => {
+    setPanoramaFile(null)
+    setPanoramaPreview(null)
+    setPanorama360Id(null)
+    setPanoramaSourceUrl(null)
+  }
+
   const setCoverImage = (imageId) => {
     setImages(prev => prev.map(img => ({
       ...img,
@@ -269,6 +317,9 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
       occupancyRate: formData.occupancyRate ? parseFloat(formData.occupancyRate) : null,
       images: images,
       videos: videos,
+      panorama360Id: panorama360Id || undefined,
+      hasTour360: !!panorama360Id || !!formData.tour360Url || formData.hasTour360,
+      tour360Url: panoramaSourceUrl || formData.tour360Url || undefined,
     }
     onSubmit(submitData)
   }
@@ -924,38 +975,91 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
             )}
           </div>
 
-          {/* 360 Tour */}
+          {/* 360 Tour - File Upload */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-secondary-900">360° Виртуальный тур</h3>
-            
-            <div className="flex items-center gap-2 mb-3">
-              <input
-                type="checkbox"
-                name="hasTour360"
-                checked={formData.hasTour360}
-                onChange={handleChange}
-                className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-primary-500"
-              />
-              <label className="text-sm font-medium text-secondary-700">Есть 360° тур</label>
-            </div>
 
-            {formData.hasTour360 && (
-              <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
-                  <Globe className="w-4 h-4 inline mr-1" />
-                  URL 360° тура
-                </label>
+            {!panoramaPreview && !panorama360Id ? (
+              <div className="border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg p-8">
                 <input
-                  type="url"
-                  name="tour360Url"
-                  value={formData.tour360Url}
-                  onChange={handleChange}
-                  placeholder="https://example.com/tour360"
-                  className="w-full px-4 py-2 border border-secondary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  type="file"
+                  id="panorama-upload"
+                  accept="image/*"
+                  onChange={handlePanoramaUpload}
+                  className="hidden"
+                  disabled={uploadingPanorama}
                 />
-                <p className="mt-1 text-xs text-secondary-500">Вставьте ссылку на Matterport, Kuula или другой сервис 360° туров</p>
+                <label
+                  htmlFor="panorama-upload"
+                  className="flex flex-col items-center justify-center cursor-pointer"
+                >
+                  {uploadingPanorama ? (
+                    <Loader2 className="w-12 h-12 text-blue-400 mb-3 animate-spin" />
+                  ) : (
+                    <Upload className="w-12 h-12 text-blue-400 mb-3" />
+                  )}
+                  <p className="text-base font-semibold text-secondary-900 mb-1">
+                    {uploadingPanorama ? 'Загрузка и обработка панорамы...' : 'Загрузить 360° панораму'}
+                  </p>
+                  <p className="text-sm text-secondary-600 mb-1">Нажмите для выбора файла</p>
+                  <p className="text-xs text-secondary-500">JPG, PNG или WEBP • Макс. 80MB • Equirectangular формат (2:1)</p>
+                </label>
+              </div>
+            ) : (
+              <div className="relative group">
+                {panoramaPreview ? (
+                  <img
+                    src={panoramaPreview}
+                    alt="360° Panorama"
+                    className="w-full h-48 object-cover rounded-lg border-2 border-blue-300"
+                  />
+                ) : (
+                  <div className="w-full h-48 bg-blue-50 border-2 border-blue-300 rounded-lg flex items-center justify-center">
+                    <div className="text-center">
+                      <Globe className="w-10 h-10 text-blue-400 mx-auto mb-2" />
+                      <p className="text-sm font-medium text-secondary-700">360° панорама загружена</p>
+                      <p className="text-xs text-secondary-500">ID: {panorama360Id}</p>
+                    </div>
+                  </div>
+                )}
+                {uploadingPanorama && (
+                  <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center rounded-lg">
+                    <div className="text-center">
+                      <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-2" />
+                      <p className="text-sm font-medium text-secondary-700">Обработка панорамы...</p>
+                    </div>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={removePanorama}
+                  className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors shadow-lg opacity-0 group-hover:opacity-100"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+                <div className="absolute bottom-2 left-2 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-full flex items-center gap-1.5 shadow">
+                  <Globe className="w-3.5 h-3.5" />
+                  {panorama360Id ? '360° Панорама готова' : 'Загружается...'}
+                </div>
               </div>
             )}
+
+            {/* Optional: External URL fallback */}
+            <div>
+              <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <Globe className="w-4 h-4 inline mr-1" />
+                Или укажите URL внешнего 360° тура (необязательно)
+              </label>
+              <input
+                type="url"
+                name="tour360Url"
+                value={formData.tour360Url}
+                onChange={handleChange}
+                placeholder="https://example.com/tour360"
+                className="w-full px-4 py-2 border border-secondary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+              <p className="mt-1 text-xs text-secondary-500">Ссылка на Matterport, Kuula и т.д. — используется если не загружена панорама</p>
+            </div>
           </div>
 
           {/* Contact Information */}

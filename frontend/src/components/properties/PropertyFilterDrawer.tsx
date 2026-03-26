@@ -106,9 +106,9 @@ export default function PropertyFilterDrawer({
       />
       
       {/* Drawer */}
-      <div className={`fixed inset-y-0 right-0 z-[100] w-full max-w-md bg-white shadow-2xl flex flex-col transform transition-transform duration-300 sm:rounded-l-2xl ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed inset-y-0 right-0 z-[100] w-full sm:max-w-md bg-white shadow-2xl flex flex-col transform transition-transform duration-300 sm:rounded-l-3xl ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-secondary-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-secondary-100 flex-shrink-0">
           <h2 className="text-lg font-bold text-secondary-900">{t('Filters.title')}</h2>
           <button onClick={onClose} className="p-2 hover:bg-secondary-50 rounded-full transition-colors text-secondary-500">
             <X className="w-5 h-5" />
@@ -116,27 +116,27 @@ export default function PropertyFilterDrawer({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8 custom-scrollbar relative pb-24">
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8 scrollbar-hide relative pb-32">
           
           {/* Deal Type */}
           <section>
-            <label className="text-xs font-bold text-secondary-900 mb-3 block">{tFilters('dealAndProperty')}</label>
-            <div className="flex p-1 bg-secondary-50 rounded-xl border border-secondary-100">
+            <label className="text-xs font-bold text-secondary-400 uppercase tracking-widest mb-4 block">{tFilters('dealAndProperty')}</label>
+            <div className="flex p-1 bg-secondary-50 rounded-2xl border border-secondary-100">
               <button
                 onClick={() => handleFilterChange('dealType', undefined)}
-                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${!filters.dealType ? 'bg-primary-600 text-white shadow-sm' : 'text-secondary-500 hover:text-secondary-900'}`}
+                className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all ${!filters.dealType ? 'bg-white text-primary-600 shadow-sm border border-secondary-200' : 'text-secondary-500 hover:text-secondary-900'}`}
               >
                 {tFilters('all')}
               </button>
               <button
                 onClick={() => handleFilterChange('dealType', 'rent')}
-                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${filters.dealType === 'rent' ? 'bg-primary-600 text-white shadow-sm' : 'text-secondary-500 hover:text-secondary-900'}`}
+                className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all ${filters.dealType === 'rent' ? 'bg-white text-primary-600 shadow-sm border border-secondary-200' : 'text-secondary-500 hover:text-secondary-900'}`}
               >
                 {t('Property.rent')}
               </button>
               <button
                 onClick={() => handleFilterChange('dealType', 'sale')}
-                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${filters.dealType === 'sale' ? 'bg-primary-600 text-white shadow-sm' : 'text-secondary-500 hover:text-secondary-900'}`}
+                className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all ${filters.dealType === 'sale' ? 'bg-white text-primary-600 shadow-sm border border-secondary-200' : 'text-secondary-500 hover:text-secondary-900'}`}
               >
                 {t('Property.sale')}
               </button>
@@ -145,10 +145,10 @@ export default function PropertyFilterDrawer({
 
           {/* Property Type */}
           <section>
-            <label className="text-xs font-bold text-secondary-900 mb-3 block">{t('Property.propertyType')}</label>
+            <label className="text-xs font-bold text-secondary-400 uppercase tracking-widest mb-4 block">{t('Property.propertyType')}</label>
             <div className="relative">
               <select
-                className="input input-md appearance-none pr-10 bg-secondary-50 border-secondary-100"
+                className="input input-md appearance-none pr-10 bg-secondary-50 border-secondary-100 !rounded-2xl"
                 value={filters.propertyType || ''}
                 onChange={(e) => handleFilterChange('propertyType', e.target.value || undefined)}
               >
@@ -162,32 +162,35 @@ export default function PropertyFilterDrawer({
                 <option value="recreation">{t('Property.recreation')}</option>
                 <option value="other">{t('Property.other')}</option>
               </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-700 pointer-events-none stroke-[2.5px]" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400 pointer-events-none stroke-[2.5px]" />
             </div>
           </section>
 
           {/* Price */}
           <section>
-            <label className="text-xs font-bold text-secondary-900 mb-3 block">{tFilters('priceUzs')}</label>
-            <div className="space-y-4">
+            <label className="text-xs font-bold text-secondary-400 uppercase tracking-widest mb-4 block">{tFilters('priceUzs')}</label>
+            <div className="space-y-6">
               <div className="flex items-center gap-3">
-                <input
-                  type="text"
-                  placeholder={tFilters('from')}
-                  className="input input-md bg-secondary-50 border-secondary-100 hide-spinners"
-                  value={minPriceStr}
-                  onChange={(e) => handlePriceStrChange('min', e.target.value)}
-                />
-                <span className="text-secondary-400">-</span>
-                <input
-                  type="text"
-                  placeholder={tFilters('to')}
-                  className="input input-md bg-secondary-50 border-secondary-100 hide-spinners"
-                  value={maxPriceStr}
-                  onChange={(e) => handlePriceStrChange('max', e.target.value)}
-                />
+                <div className="relative flex-1">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-secondary-400 uppercase">{tFilters('from')}</span>
+                  <input
+                    type="text"
+                    className="input input-md bg-secondary-50 border-secondary-100 !pl-14 !rounded-2xl hide-spinners text-sm font-bold"
+                    value={minPriceStr}
+                    onChange={(e) => handlePriceStrChange('min', e.target.value)}
+                  />
+                </div>
+                <div className="relative flex-1">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-secondary-400 uppercase">{tFilters('to')}</span>
+                  <input
+                    type="text"
+                    className="input input-md bg-secondary-50 border-secondary-100 !pl-10 !rounded-2xl hide-spinners text-sm font-bold"
+                    value={maxPriceStr}
+                    onChange={(e) => handlePriceStrChange('max', e.target.value)}
+                  />
+                </div>
               </div>
-              <div className="px-2">
+              <div className="px-3">
                 <Slider 
                   range 
                   min={0} 
@@ -201,12 +204,12 @@ export default function PropertyFilterDrawer({
                     handleFilterChange('maxPrice', max === 10000000000 ? undefined : max);
                     setMaxPriceStr(formatNumber(max === 10000000000 ? '' : max));
                   }}
-                  trackStyle={[{ backgroundColor: '#3b7ed9', height: 4 }]}
+                  trackStyle={[{ backgroundColor: '#2563eb', height: 4 }]}
                   handleStyle={[
-                    { borderColor: '#3b7ed9', backgroundColor: 'white', opacity: 1, width: 20, height: 20, marginTop: -8, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' },
-                    { borderColor: '#3b7ed9', backgroundColor: 'white', opacity: 1, width: 20, height: 20, marginTop: -8, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }
+                    { borderColor: '#2563eb', backgroundColor: 'white', opacity: 1, width: 24, height: 24, marginTop: -10, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' },
+                    { borderColor: '#2563eb', backgroundColor: 'white', opacity: 1, width: 24, height: 24, marginTop: -10, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }
                   ]}
-                  railStyle={{ backgroundColor: '#e2e8f0', height: 4 }}
+                  railStyle={{ backgroundColor: '#f1f5f9', height: 4 }}
                 />
               </div>
             </div>
@@ -214,26 +217,29 @@ export default function PropertyFilterDrawer({
 
           {/* Area */}
           <section>
-            <label className="text-xs font-bold text-secondary-900 mb-3 block">{tFilters('areaM2')}</label>
-            <div className="space-y-4">
+            <label className="text-xs font-bold text-secondary-400 uppercase tracking-widest mb-4 block">{tFilters('areaM2')}</label>
+            <div className="space-y-6">
               <div className="flex items-center gap-3">
-                <input
-                  type="text"
-                  placeholder={tFilters('from')}
-                  className="input input-md bg-secondary-50 border-secondary-100 hide-spinners"
-                  value={minAreaStr}
-                  onChange={(e) => handleAreaStrChange('min', e.target.value)}
-                />
-                <span className="text-secondary-400">-</span>
-                <input
-                  type="text"
-                  placeholder={tFilters('to')}
-                  className="input input-md bg-secondary-50 border-secondary-100 hide-spinners"
-                  value={maxAreaStr}
-                  onChange={(e) => handleAreaStrChange('max', e.target.value)}
-                />
+                <div className="relative flex-1">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-secondary-400 uppercase">{tFilters('from')}</span>
+                  <input
+                    type="text"
+                    className="input input-md bg-secondary-50 border-secondary-100 !pl-14 !rounded-2xl hide-spinners text-sm font-bold"
+                    value={minAreaStr}
+                    onChange={(e) => handleAreaStrChange('min', e.target.value)}
+                  />
+                </div>
+                <div className="relative flex-1">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-secondary-400 uppercase">{tFilters('to')}</span>
+                  <input
+                    type="text"
+                    className="input input-md bg-secondary-50 border-secondary-100 !pl-10 !rounded-2xl hide-spinners text-sm font-bold"
+                    value={maxAreaStr}
+                    onChange={(e) => handleAreaStrChange('max', e.target.value)}
+                  />
+                </div>
               </div>
-              <div className="px-2">
+              <div className="px-3">
                 <Slider 
                   range 
                   min={0} 
@@ -247,12 +253,12 @@ export default function PropertyFilterDrawer({
                     handleFilterChange('maxArea', max === 5000 ? undefined : max);
                     setMaxAreaStr(formatNumber(max === 5000 ? '' : max));
                   }}
-                  trackStyle={[{ backgroundColor: '#3b7ed9', height: 4 }]}
+                  trackStyle={[{ backgroundColor: '#2563eb', height: 4 }]}
                   handleStyle={[
-                    { borderColor: '#3b7ed9', backgroundColor: 'white', opacity: 1, width: 20, height: 20, marginTop: -8, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' },
-                    { borderColor: '#3b7ed9', backgroundColor: 'white', opacity: 1, width: 20, height: 20, marginTop: -8, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }
+                    { borderColor: '#2563eb', backgroundColor: 'white', opacity: 1, width: 24, height: 24, marginTop: -10, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' },
+                    { borderColor: '#2563eb', backgroundColor: 'white', opacity: 1, width: 24, height: 24, marginTop: -10, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }
                   ]}
-                  railStyle={{ backgroundColor: '#e2e8f0', height: 4 }}
+                  railStyle={{ backgroundColor: '#f1f5f9', height: 4 }}
                 />
               </div>
             </div>
@@ -260,11 +266,11 @@ export default function PropertyFilterDrawer({
 
           {/* Location */}
           <section>
-            <label className="text-xs font-bold text-secondary-900 mb-3 block">{t('Property.location')}</label>
+            <label className="text-xs font-bold text-secondary-400 uppercase tracking-widest mb-4 block">{t('Property.location')}</label>
             <div className="space-y-3">
               <div className="relative">
                 <select
-                  className="input input-md appearance-none pr-10 bg-secondary-50 border-secondary-100"
+                  className="input input-md appearance-none pr-10 bg-secondary-50 border-secondary-100 !rounded-2xl"
                   value={filters.city || ''}
                   onChange={(e) => handleFilterChange('city', e.target.value || undefined)}
                 >
@@ -274,11 +280,11 @@ export default function PropertyFilterDrawer({
                   <option value="Бухара">Бухара</option>
                   <option value="Хива">Хива</option>
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-700 pointer-events-none stroke-[2.5px]" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400 pointer-events-none stroke-[2.5px]" />
               </div>
               <div className="relative">
                 <select
-                  className="input input-md appearance-none pr-10 bg-secondary-50 border-secondary-100"
+                  className="input input-md appearance-none pr-10 bg-secondary-50 border-secondary-100 !rounded-2xl"
                   value={filters.district || ''}
                   onChange={(e) => handleFilterChange('district', e.target.value || undefined)}
                 >
@@ -287,27 +293,27 @@ export default function PropertyFilterDrawer({
                   <option value="Мирзо-Улугбекский">Мирзо-Улугбекский</option>
                   <option value="Мирабадский">Мирабадский</option>
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-700 pointer-events-none stroke-[2.5px]" />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400 pointer-events-none stroke-[2.5px]" />
               </div>
             </div>
           </section>
 
           {/* Additional Options (Collapsible) */}
-          <section>
+          <section className="pb-8">
             <button 
               className="flex items-center justify-between w-full py-2 group"
               onClick={() => setIsAdditionalOpen(!isAdditionalOpen)}
             >
-              <label className="text-xs font-bold text-secondary-900 block cursor-pointer">{tFilters('options')}</label>
+              <label className="text-xs font-bold text-secondary-400 uppercase tracking-widest block cursor-pointer">{tFilters('options')}</label>
               {isAdditionalOpen ? (
-                <ChevronUp className="w-5 h-5 text-secondary-500 group-hover:text-secondary-900 transition-colors" />
+                <ChevronUp className="w-5 h-5 text-secondary-400 group-hover:text-secondary-900 transition-colors" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-secondary-500 group-hover:text-secondary-900 transition-colors" />
+                <ChevronDown className="w-5 h-5 text-secondary-400 group-hover:text-secondary-900 transition-colors" />
               )}
             </button>
             
             {isAdditionalOpen && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="grid grid-cols-1 gap-3 mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
                 {[
                   { key: 'isVerified', label: t('Filters.verifiedOnly') },
                   { key: 'hasTour360', label: t('Filters.hasTour360') },
@@ -315,14 +321,14 @@ export default function PropertyFilterDrawer({
                   { key: 'hasParking', label: t('Filters.hasParking') },
                   { key: 'hasElevator', label: t('Filters.hasElevator') },
                 ].map(({ key, label }) => (
-                  <label key={key} className="flex items-center gap-3 p-3 rounded-xl bg-secondary-50 border border-secondary-100 hover:border-primary-200 cursor-pointer transition-all group">
+                  <label key={key} className="flex items-center justify-between p-4 rounded-2xl bg-secondary-50 border border-secondary-100 hover:border-primary-200 cursor-pointer transition-all group">
+                    <span className="text-sm font-bold text-secondary-700 group-hover:text-secondary-900">{label}</span>
                     <input
                       type="checkbox"
-                      className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500/20 border-secondary-300"
+                      className="w-5 h-5 rounded-lg text-primary-600 focus:ring-primary-500/20 border-secondary-300 transition-all cursor-pointer"
                       checked={!!filters[key as keyof PropertyFilters]}
                       onChange={(e) => handleFilterChange(key as keyof PropertyFilters, e.target.checked || undefined)}
                     />
-                    <span className="text-sm font-medium text-secondary-700 group-hover:text-secondary-900">{label}</span>
                   </label>
                 ))}
               </div>
@@ -332,16 +338,16 @@ export default function PropertyFilterDrawer({
         </div>
 
         {/* Sticky Footer Actions */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-secondary-100 bg-white flex items-center gap-3 flex-shrink-0 z-10 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+        <div className="mt-auto px-6 py-5 border-t border-secondary-100 bg-white/80 backdrop-blur-xl flex items-center gap-3 z-10">
           <button
             onClick={handleClear}
-            className="btn btn-md btn-ghost"
+            className="btn btn-md btn-ghost !text-secondary-500 font-bold hover:!text-red-500 hover:!bg-red-50"
           >
             {t('Filters.reset')}
           </button>
           <button
             onClick={handleApply}
-            className="btn btn-md btn-primary flex-1 !rounded-full"
+            className="btn btn-md btn-primary flex-1 !rounded-2xl shadow-lg shadow-primary-500/20 active:scale-95 transition-all"
           >
             {resultsCount !== undefined ? `${resultsCount} ta obyektni ko'rsatish` : "Ko'rsatish"}
           </button>
@@ -349,20 +355,6 @@ export default function PropertyFilterDrawer({
       </div>
       
       <style jsx global>{`
-        .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: #cbd5e1 transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 10px;
-        }
         /* Hide number input spinners */
         .hide-spinners::-webkit-inner-spin-button, 
         .hide-spinners::-webkit-outer-spin-button { 

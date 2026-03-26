@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { 
@@ -16,18 +16,23 @@ import { getProperty, saveProperty, unsaveProperty } from '@/lib/api/properties'
 import type { Property } from '@/lib/types'
 import ComparisonButton, { useComparison } from '@/components/comparison/ComparisonButton'
 import Tour360Viewer from '@/components/properties/Tour360Viewer'
+import type { PanoramaTileConfig } from '@/components/properties/Tour360Viewer'
+import { getPanoramaTileConfig } from '@/lib/api/panorama'
 import { useTranslations } from 'next-intl'
+import ApiErrorHandler from '@/components/common/ApiErrorHandler'
 
 export default function PropertyDetailPage() {
   const params = useParams()
-  const router = useRouter()
   const t = useTranslations()
   const [property, setProperty] = useState<Property | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [shareNotice, setShareNotice] = useState<string | null>(null)
   const [isSaved, setIsSaved] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [tour360ModalOpen, setTour360ModalOpen] = useState(false)
+  const [tileConfig, setTileConfig] = useState<PanoramaTileConfig | null>(null)
   const [activeInfoTab, setActiveInfoTab] = useState('building')
   const [scrolled, setScrolled] = useState(false)
   const { isSelected: isInComparison, toggleSelection: toggleComparison } = useComparison((params.id as string) || '')
@@ -43,6 +48,15 @@ export default function PropertyDetailPage() {
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  useEffect(() => {
+    if (!shareNotice) {
+      return
+    }
+
+    const timer = setTimeout(() => setShareNotice(null), 2500)
+    return () => clearTimeout(timer)
+  }, [shareNotice])
 
   useEffect(() => {
     const handleKeyboard = (e: KeyboardEvent) => {
@@ -67,11 +81,21 @@ export default function PropertyDetailPage() {
 
   const fetchProperty = async (id: string) => {
     setLoading(true)
+    setError(null)
     try {
       const data = await getProperty(id)
       setProperty(data)
+
+      // Try to load optimised tile config for 360° viewer (non-blocking)
+      if (data.hasTour360 && data.panorama360Id) {
+        getPanoramaTileConfig(data.panorama360Id)
+          .then((cfg) => { if (cfg) setTileConfig(cfg) })
+          .catch(() => { /* tiles unavailable, viewer falls back to full image */ })
+      }
     } catch (error) {
       console.error('Failed to fetch property:', error)
+      setProperty(null)
+      setError('Не удалось загрузить объект. Попробуйте еще раз.')
     } finally {
       setLoading(false)
     }
@@ -89,6 +113,7 @@ export default function PropertyDetailPage() {
       }
     } catch (error) {
       console.error('Failed to save property:', error)
+      setError('Не удалось обновить избранное. Попробуйте еще раз.')
     }
   }
 
@@ -101,11 +126,18 @@ export default function PropertyDetailPage() {
           url: window.location.href,
         })
       } catch (error) {
-        console.log('Share cancelled')
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          setError('Не удалось поделиться объектом. Попробуйте еще раз.')
+        }
       }
     } else {
-      navigator.clipboard.writeText(window.location.href)
-      alert(`${t('PropertyDetails.linkCopied')}!`)
+      try {
+        await navigator.clipboard.writeText(window.location.href)
+        setShareNotice(t('PropertyDetails.linkCopied'))
+      } catch (error) {
+        console.error('Failed to copy link:', error)
+        setError('Не удалось скопировать ссылку. Попробуйте еще раз.')
+      }
     }
   }
 
@@ -150,12 +182,23 @@ export default function PropertyDetailPage() {
 
   if (!property) {
     return (
-      <div className="min-h-screen bg-secondary-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-secondary-900 mb-2">{t('Common.error')}</h2>
-          <Link href="/properties" className="text-primary-600 hover:text-primary-700 font-medium">
-            {t('Navigation.properties')}
-          </Link>
+      <div className="min-h-screen bg-secondary-50 flex items-center justify-center px-4">
+        <div className="card max-w-lg w-full text-center">
+          <div className="p-8">
+            <h2 className="text-2xl font-bold text-secondary-900 mb-2">{t('Common.error')}</h2>
+            <p className="text-secondary-500 mb-6">{error || 'Не удалось открыть страницу объекта.'}</p>
+            <div className="flex flex-col sm:flex-row justify-center gap-3">
+              <button
+                onClick={() => fetchProperty(params.id as string)}
+                className="btn btn-md btn-primary"
+              >
+                {t('PropertiesPage.retry')}
+              </button>
+              <Link href="/properties" className="btn btn-md btn-outline">
+                {t('Navigation.properties')}
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -167,6 +210,20 @@ export default function PropertyDetailPage() {
 
   return (
     <div className="min-h-screen bg-secondary-50 pt-12">
+      <ApiErrorHandler error={error} onDismiss={() => setError(null)} />
+      {shareNotice && (
+        <div className="fixed top-16 right-4 max-w-sm z-50 animate-in fade-in slide-in-from-top-2">
+          <div className="bg-white border border-green-200 rounded-xl shadow-lg p-4 flex gap-3">
+            <div className="flex-shrink-0">
+              <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-secondary-900">{shareNotice}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Breadcrumbs & Actions Bar */}
       <div className={`sticky top-12 z-40 bg-white border-b transition-shadow ${
         scrolled ? 'border-secondary-200 shadow-sm' : 'border-secondary-100'
@@ -833,6 +890,7 @@ export default function PropertyDetailPage() {
                   imageUrl={property.tour360Url || undefined} 
                   title={property.title}
                   tourConfig={property.virtualTourConfig}
+                  tileConfig={tileConfig || undefined}
                 />
               </div>
               

@@ -35,6 +35,18 @@ interface VirtualTourNode {
   markers?: any[]
 }
 
+/** Tile configuration returned by the backend panorama tiling service. */
+export interface PanoramaTileConfig {
+  id: string
+  width: number
+  height: number
+  tileSize: number
+  cols: number
+  rows: number
+  baseUrl: string      // e.g. "/uploads/tiles/{id}/{col}_{row}.jpg"
+  basePanorama: string  // low-res preview e.g. "/uploads/tiles/{id}/low.jpg"
+}
+
 interface Tour360ViewerProps {
   imageUrl?: string
   title?: string
@@ -42,6 +54,8 @@ interface Tour360ViewerProps {
     nodes: VirtualTourNode[]
     startNodeId?: string
   }
+  /** When provided, the viewer uses tiled loading for optimised bandwidth. */
+  tileConfig?: PanoramaTileConfig
 }
 
 const getMockTourData = (t: any): VirtualTourNode[] => [
@@ -97,10 +111,19 @@ const getMockTourData = (t: any): VirtualTourNode[] => [
 
 const FALLBACK_360_IMAGE = 'https://cdn.jsdelivr.net/gh/mpetroff/pannellum@2.5.6/examples/examplepano.jpg'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+
+/** Resolve a backend-relative path (e.g. /uploads/...) to an absolute URL. */
+function resolveAssetUrl(path: string): string {
+  if (path.startsWith('http')) return path
+  return `${API_URL}${path}`
+}
+
 export default function Tour360Viewer({ 
   imageUrl, 
   title, 
-  tourConfig
+  tourConfig,
+  tileConfig,
 }: Tour360ViewerProps) {
   const tTour = useTranslations('Tour360')
   const MOCK_TOUR_DATA = getMockTourData(tTour)
@@ -116,37 +139,52 @@ export default function Tour360Viewer({
   const [loading, setLoading] = useState(true)
   const viewerRef = useRef<any>(null)
 
-  // Determine active tour config (use sample if none provided)
-  const activeTourConfig = (tourConfig && tourConfig.nodes && tourConfig.nodes.length > 0) 
-    ? tourConfig 
-    : { nodes: MOCK_TOUR_DATA, startNodeId: 'node-1' }
+  // Determine whether we have real content (tileConfig or imageUrl) vs only mock data
+  const hasRealTourConfig = !!(tourConfig && tourConfig.nodes && tourConfig.nodes.length > 0)
+  const hasRealContent = !!tileConfig || !!imageUrl || hasRealTourConfig
+
+  // Only use mock tour when nothing real is available
+  const activeTourConfig = hasRealTourConfig
+    ? tourConfig!
+    : (hasRealContent ? { nodes: [] as VirtualTourNode[], startNodeId: '' } : { nodes: MOCK_TOUR_DATA, startNodeId: 'node-1' })
 
   const hasTour = activeTourConfig.nodes.length > 1
-  const usingSample = !tourConfig || !tourConfig.nodes || tourConfig.nodes.length === 0
+  const usingSample = !hasRealContent
 
   useEffect(() => {
     setMounted(true)
     const startId = activeTourConfig.startNodeId || activeTourConfig.nodes[0]?.id || ''
     setCurrentNode(startId)
 
-    if (hasTour) {
-      const initialSrc = activeTourConfig.nodes[0]?.panorama || FALLBACK_360_IMAGE
+    if (!mounted) return
+
+    if (tileConfig && !hasTour) {
+      // Panorama with tile config available – use basePanorama directly
+      // (guaranteed to be a valid equirectangular image from the tiling service)
+      setImageSrc(resolveAssetUrl(tileConfig.basePanorama))
+    } else if (imageUrl && !hasTour) {
+      // Single image mode with provided URL
+      setImageSrc(resolveAssetUrl(imageUrl))
+    } else if (hasTour) {
+      // Virtual tour mode – load tour plugins
+      const initialSrc = activeTourConfig.nodes[0]?.panorama || imageUrl || FALLBACK_360_IMAGE
       setImageSrc(initialSrc)
 
       Promise.all([
-        import('@photo-sphere-viewer/virtual-tour-plugin'),
-        import('@photo-sphere-viewer/markers-plugin')
+        import('@photo-sphere-viewer/virtual-tour-plugin').then(mod => mod.VirtualTourPlugin),
+        import('@photo-sphere-viewer/markers-plugin').then(mod => mod.MarkersPlugin),
       ]).then(([vtMod, markersMod]) => {
-        setVirtualTourPlugin(() => vtMod.VirtualTourPlugin)
-        setMarkersPlugin(() => markersMod.MarkersPlugin)
+        setVirtualTourPlugin(() => vtMod)
+        setMarkersPlugin(() => markersMod)
       }).catch(err => {
         console.error('Failed to load tour plugins:', err)
         setImageSrc(imageUrl || FALLBACK_360_IMAGE)
       })
     } else {
-      setImageSrc(imageUrl || FALLBACK_360_IMAGE)
+      // No real content - fallback
+      setImageSrc(FALLBACK_360_IMAGE)
     }
-  }, [tourConfig, imageUrl])
+  }, [tourConfig, imageUrl, tileConfig, mounted])
 
   const navigateToNode = useCallback((nodeId: string) => {
     setCurrentNode(nodeId)
@@ -180,8 +218,12 @@ export default function Tour360Viewer({
 
   const needsPlugins = hasTour
   const pluginsReady = !needsPlugins || (VirtualTourPlugin && MarkersPlugin)
+  const hasValidSrc = !!imageSrc
   
-  if (!mounted || !pluginsReady) {
+  // Compute a stable key so the viewer re-mounts when switching modes
+  const viewerKey = imageSrc || 'loading'
+
+  if (!mounted || !pluginsReady || !hasValidSrc) {
     return (
       <div className="w-full h-full bg-secondary-900 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -261,7 +303,8 @@ export default function Tour360Viewer({
 
       {/* 360 Viewer */}
       <ReactPhotoSphereViewer
-        src={imageSrc}
+        key={viewerKey}
+        src={imageSrc as any}
         height="100%"
         width="100%"
         container=""

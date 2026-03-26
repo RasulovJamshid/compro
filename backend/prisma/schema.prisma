@@ -149,6 +149,7 @@ model Property {
   hasVideo        Boolean        @default(false)
   hasTour360      Boolean        @default(false)
   tour360Url      String?
+  panorama360Id   String?        // ID of tiled panorama (links to /uploads/tiles/{id}/)
   virtualTourConfig Json?        // Configuration for react-photo-sphere-viewer VirtualTourPlugin
   
   // Status
