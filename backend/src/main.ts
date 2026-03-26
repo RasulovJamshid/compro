@@ -53,16 +53,11 @@ async function bootstrap() {
   // Serve static files from uploads directory with CORS headers
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
-    setHeaders: (res, path) => {
-      // Set CORS headers for static files
-      const origin = res.req.headers.origin;
-      if (origin && corsOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-      }
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    setHeaders: (res) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
       res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     },
   });
 
