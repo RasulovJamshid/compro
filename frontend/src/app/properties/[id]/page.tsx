@@ -890,7 +890,7 @@ export default function PropertyDetailPage() {
 
           {/* 360° Tour Modal */}
           {tour360ModalOpen && (
-            <div className="fixed inset-0 bg-black z-50 flex flex-col">
+            <div className="fixed inset-0 bg-black z-[60] flex flex-col">
               {/* Modal Header - Optimized for Mobile */}
               <div className="bg-black/90 backdrop-blur-sm border-b border-white/10 px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">

@@ -76,7 +76,7 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
   const [videos, setVideos] = useState([])
   const [uploadingImages, setUploadingImages] = useState(false)
   const [uploadingVideos, setUploadingVideos] = useState(false)
-  // Multi-room tour nodes: [{ id, name, panoramaId, previewUrl, uploading }]
+  // Multi-room tour nodes: [{ id, name, panoramaId, previewUrl, uploading, uploadProgress }]
   const [tourNodes, setTourNodes] = useState([])
   const [newSecurityFeature, setNewSecurityFeature] = useState('')
   const [newAmenity, setNewAmenity] = useState('')
@@ -232,7 +232,7 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
 
   const addTourRoom = () => {
     const id = `node-${Date.now()}`
-    setTourNodes(prev => [...prev, { id, name: '', panoramaId: null, previewUrl: null, uploading: false }])
+    setTourNodes(prev => [...prev, { id, name: '', panoramaId: null, previewUrl: null, uploading: false, uploadProgress: 0 }])
   }
 
   const removeTourRoom = (id) => {
@@ -253,17 +253,19 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
     }
     reader.readAsDataURL(file)
 
-    setTourNodes(prev => prev.map(n => n.id === nodeId ? { ...n, uploading: true } : n))
+    setTourNodes(prev => prev.map(n => n.id === nodeId ? { ...n, uploading: true, uploadProgress: 0 } : n))
     try {
-      const { data } = await uploadApi.uploadPanorama(file)
+      const { data } = await uploadApi.uploadPanorama(file, (progress) => {
+        setTourNodes(prev => prev.map(n => n.id === nodeId ? { ...n, uploadProgress: progress } : n))
+      })
       setTourNodes(prev => prev.map(n =>
-        n.id === nodeId ? { ...n, panoramaId: data.panoramaId, uploading: false } : n
+        n.id === nodeId ? { ...n, panoramaId: data.panoramaId, uploading: false, uploadProgress: 100 } : n
       ))
     } catch (error) {
       console.error('Failed to upload panorama:', error)
       alert('Ошибка загрузки панорамы. Попробуйте снова.')
       setTourNodes(prev => prev.map(n =>
-        n.id === nodeId ? { ...n, previewUrl: null, uploading: false } : n
+        n.id === nodeId ? { ...n, previewUrl: null, uploading: false, uploadProgress: 0 } : n
       ))
     }
   }
@@ -1068,10 +1070,19 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
                             </div>
                           )}
                           {node.uploading && (
-                            <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
-                              <div className="text-center">
-                                <Loader2 className="w-7 h-7 text-blue-600 animate-spin mx-auto mb-1" />
-                                <p className="text-xs text-secondary-600">Обработка...</p>
+                            <div className="absolute inset-0 bg-white/90 flex flex-col items-center justify-center gap-2 px-4">
+                              <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+                              <div className="w-full max-w-[160px]">
+                                <div className="flex justify-between text-xs text-secondary-600 mb-1">
+                                  <span>{node.uploadProgress < 100 ? 'Загрузка...' : 'Обработка...'}</span>
+                                  <span>{node.uploadProgress}%</span>
+                                </div>
+                                <div className="w-full bg-secondary-200 rounded-full h-1.5">
+                                  <div
+                                    className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
+                                    style={{ width: `${node.uploadProgress}%` }}
+                                  />
+                                </div>
                               </div>
                             </div>
                           )}
@@ -1098,8 +1109,19 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
                         <label className="flex flex-col items-center justify-center h-36 cursor-pointer hover:bg-secondary-50 transition-colors">
                           {node.uploading ? (
                             <>
-                              <Loader2 className="w-8 h-8 text-blue-400 mb-2 animate-spin" />
-                              <p className="text-sm text-secondary-500">Загрузка...</p>
+                              <Loader2 className="w-7 h-7 text-blue-500 mb-2 animate-spin" />
+                              <div className="w-full max-w-[160px] px-2">
+                                <div className="flex justify-between text-xs text-secondary-500 mb-1">
+                                  <span>{node.uploadProgress < 100 ? 'Загрузка...' : 'Обработка...'}</span>
+                                  <span>{node.uploadProgress}%</span>
+                                </div>
+                                <div className="w-full bg-secondary-200 rounded-full h-1.5">
+                                  <div
+                                    className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+                                    style={{ width: `${node.uploadProgress}%` }}
+                                  />
+                                </div>
+                              </div>
                             </>
                           ) : (
                             <>

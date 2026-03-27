@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find d:/Projects/Commercial-realestate/backend/src/properties -name *.dto.ts)"
+      "Bash(find d:/Projects/Commercial-realestate/backend/src/properties -name *.dto.ts)",
+      "Bash(grep -n \"z-50\\\\|tour360Modal\\\\|fixed inset-0\" d:/Projects/Commercial-realestate/frontend/src/app/properties/[id]/page.tsx)"
     ]
   }
 }

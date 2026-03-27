@@ -330,7 +330,7 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
       )}
 
       {/* Controls */}
-      <div className={`absolute bottom-0 left-0 right-0 z-20 transition-opacity duration-300 ${
+      <div className={`absolute bottom-0 left-0 right-0 z-20 transition-opacity duration-300 safe-area-bottom ${
         controlsVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}>
 

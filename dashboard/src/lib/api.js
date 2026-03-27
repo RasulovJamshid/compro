@@ -112,11 +112,15 @@ export const uploadApi = {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
   },
-  uploadPanorama: (file) => {
+  uploadPanorama: (file, onProgress) => {
     const formData = new FormData()
     formData.append('file', file)
     return apiClient.post('/panorama/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 300000, // 5 min for large panoramas
+      onUploadProgress: onProgress
+        ? (e) => onProgress(Math.round((e.loaded * 100) / (e.total || e.loaded)))
+        : undefined,
     })
   },
 }
