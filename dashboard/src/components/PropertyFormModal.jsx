@@ -76,11 +76,8 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
   const [videos, setVideos] = useState([])
   const [uploadingImages, setUploadingImages] = useState(false)
   const [uploadingVideos, setUploadingVideos] = useState(false)
-  const [uploadingPanorama, setUploadingPanorama] = useState(false)
-  const [panoramaFile, setPanoramaFile] = useState(null)
-  const [panoramaPreview, setPanoramaPreview] = useState(null)
-  const [panorama360Id, setPanorama360Id] = useState(null)
-  const [panoramaSourceUrl, setPanoramaSourceUrl] = useState(null)
+  // Multi-room tour nodes: [{ id, name, panoramaId, previewUrl, uploading }]
+  const [tourNodes, setTourNodes] = useState([])
   const [newSecurityFeature, setNewSecurityFeature] = useState('')
   const [newAmenity, setNewAmenity] = useState('')
 
@@ -132,16 +129,33 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
       })
       setImages(property.images || [])
       setVideos(property.videos || [])
-      setPanorama360Id(property.panorama360Id || null)
-      setPanoramaFile(null)
-      setPanoramaPreview(null)
+
+      // Load existing tour nodes
+      const vtc = property.virtualTourConfig
+      if (vtc?.nodes?.length > 0) {
+        setTourNodes(vtc.nodes.map(n => ({
+          id: n.id,
+          name: n.name || '',
+          panoramaId: n.panoramaId || null,
+          previewUrl: null,
+          uploading: false,
+        })))
+      } else if (property.panorama360Id) {
+        // Legacy single panorama → convert to one node
+        setTourNodes([{
+          id: 'node-1',
+          name: 'Основной вид',
+          panoramaId: property.panorama360Id,
+          previewUrl: null,
+          uploading: false,
+        }])
+      } else {
+        setTourNodes([])
+      }
     } else {
-      // Reset form for new property
       setImages([])
       setVideos([])
-      setPanorama360Id(null)
-      setPanoramaFile(null)
-      setPanoramaPreview(null)
+      setTourNodes([])
     }
   }, [property])
 
@@ -216,41 +230,42 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
     }
   }
 
-  const handlePanoramaUpload = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const addTourRoom = () => {
+    const id = `node-${Date.now()}`
+    setTourNodes(prev => [...prev, { id, name: '', panoramaId: null, previewUrl: null, uploading: false }])
+  }
 
-    if (!file.type.startsWith('image/')) {
-      alert('Пожалуйста, загрузите изображение')
-      return
-    }
+  const removeTourRoom = (id) => {
+    setTourNodes(prev => prev.filter(n => n.id !== id))
+  }
 
-    // Show local preview
+  const updateTourRoomName = (id, name) => {
+    setTourNodes(prev => prev.map(n => n.id === id ? { ...n, name } : n))
+  }
+
+  const handleTourRoomUpload = async (nodeId, file) => {
+    if (!file || !file.type.startsWith('image/')) return
+
+    // Show local preview immediately
     const reader = new FileReader()
-    reader.onloadend = () => setPanoramaPreview(reader.result)
+    reader.onloadend = () => {
+      setTourNodes(prev => prev.map(n => n.id === nodeId ? { ...n, previewUrl: reader.result } : n))
+    }
     reader.readAsDataURL(file)
 
-    // Upload to server immediately
-    setUploadingPanorama(true)
+    setTourNodes(prev => prev.map(n => n.id === nodeId ? { ...n, uploading: true } : n))
     try {
       const { data } = await uploadApi.uploadPanorama(file)
-      setPanorama360Id(data.panoramaId)
-      setPanoramaSourceUrl(data.sourceUrl || null)
-      setPanoramaFile(file)
+      setTourNodes(prev => prev.map(n =>
+        n.id === nodeId ? { ...n, panoramaId: data.panoramaId, uploading: false } : n
+      ))
     } catch (error) {
       console.error('Failed to upload panorama:', error)
       alert('Ошибка загрузки панорамы. Попробуйте снова.')
-      setPanoramaPreview(null)
-    } finally {
-      setUploadingPanorama(false)
+      setTourNodes(prev => prev.map(n =>
+        n.id === nodeId ? { ...n, previewUrl: null, uploading: false } : n
+      ))
     }
-  }
-
-  const removePanorama = () => {
-    setPanoramaFile(null)
-    setPanoramaPreview(null)
-    setPanorama360Id(null)
-    setPanoramaSourceUrl(null)
   }
 
   const setCoverImage = (imageId) => {
@@ -317,9 +332,21 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
       occupancyRate: formData.occupancyRate ? parseFloat(formData.occupancyRate) : null,
       images: images,
       videos: videos,
-      panorama360Id: panorama360Id || undefined,
-      hasTour360: !!panorama360Id || !!formData.tour360Url || formData.hasTour360,
-      tour360Url: panoramaSourceUrl || formData.tour360Url || undefined,
+      // Build virtualTourConfig from tour nodes
+      virtualTourConfig: tourNodes.length > 0 ? {
+        nodes: tourNodes
+          .filter(n => n.panoramaId)
+          .map((n, idx) => ({
+            id: n.id,
+            name: n.name || `Помещение ${idx + 1}`,
+            panoramaId: n.panoramaId,
+          })),
+        startNodeId: tourNodes[0]?.id,
+      } : null,
+      // Keep single panorama ID for backward compat (first room)
+      panorama360Id: tourNodes[0]?.panoramaId || undefined,
+      hasTour360: tourNodes.some(n => n.panoramaId) || !!formData.tour360Url,
+      tour360Url: formData.tour360Url || undefined,
     }
     onSubmit(submitData)
   }
@@ -975,76 +1002,128 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
             )}
           </div>
 
-          {/* 360 Tour - File Upload */}
+          {/* 360 Tour - Multi-room */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-secondary-900">360° Виртуальный тур</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-secondary-900">360° Виртуальный тур</h3>
+              <button
+                type="button"
+                onClick={addTourRoom}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Добавить помещение
+              </button>
+            </div>
 
-            {!panoramaPreview && !panorama360Id ? (
-              <div className="border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg p-8">
-                <input
-                  type="file"
-                  id="panorama-upload"
-                  accept="image/*"
-                  onChange={handlePanoramaUpload}
-                  className="hidden"
-                  disabled={uploadingPanorama}
-                />
-                <label
-                  htmlFor="panorama-upload"
-                  className="flex flex-col items-center justify-center cursor-pointer"
-                >
-                  {uploadingPanorama ? (
-                    <Loader2 className="w-12 h-12 text-blue-400 mb-3 animate-spin" />
-                  ) : (
-                    <Upload className="w-12 h-12 text-blue-400 mb-3" />
-                  )}
-                  <p className="text-base font-semibold text-secondary-900 mb-1">
-                    {uploadingPanorama ? 'Загрузка и обработка панорамы...' : 'Загрузить 360° панораму'}
-                  </p>
-                  <p className="text-sm text-secondary-600 mb-1">Нажмите для выбора файла</p>
-                  <p className="text-xs text-secondary-500">JPG, PNG или WEBP • Макс. 80MB • Equirectangular формат (2:1)</p>
-                </label>
+            {tourNodes.length === 0 ? (
+              <div
+                className="border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-100 transition-colors"
+                onClick={addTourRoom}
+              >
+                <Globe className="w-12 h-12 text-blue-400 mb-3" />
+                <p className="text-base font-semibold text-secondary-900 mb-1">Добавьте помещения для тура</p>
+                <p className="text-sm text-secondary-500">Нажмите «Добавить помещение» для загрузки 360° панорамы</p>
+                <p className="text-xs text-secondary-400 mt-1">JPG, PNG или WEBP • Макс. 80MB • Equirectangular (2:1)</p>
               </div>
             ) : (
-              <div className="relative group">
-                {panoramaPreview ? (
-                  <img
-                    src={panoramaPreview}
-                    alt="360° Panorama"
-                    className="w-full h-48 object-cover rounded-lg border-2 border-blue-300"
-                  />
-                ) : (
-                  <div className="w-full h-48 bg-blue-50 border-2 border-blue-300 rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                      <Globe className="w-10 h-10 text-blue-400 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-secondary-700">360° панорама загружена</p>
-                      <p className="text-xs text-secondary-500">ID: {panorama360Id}</p>
+              <div className="space-y-3">
+                {tourNodes.map((node, idx) => (
+                  <div key={node.id} className="border border-secondary-200 rounded-xl overflow-hidden">
+                    <div className="flex items-center gap-3 px-3 py-2 bg-secondary-50 border-b border-secondary-200">
+                      <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+                        {idx + 1}
+                      </span>
+                      <input
+                        type="text"
+                        value={node.name}
+                        onChange={(e) => updateTourRoomName(node.id, e.target.value)}
+                        placeholder={`Помещение ${idx + 1}`}
+                        className="flex-1 text-sm font-medium bg-transparent outline-none text-secondary-900 placeholder-secondary-400"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeTourRoom(node.id)}
+                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="relative">
+                      {node.previewUrl || node.panoramaId ? (
+                        <div className="relative group">
+                          {node.previewUrl ? (
+                            <img
+                              src={node.previewUrl}
+                              alt={node.name || `Помещение ${idx + 1}`}
+                              className="w-full h-36 object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-36 bg-blue-50 flex items-center justify-center">
+                              <div className="text-center">
+                                <Globe className="w-8 h-8 text-blue-400 mx-auto mb-1" />
+                                <p className="text-xs text-secondary-500">ID: {node.panoramaId}</p>
+                              </div>
+                            </div>
+                          )}
+                          {node.uploading && (
+                            <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                              <div className="text-center">
+                                <Loader2 className="w-7 h-7 text-blue-600 animate-spin mx-auto mb-1" />
+                                <p className="text-xs text-secondary-600">Обработка...</p>
+                              </div>
+                            </div>
+                          )}
+                          {!node.uploading && (
+                            <label className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/30 transition-colors cursor-pointer group">
+                              <span className="opacity-0 group-hover:opacity-100 bg-white/90 text-secondary-800 text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-opacity">
+                                <Upload className="w-3.5 h-3.5" />
+                                Заменить
+                              </span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleTourRoomUpload(node.id, e.target.files?.[0])}
+                              />
+                            </label>
+                          )}
+                          <div className="absolute bottom-2 left-2 px-2.5 py-1 bg-blue-600 text-white text-xs font-medium rounded-full flex items-center gap-1.5 shadow">
+                            <Globe className="w-3 h-3" />
+                            {node.panoramaId ? '360° готова' : 'Загружается...'}
+                          </div>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center h-36 cursor-pointer hover:bg-secondary-50 transition-colors">
+                          {node.uploading ? (
+                            <>
+                              <Loader2 className="w-8 h-8 text-blue-400 mb-2 animate-spin" />
+                              <p className="text-sm text-secondary-500">Загрузка...</p>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-8 h-8 text-secondary-400 mb-2" />
+                              <p className="text-sm text-secondary-600">Нажмите для загрузки панорамы</p>
+                              <p className="text-xs text-secondary-400 mt-0.5">Equirectangular • Макс. 80MB</p>
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleTourRoomUpload(node.id, e.target.files?.[0])}
+                            disabled={node.uploading}
+                          />
+                        </label>
+                      )}
                     </div>
                   </div>
-                )}
-                {uploadingPanorama && (
-                  <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center rounded-lg">
-                    <div className="text-center">
-                      <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-2" />
-                      <p className="text-sm font-medium text-secondary-700">Обработка панорамы...</p>
-                    </div>
-                  </div>
-                )}
-                <button
-                  type="button"
-                  onClick={removePanorama}
-                  className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors shadow-lg opacity-0 group-hover:opacity-100"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-                <div className="absolute bottom-2 left-2 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-full flex items-center gap-1.5 shadow">
-                  <Globe className="w-3.5 h-3.5" />
-                  {panorama360Id ? '360° Панорама готова' : 'Загружается...'}
-                </div>
+                ))}
               </div>
             )}
 
-            {/* Optional: External URL fallback */}
+            {/* Optional external URL */}
             <div>
               <label className="block text-sm font-medium text-secondary-700 mb-2">
                 <Globe className="w-4 h-4 inline mr-1" />
@@ -1058,7 +1137,7 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
                 placeholder="https://example.com/tour360"
                 className="w-full px-4 py-2 border border-secondary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
-              <p className="mt-1 text-xs text-secondary-500">Ссылка на Matterport, Kuula и т.д. — используется если не загружена панорама</p>
+              <p className="mt-1 text-xs text-secondary-500">Ссылка на Matterport, Kuula и т.д. — используется если нет загруженных панорам</p>
             </div>
           </div>
 

@@ -16,8 +16,8 @@ import { getProperty, saveProperty, unsaveProperty } from '@/lib/api/properties'
 import type { Property } from '@/lib/types'
 import ComparisonButton, { useComparison } from '@/components/comparison/ComparisonButton'
 import Tour360Viewer from '@/components/properties/Tour360Viewer'
-import type { PanoramaTileConfig } from '@/components/properties/Tour360Viewer'
-import { getPanoramaTileConfig } from '@/lib/api/panorama'
+import type { PanoramaTileConfig, TourNode } from '@/components/properties/Tour360Viewer'
+import { getPanoramaTileConfig, getPanoramaTileConfigs } from '@/lib/api/panorama'
 import { useTranslations } from 'next-intl'
 import ApiErrorHandler from '@/components/common/ApiErrorHandler'
 
@@ -33,6 +33,7 @@ export default function PropertyDetailPage() {
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [tour360ModalOpen, setTour360ModalOpen] = useState(false)
   const [tileConfig, setTileConfig] = useState<PanoramaTileConfig | null>(null)
+  const [tourConfig, setTourConfig] = useState<{ nodes: TourNode[]; startNodeId?: string } | null>(null)
   const [activeInfoTab, setActiveInfoTab] = useState('building')
   const [scrolled, setScrolled] = useState(false)
   const { isSelected: isInComparison, toggleSelection: toggleComparison } = useComparison((params.id as string) || '')
@@ -86,11 +87,35 @@ export default function PropertyDetailPage() {
       const data = await getProperty(id)
       setProperty(data)
 
-      // Try to load optimised tile config for 360° viewer (non-blocking)
-      if (data.hasTour360 && data.panorama360Id) {
-        getPanoramaTileConfig(data.panorama360Id)
-          .then((cfg) => { if (cfg) setTileConfig(cfg) })
-          .catch(() => { /* tiles unavailable, viewer falls back to full image */ })
+      // Build tour config (non-blocking)
+      if (data.hasTour360) {
+        const vtc = data.virtualTourConfig as {
+          nodes: { id: string; name?: string; panoramaId?: string; panoramaUrl?: string }[]
+          startNodeId?: string
+        } | null
+
+        if (vtc?.nodes?.length && vtc.nodes.length > 0) {
+          // Multi-room: fetch all tile configs in parallel then build nodes
+          const panoramaIds = vtc.nodes.map(n => n.panoramaId).filter(Boolean) as string[]
+          getPanoramaTileConfigs(panoramaIds).then((configs) => {
+            const nodes: TourNode[] = vtc.nodes
+              .map(n => {
+                const cfg = n.panoramaId ? configs[n.panoramaId] : null
+                const panorama = cfg?.basePanorama || n.panoramaUrl || ''
+                if (!panorama) return null
+                return { id: n.id, name: n.name, panorama } satisfies TourNode
+              })
+              .filter(Boolean) as TourNode[]
+            if (nodes.length > 0) {
+              setTourConfig({ nodes, startNodeId: vtc.startNodeId })
+            }
+          })
+        } else if (data.panorama360Id) {
+          // Single tiled panorama (legacy / single-room)
+          getPanoramaTileConfig(data.panorama360Id)
+            .then((cfg) => { if (cfg) setTileConfig(cfg) })
+            .catch(() => {})
+        }
       }
     } catch (error) {
       console.error('Failed to fetch property:', error)
@@ -886,11 +911,11 @@ export default function PropertyDetailPage() {
               
               {/* Tour Viewer - Full Screen */}
               <div className="flex-1 relative w-full h-full overflow-hidden">
-                <Tour360Viewer 
-                  imageUrl={property.tour360Url || undefined} 
+                <Tour360Viewer
+                  imageUrl={property.tour360Url || undefined}
                   title={property.title}
-                  tourConfig={property.virtualTourConfig}
-                  tileConfig={tileConfig || undefined}
+                  tourConfig={tourConfig || undefined}
+                  tileConfig={!tourConfig ? (tileConfig || undefined) : undefined}
                 />
               </div>
               

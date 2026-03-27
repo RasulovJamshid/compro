@@ -411,6 +411,7 @@
     "zoomIn": "Kattalashtirish",
     "zoomOut": "Kichiklashtirish",
     "fullscreen": "To'liq ekran",
+    "exitFullscreen": "To'liq ekrandan chiqish",
     "swipeForView": "Ko'rish uchun suring",
     "pinchToZoom": "Kattalashtirish uchun ikki barmoq bilan"
   },

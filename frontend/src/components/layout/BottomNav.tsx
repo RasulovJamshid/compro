@@ -5,11 +5,25 @@ import { Search, MapPin, Heart, User } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useAuthStore } from '@/lib/store/authStore'
+import { useEffect, useState } from 'react'
 
 export default function BottomNav() {
   const pathname = usePathname()
   const t = useTranslations('Navigation')
   const { isAuthenticated } = useAuthStore()
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  useEffect(() => {
+    const handler = () => {
+      setIsFullscreen(!!(document.fullscreenElement || (document as any).webkitFullscreenElement))
+    }
+    document.addEventListener('fullscreenchange', handler)
+    document.addEventListener('webkitfullscreenchange', handler)
+    return () => {
+      document.removeEventListener('fullscreenchange', handler)
+      document.removeEventListener('webkitfullscreenchange', handler)
+    }
+  }, [])
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
 
@@ -19,6 +33,8 @@ export default function BottomNav() {
     { href: isAuthenticated ? '/saved' : '/auth/login', icon: Heart, label: t('saved') },
     { href: isAuthenticated ? '/profile' : '/auth/login', icon: User, label: t('profile') },
   ]
+
+  if (isFullscreen) return null
 
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-secondary-100 safe-area-bottom">

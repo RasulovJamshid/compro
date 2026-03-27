@@ -411,6 +411,7 @@
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
     "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen",
     "swipeForView": "Swipe to view",
     "pinchToZoom": "Pinch to zoom"
   },
