@@ -46,9 +46,9 @@ const PropertyCard = memo(function PropertyCard({ property, variant = 'default' 
 
   if (isCompact) {
     return (
-      <Link href={`/properties/${property.id}`} className="group flex overflow-hidden bg-white rounded-xl shadow-sm hover:shadow-lg hover:ring-1 hover:ring-primary-200 ring-1 ring-secondary-100 transition-all duration-300 hover:-translate-y-0.5">
+      <Link href={`/properties/${property.id}`} className="group flex overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-secondary-100 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:ring-1 hover:ring-primary-200">
         {/* Image - Left Side */}
-        <div className="relative w-32 min-w-[8rem] bg-secondary-100 overflow-hidden">
+        <div className="relative w-28 min-w-[7rem] bg-secondary-100 overflow-hidden sm:w-32 sm:min-w-[8rem]">
           {coverImage ? (
             <Image
               src={coverImage.watermarkedUrl || coverImage.url}
@@ -70,41 +70,41 @@ const PropertyCard = memo(function PropertyCard({ property, variant = 'default' 
         </div>
 
         {/* Content - Right Side */}
-        <div className="p-3 flex flex-col flex-1 min-w-0">
-          <div className="flex justify-between items-start gap-2 mb-1">
-            <span className="text-xs font-bold text-secondary-600 bg-secondary-100/50 px-2 py-0.5 rounded uppercase tracking-wider">
+        <div className="flex min-w-0 flex-1 flex-col p-2.5 sm:p-3">
+          <div className="mb-1 flex items-start justify-between gap-2">
+            <span className="rounded bg-secondary-100/50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-secondary-600 sm:text-xs">
               {dealTypeLabels[property.dealType]}
             </span>
             <button
               onClick={handleFavoriteClick}
-              className="text-secondary-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-full transition-all active:scale-90"
+              className="rounded-full p-1 text-secondary-400 transition-all hover:bg-red-50 hover:text-red-500 active:scale-90 sm:p-1.5"
             >
               <Heart className="h-4 w-4" />
             </button>
           </div>
 
-          <h3 className="text-sm font-bold text-secondary-900 line-clamp-1 mb-1 group-hover:text-primary-600 transition-colors">
+          <h3 className="mb-1 line-clamp-2 text-sm font-bold leading-5 text-secondary-900 transition-colors group-hover:text-primary-600">
             {property.title}
           </h3>
 
-          <div className="flex items-baseline gap-1 mb-2">
-            <span className="text-base font-black text-primary-700">
+          <div className="mb-2 flex flex-wrap items-baseline gap-x-1 gap-y-0.5">
+            <span className="text-sm font-black text-primary-700 sm:text-base">
               {property.price.toLocaleString('ru-RU')}
             </span>
-            <span className="text-[10px] text-secondary-500 font-medium">
+            <span className="text-[9px] font-medium text-secondary-500 sm:text-[10px]">
               {t('currency')}{property.dealType === 'rent' ? `/${t('month')}` : ''}
             </span>
           </div>
 
-          <div className="flex items-center gap-1 text-[11px] text-secondary-500 mb-2 truncate">
+          <div className="mb-2 flex items-center gap-1 text-[11px] text-secondary-500 min-w-0">
             <MapPin className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">{property.district}, {property.city}</span>
+            <span className="truncate">{property.address || `${property.district}, ${property.city}`}</span>
           </div>
 
-          <div className="mt-auto flex items-center gap-2 text-[11px] font-semibold text-secondary-700">
-            <span>{property.area} м²</span>
-            <div className="w-1 h-1 rounded-full bg-secondary-300" />
-            <span className="truncate text-secondary-500">{propertyTypeLabels[property.propertyType]}</span>
+          <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-semibold text-secondary-700">
+            <span className="flex-shrink-0">{property.area} м²</span>
+            <div className="h-1 w-1 flex-shrink-0 rounded-full bg-secondary-300" />
+            <span className="min-w-0 truncate text-secondary-500">{propertyTypeLabels[property.propertyType]}</span>
           </div>
         </div>
       </Link>

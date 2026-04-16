@@ -33,6 +33,11 @@
     "haveProperty": "Have a property to list?",
     "postFree": "Post an ad for free and get requests from tenants and buyers.",
     "addAd": "Add an ad",
+    "mobileCtaEyebrow": "List faster",
+    "mobilePromoImageAlt": "Property promo image",
+    "mobileStatListings": "active listings",
+    "mobileStatClients": "clients on the platform",
+    "mobileStatSuccess": "successful deals",
     "metaTitle": "Commercial real estate in Tashkent | Rent and sale of offices, warehouses, shops",
     "metaDesc": "Find commercial real estate in Tashkent. 2500+ verified properties: offices, warehouses, shops, cafes and restaurants. Professional platform for business."
   },
@@ -584,7 +589,17 @@
     "directContactDesc": "Communicate directly with owners",
     "happyClients": "Happy clients",
     "activeProps": "Active properties",
-    "joinCommunity": "Join the community"
+    "joinCommunity": "Join the community",
+    "welcome": "Welcome",
+    "loginOrSignUp": "Log in or sign up to save listings and get updates on your home search",
+    "enterSystemPhone": "Enter your phone number in the system",
+    "phoneVerification": "Phone number verification",
+    "codeSentToPhone": "A verification code has been sent to your phone number",
+    "confirmationCode": "Confirmation code",
+    "codeValidFor": "The code is valid for 2 minutes.",
+    "resend": "Resend",
+    "continue": "Continue",
+    "enterFullCode": "Please enter the full code"
   },
   "Breadcrumbs": {
     "properties": "Properties",

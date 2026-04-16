@@ -33,6 +33,11 @@
     "haveProperty": "Joylashtirish uchun obyektingiz bormi?",
     "postFree": "E'loningizni bepul joylashtiring va xaridorlardan talabnomalarni qabul qiling.",
     "addAd": "E'lon qo'shish",
+    "mobileCtaEyebrow": "Tez joylashtirish",
+    "mobilePromoImageAlt": "Obyekt promo rasmi",
+    "mobileStatListings": "faol e'lonlar",
+    "mobileStatClients": "platformadagi mijozlar",
+    "mobileStatSuccess": "muvaffaqiyatli bitimlar",
     "metaTitle": "Toshkentda tijorat ko'chmas mulki | Ofislar, omborlar, do'konlar ijarasi va savdosi",
     "metaDesc": "Toshkentda tijorat ko'chmas mulkini toping. 2500+ tasdiqlangan obyektlar: ofislar, omborlar, do'konlar, kafelar va restoranlar. Biznes uchun professional platforma."
   },
@@ -584,7 +589,17 @@
     "directContactDesc": "Egalari bilan to'g'ridan-to'g'ri muloqot qiling",
     "happyClients": "Mamnun mijozlar",
     "activeProps": "Faol obyektlar",
-    "joinCommunity": "Hamjamiyatga qo'shiling"
+    "joinCommunity": "Hamjamiyatga qo'shiling",
+    "welcome": "Xush kelibsiz",
+    "loginOrSignUp": "E'lonlarni saqlash va qidiruvingiz bo'yicha yangilanishlarni olish uchun tizimga kiring yoki ro'yxatdan o'ting",
+    "enterSystemPhone": "Tizimga telefon raqamingizni kiriting",
+    "phoneVerification": "Telefon raqamini tasdiqlash",
+    "codeSentToPhone": "Telefon raqamingizga tasdiqlash kodi yuborildi",
+    "confirmationCode": "Tasdiqlash kodi",
+    "codeValidFor": "Kod 2 daqiqa davomida amal qiladi.",
+    "resend": "Qayta yuborish",
+    "continue": "Davom etish",
+    "enterFullCode": "Iltimos, to'liq kodni kiriting"
   },
   "Breadcrumbs": {
     "properties": "Obyektlar",

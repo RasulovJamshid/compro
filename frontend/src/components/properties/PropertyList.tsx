@@ -6,15 +6,26 @@ import { getProperties } from '@/lib/api/properties'
 import type { Property } from '@/lib/types'
 import { useTranslations } from 'next-intl'
 
-export default function PropertyList() {
+interface PropertyListProps {
+  limit?: number
+  variant?: 'default' | 'compact'
+  className?: string
+}
+
+export default function PropertyList({
+  limit = 8,
+  variant = 'default',
+  className,
+}: PropertyListProps) {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const t = useTranslations()
+  const gridClassName = className || 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6'
 
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const data = await getProperties({ limit: 8 })
+        const data = await getProperties({ limit })
         setProperties(data.items || [])
       } catch (error) {
         console.error('Failed to fetch properties:', error)
@@ -25,12 +36,12 @@ export default function PropertyList() {
     }
 
     fetchProperties()
-  }, [])
+  }, [limit])
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        {[...Array(8)].map((_, i) => (
+      <div className={gridClassName}>
+        {[...Array(limit)].map((_, i) => (
           <div key={i} className="bg-white rounded-2xl shadow-sm ring-1 ring-secondary-100 overflow-hidden animate-pulse">
             <div className="h-48 sm:h-56 bg-secondary-100/50"></div>
             <div className="p-5 space-y-4">
@@ -60,9 +71,9 @@ export default function PropertyList() {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+    <div className={gridClassName}>
       {properties.map((property) => (
-        <PropertyCard key={property.id} property={property} />
+        <PropertyCard key={property.id} property={property} variant={variant} />
       ))}
     </div>
   )
