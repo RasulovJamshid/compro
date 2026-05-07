@@ -157,9 +157,12 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
     ? getMockNodes(t)
     : []
 
-  const hasTour = nodes.length > 1
+  /** Multiple rooms: arrows + room UI + VirtualTourPlugin */
+  const isMultiRoomTour = nodes.length > 1
+  /** Any saved tour nodes (including single-room): must drive initial panorama URL */
+  const hasTourNodes = hasRealTour && nodes.length > 0
   const vtPluginNodes = useMemo(() => buildVirtualTourPluginNodes(nodes), [nodes])
-  const useVirtualTourPlugin = hasTour
+  const useVirtualTourPlugin = isMultiRoomTour
 
   const viewerPlugins = useMemo(() => {
     if (!useVirtualTourPlugin) return []
@@ -199,6 +202,7 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
   const [currentNodeId, setCurrentNodeId] = useState('')
   const [showRoomList, setShowRoomList] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [controlsVisible, setControlsVisible] = useState(true)
 
@@ -270,7 +274,7 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
     let src = ''
     let startId = ''
 
-    if (hasTour) {
+    if (hasTourNodes) {
       startId =
         tourConfig?.startNodeId && nodes.some((n) => n.id === tourConfig.startNodeId)
           ? tourConfig.startNodeId
@@ -287,9 +291,10 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
     setImageSrc(src)
     setCurrentNodeId(startId || nodes[0]?.id || '')
     setLoading(true)
+    setLoadError(null)
     armLoadingFallback()
     viewerReadyRef.current = false
-  }, [mounted, hasTour, tileConfig, imageUrl, tourConfig?.startNodeId, nodes, armLoadingFallback])
+  }, [mounted, hasTourNodes, tileConfig, imageUrl, tourConfig?.startNodeId, nodes, armLoadingFallback])
 
   // ─── navigation ─────────────────────────────────────────────────────────────
   const navigateToNode = useCallback(
@@ -367,11 +372,11 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
 
   // Remount when tour graph or panoramas change so VirtualTourPlugin picks up new nodes.
   const viewerKey = useMemo(() => {
-    if (hasTour) {
+    if (hasTourNodes) {
       return `tour-${vtPluginNodes.map((n) => `${n.id}:${n.panorama}:${JSON.stringify(n.links)}`).join('|')}`
     }
     return imageSrc || 'single'
-  }, [hasTour, vtPluginNodes, imageSrc])
+  }, [hasTourNodes, vtPluginNodes, imageSrc])
 
   // ─── loading gate ────────────────────────────────────────────────────────────
   if (!mounted || !imageSrc) {
@@ -386,7 +391,7 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
   }
 
   return (
-    <div className="relative w-full h-full bg-secondary-950 select-none" onPointerDown={revealControls}>
+    <div className="relative w-full h-full min-h-[300px] bg-secondary-950 select-none" onPointerDown={revealControls}>
 
       {/* Demo badge */}
       {usingSample && (
@@ -397,7 +402,7 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
       )}
 
       {/* Room list panel */}
-      {hasTour && showRoomList && (
+      {isMultiRoomTour && showRoomList && (
         <>
           <div className="absolute inset-0 z-20" onClick={() => setShowRoomList(false)} />
           <div className="absolute z-30 bottom-[4.5rem] left-3 right-3 sm:bottom-auto sm:top-3 sm:left-3 sm:right-auto sm:w-64 bg-secondary-950/95 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
@@ -449,6 +454,7 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
         plugins={viewerPlugins}
         navbar={false}
         defaultZoomLvl={50}
+        canvasBackground="#0c0c0f"
         fisheye={false}
         mousewheel={true}
         mousemove={true}
@@ -460,9 +466,43 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
         onReady={(instance: any) => {
           viewerRef.current = instance
           viewerReadyRef.current = true
-          clearLoadingFallback()
-          setLoading(false)
-          scheduleHide()
+
+          const markPanoramaReady = () => {
+            clearLoadingFallback()
+            setLoading(false)
+            setLoadError(null)
+            scheduleHide()
+          }
+
+          const onPanoramaLoaded = () => markPanoramaReady()
+          const onPanoramaError = (evt: { error?: Error }) => {
+            clearLoadingFallback()
+            setLoading(false)
+            const detail = evt?.error?.message?.trim()
+            setLoadError(detail || t('panoramaLoadFailed'))
+            console.error('[Tour360Viewer] panorama-error', evt?.error)
+          }
+
+          instance.addEventListener('panorama-loaded', onPanoramaLoaded)
+          instance.addEventListener('panorama-error', onPanoramaError)
+
+          // ready runs after first panorama is applied; avoid missing loaded if event order differs
+          if (instance.state?.textureData?.texture) {
+            markPanoramaReady()
+          }
+
+          // Flex/modal layouts often report 0×0 on first paint — forces WebGL size + redraw
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              try {
+                instance.autoSize?.()
+                instance.needsUpdate?.()
+              } catch {
+                /* ignore */
+              }
+            })
+          })
+
           if (useVirtualTourPlugin) {
             const vt = instance.getPlugin(VirtualTourPlugin) as InstanceType<typeof VirtualTourPlugin> | undefined
             vt?.addEventListener('node-changed', (e: { node: { id: string } }) => {
@@ -482,13 +522,19 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
         </div>
       )}
 
+      {loadError && !loading && (
+        <div className="absolute inset-0 z-[11] flex items-center justify-center p-4 bg-secondary-950/90 pointer-events-none">
+          <p className="text-sm text-center text-red-200 max-w-md">{loadError}</p>
+        </div>
+      )}
+
       {/* Controls */}
       <div className={`absolute bottom-0 left-0 right-0 z-20 transition-opacity duration-300 safe-area-bottom ${
         controlsVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}>
 
         {/* Room nav row */}
-        {hasTour && (
+        {isMultiRoomTour && (
           <div className="flex items-center justify-center gap-2 px-3 pb-1.5">
             <button
               onClick={goPrev}
@@ -522,7 +568,7 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
         <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-t from-black/80 via-black/50 to-transparent">
           {/* Left */}
           <div className="flex items-center gap-1.5">
-            {hasTour && (
+            {isMultiRoomTour && (
               <button
                 onClick={() => setShowRoomList(v => !v)}
                 className={`p-2.5 rounded-xl transition-all active:scale-90 touch-manipulation ${

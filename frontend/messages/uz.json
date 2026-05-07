@@ -418,7 +418,8 @@
     "fullscreen": "To'liq ekran",
     "exitFullscreen": "To'liq ekrandan chiqish",
     "swipeForView": "Ko'rish uchun suring",
-    "pinchToZoom": "Kattalashtirish uchun ikki barmoq bilan"
+    "pinchToZoom": "Kattalashtirish uchun ikki barmoq bilan",
+    "panoramaLoadFailed": "360° panoramani yuklab bo'lmadi. Fayl mavjudligini tekshiring va qayta urinib ko'ring."
   },
   "PropertyDetails": {
     "linkCopied": "Havola nusxalandi",
