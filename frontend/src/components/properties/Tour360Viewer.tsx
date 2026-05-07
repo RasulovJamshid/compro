@@ -205,6 +205,7 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
   const viewerRef = useRef<any>(null)
   const viewerReadyRef = useRef(false)
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const loadingFallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ─── controls auto-hide ─────────────────────────────────────────────────────
   const scheduleHide = useCallback(() => {
@@ -212,12 +213,30 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
     hideTimer.current = setTimeout(() => setControlsVisible(false), HIDE_DELAY)
   }, [])
 
+  const clearLoadingFallback = useCallback(() => {
+    if (loadingFallbackTimer.current) {
+      clearTimeout(loadingFallbackTimer.current)
+      loadingFallbackTimer.current = null
+    }
+  }, [])
+
+  const armLoadingFallback = useCallback(() => {
+    clearLoadingFallback()
+    // Prevent stuck overlay if plugin/image events are dropped.
+    loadingFallbackTimer.current = setTimeout(() => setLoading(false), 12000)
+  }, [clearLoadingFallback])
+
   const revealControls = useCallback(() => {
     setControlsVisible(true)
     scheduleHide()
   }, [scheduleHide])
 
-  useEffect(() => () => { if (hideTimer.current) clearTimeout(hideTimer.current) }, [])
+  useEffect(() => {
+    return () => {
+      if (hideTimer.current) clearTimeout(hideTimer.current)
+      clearLoadingFallback()
+    }
+  }, [clearLoadingFallback])
 
   // ─── fullscreen ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -268,8 +287,9 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
     setImageSrc(src)
     setCurrentNodeId(startId || nodes[0]?.id || '')
     setLoading(true)
+    armLoadingFallback()
     viewerReadyRef.current = false
-  }, [mounted, hasTour, tileConfig, imageUrl, tourConfig?.startNodeId, nodes])
+  }, [mounted, hasTour, tileConfig, imageUrl, tourConfig?.startNodeId, nodes, armLoadingFallback])
 
   // ─── navigation ─────────────────────────────────────────────────────────────
   const navigateToNode = useCallback(
@@ -283,18 +303,40 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
       if (viewer && viewerReadyRef.current && useVirtualTourPlugin) {
         const vt = viewer.getPlugin(VirtualTourPlugin) as InstanceType<typeof VirtualTourPlugin> | undefined
         if (vt) {
-          void vt.setCurrentNode(nodeId, { showLoader: false })
+          setLoading(true)
+          armLoadingFallback()
+          void vt
+            .setCurrentNode(nodeId, { showLoader: false })
+            .then(() => {
+              clearLoadingFallback()
+              setLoading(false)
+            })
+            .catch(() => {
+              clearLoadingFallback()
+              setLoading(false)
+            })
           return
         }
       }
       const url = resolveUrl(node.panorama)
       if (viewer && viewerReadyRef.current) {
-        viewer.setPanorama(url, { showLoader: false, transition: 1500 }).catch(() => {})
+        setLoading(true)
+        armLoadingFallback()
+        viewer
+          .setPanorama(url, { showLoader: false, transition: 1500 })
+          .then(() => {
+            clearLoadingFallback()
+            setLoading(false)
+          })
+          .catch(() => {
+            clearLoadingFallback()
+            setLoading(false)
+          })
       } else {
         setImageSrc(url)
       }
     },
-    [nodes, revealControls, useVirtualTourPlugin],
+    [nodes, revealControls, useVirtualTourPlugin, armLoadingFallback, clearLoadingFallback],
   )
 
   const currentIndex = nodes.findIndex(n => n.id === currentNodeId)
@@ -418,6 +460,7 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
         onReady={(instance: any) => {
           viewerRef.current = instance
           viewerReadyRef.current = true
+          clearLoadingFallback()
           setLoading(false)
           scheduleHide()
           if (useVirtualTourPlugin) {
