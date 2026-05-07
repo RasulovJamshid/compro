@@ -73,6 +73,7 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.compro.uz}
       NEXT_PUBLIC_MAPBOX_TOKEN: ${NEXT_PUBLIC_MAPBOX_TOKEN}
+      BACKEND_INTERNAL_URL: http://compro-backend-prod:3001
     depends_on:
       backend:
         condition: service_healthy

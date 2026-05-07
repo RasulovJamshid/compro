@@ -199,6 +199,8 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
   // ─── state ──────────────────────────────────────────────────────────────────
   const [mounted, setMounted] = useState(false)
   const [imageSrc, setImageSrc] = useState('')
+  /** 'pending' = pre-flight in progress, 'ok' = image reachable, 'error' = unreachable */
+  const [preflightStatus, setPreflightStatus] = useState<'pending' | 'ok' | 'error'>('pending')
   const [currentNodeId, setCurrentNodeId] = useState('')
   const [showRoomList, setShowRoomList] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -209,7 +211,6 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
   const viewerRef = useRef<any>(null)
   const viewerReadyRef = useRef(false)
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const loadingFallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ─── controls auto-hide ─────────────────────────────────────────────────────
   const scheduleHide = useCallback(() => {
@@ -217,30 +218,14 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
     hideTimer.current = setTimeout(() => setControlsVisible(false), HIDE_DELAY)
   }, [])
 
-  const clearLoadingFallback = useCallback(() => {
-    if (loadingFallbackTimer.current) {
-      clearTimeout(loadingFallbackTimer.current)
-      loadingFallbackTimer.current = null
-    }
-  }, [])
-
-  const armLoadingFallback = useCallback(() => {
-    clearLoadingFallback()
-    // Prevent stuck overlay if plugin/image events are dropped.
-    loadingFallbackTimer.current = setTimeout(() => setLoading(false), 12000)
-  }, [clearLoadingFallback])
-
   const revealControls = useCallback(() => {
     setControlsVisible(true)
     scheduleHide()
   }, [scheduleHide])
 
   useEffect(() => {
-    return () => {
-      if (hideTimer.current) clearTimeout(hideTimer.current)
-      clearLoadingFallback()
-    }
-  }, [clearLoadingFallback])
+    return () => { if (hideTimer.current) clearTimeout(hideTimer.current) }
+  }, [])
 
   // ─── fullscreen ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -265,9 +250,7 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
   }, [revealControls])
 
   // ─── initialise panorama source ─────────────────────────────────────────────
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     if (!mounted) return
@@ -292,9 +275,33 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
     setCurrentNodeId(startId || nodes[0]?.id || '')
     setLoading(true)
     setLoadError(null)
-    armLoadingFallback()
+    setPreflightStatus('pending')
     viewerReadyRef.current = false
-  }, [mounted, hasTourNodes, tileConfig, imageUrl, tourConfig?.startNodeId, nodes, armLoadingFallback])
+  }, [mounted, hasTourNodes, tileConfig, imageUrl, tourConfig?.startNodeId, nodes])
+
+  // ─── pre-flight: verify the image is actually reachable before mounting PSV ─
+  useEffect(() => {
+    if (!imageSrc || preflightStatus !== 'pending') return
+    let cancelled = false
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      if (!cancelled) {
+        console.log('[Tour360] preflight OK:', imageSrc)
+        setPreflightStatus('ok')
+      }
+    }
+    img.onerror = () => {
+      if (!cancelled) {
+        console.error('[Tour360] preflight FAILED — image unreachable:', imageSrc)
+        setPreflightStatus('error')
+        setLoading(false)
+        setLoadError(`Image unreachable: ${imageSrc}`)
+      }
+    }
+    img.src = imageSrc
+    return () => { cancelled = true }
+  }, [imageSrc, preflightStatus])
 
   // ─── navigation ─────────────────────────────────────────────────────────────
   const navigateToNode = useCallback(
@@ -309,39 +316,26 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
         const vt = viewer.getPlugin(VirtualTourPlugin) as InstanceType<typeof VirtualTourPlugin> | undefined
         if (vt) {
           setLoading(true)
-          armLoadingFallback()
           void vt
             .setCurrentNode(nodeId, { showLoader: false })
-            .then(() => {
-              clearLoadingFallback()
-              setLoading(false)
-            })
-            .catch(() => {
-              clearLoadingFallback()
-              setLoading(false)
-            })
+            .then(() => setLoading(false))
+            .catch(() => setLoading(false))
           return
         }
       }
       const url = resolveUrl(node.panorama)
       if (viewer && viewerReadyRef.current) {
         setLoading(true)
-        armLoadingFallback()
         viewer
           .setPanorama(url, { showLoader: false, transition: 1500 })
-          .then(() => {
-            clearLoadingFallback()
-            setLoading(false)
-          })
-          .catch(() => {
-            clearLoadingFallback()
-            setLoading(false)
-          })
+          .then(() => setLoading(false))
+          .catch(() => setLoading(false))
       } else {
         setImageSrc(url)
+        setPreflightStatus('pending')
       }
     },
-    [nodes, revealControls, useVirtualTourPlugin, armLoadingFallback, clearLoadingFallback],
+    [nodes, revealControls, useVirtualTourPlugin],
   )
 
   const currentIndex = nodes.findIndex(n => n.id === currentNodeId)
@@ -379,12 +373,29 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
   }, [hasTourNodes, vtPluginNodes, imageSrc])
 
   // ─── loading gate ────────────────────────────────────────────────────────────
-  if (!mounted || !imageSrc) {
+  if (!mounted || !imageSrc || preflightStatus === 'pending') {
     return (
       <div className="w-full h-full bg-secondary-900 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="w-12 h-12 border-3 border-secondary-700 border-t-primary-500 rounded-full animate-spin mx-auto mb-3" />
           <p className="text-sm text-secondary-400">{t('initTour')}</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (preflightStatus === 'error') {
+    return (
+      <div className="w-full h-full bg-secondary-900 flex items-center justify-center min-h-[400px]">
+        <div className="text-center max-w-md px-4">
+          <p className="text-sm text-red-300 mb-2">{t('panoramaLoadFailed')}</p>
+          <p className="text-xs text-secondary-500 break-all">{imageSrc}</p>
+          <button
+            onClick={() => { setPreflightStatus('pending') }}
+            className="mt-3 px-4 py-1.5 text-xs bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+          >
+            {t('retry') || 'Retry'}
+          </button>
         </div>
       </div>
     )
@@ -466,40 +477,26 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
         onReady={(instance: any) => {
           viewerRef.current = instance
           viewerReadyRef.current = true
+          console.log('[Tour360] PSV ready')
 
-          const markPanoramaReady = () => {
-            clearLoadingFallback()
-            setLoading(false)
-            setLoadError(null)
-            scheduleHide()
-          }
+          setLoading(false)
+          setLoadError(null)
+          scheduleHide()
 
-          const onPanoramaLoaded = () => markPanoramaReady()
-          const onPanoramaError = (evt: { error?: Error }) => {
-            clearLoadingFallback()
+          instance.addEventListener('panorama-error', (evt: { error?: Error }) => {
             setLoading(false)
             const detail = evt?.error?.message?.trim()
             setLoadError(detail || t('panoramaLoadFailed'))
-            console.error('[Tour360Viewer] panorama-error', evt?.error)
-          }
+            console.error('[Tour360] panorama-error', evt?.error)
+          })
 
-          instance.addEventListener('panorama-loaded', onPanoramaLoaded)
-          instance.addEventListener('panorama-error', onPanoramaError)
-
-          // ready runs after first panorama is applied; avoid missing loaded if event order differs
-          if (instance.state?.textureData?.texture) {
-            markPanoramaReady()
-          }
-
-          // Flex/modal layouts often report 0×0 on first paint — forces WebGL size + redraw
+          // Flex/modal layouts can report 0×0 on first paint — force WebGL resize
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
               try {
                 instance.autoSize?.()
                 instance.needsUpdate?.()
-              } catch {
-                /* ignore */
-              }
+              } catch { /* ignore */ }
             })
           })
 
@@ -523,8 +520,16 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
       )}
 
       {loadError && !loading && (
-        <div className="absolute inset-0 z-[11] flex items-center justify-center p-4 bg-secondary-950/90 pointer-events-none">
-          <p className="text-sm text-center text-red-200 max-w-md">{loadError}</p>
+        <div className="absolute inset-0 z-[11] flex items-center justify-center p-4 bg-secondary-950/90">
+          <div className="text-center max-w-md">
+            <p className="text-sm text-red-200 mb-2">{loadError}</p>
+            <button
+              onClick={() => { setLoadError(null); setPreflightStatus('pending') }}
+              className="mt-1 px-4 py-1.5 text-xs bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+            >
+              {t('retry') || 'Retry'}
+            </button>
+          </div>
         </div>
       )}
 
