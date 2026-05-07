@@ -419,7 +419,8 @@
     "exitFullscreen": "Exit fullscreen",
     "swipeForView": "Swipe to view",
     "pinchToZoom": "Pinch to zoom",
-    "panoramaLoadFailed": "Could not load the 360° image. Check that the file is available and try again."
+    "panoramaLoadFailed": "Could not load the 360° image. Check that the file is available and try again.",
+    "retry": "Retry"
   },
   "PropertyDetails": {
     "linkCopied": "Link copied",
