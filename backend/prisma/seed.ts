@@ -163,52 +163,18 @@ async function main() {
       nodes: [
         {
           id: 'entrance',
-          panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg',
+          panoramaUrl: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg',
           name: 'Вход',
-          links: [
-            {
-              nodeId: 'main_room',
-              position: { pitch: 0, yaw: 0 }
-            }
-          ],
-          markers: [
-            {
-              id: 'marker-info-1',
-              position: { pitch: 0.1, yaw: 0.5 },
-              html: '🏢',
-              style: {
-                fontSize: '32px',
-                fontFamily: 'Helvetica, sans-serif',
-                textAlign: 'center'
-              },
-              tooltip: 'Ресепшн',
-              content: '<h2>Зона ресепшн</h2><p>Просторная зона для встречи гостей площадью 25 кв.м.</p>'
-            }
-          ]
+          links: [{ nodeId: 'main_room', yawDeg: 15, pitchDeg: -3 }],
         },
         {
           id: 'main_room',
-          panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere-test.jpg',
+          panoramaUrl: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere-test.jpg',
           name: 'Главный зал',
-          links: [
-            {
-              nodeId: 'entrance',
-              position: { pitch: 0, yaw: Math.PI }
-            }
-          ],
-          markers: [
-            {
-              id: 'marker-info-2',
-              position: { pitch: 0, yaw: 1.5 },
-              image: 'https://photo-sphere-viewer.js.org/assets/pin-blue.png',
-              size: { width: 32, height: 32 },
-              tooltip: 'Зона отдыха',
-              content: '<h2>Зона отдыха</h2><p>Удобные диваны и кофе-поинт.</p>'
-            }
-          ]
-        }
+          links: [{ nodeId: 'entrance', yawDeg: -160, pitchDeg: 0 }],
+        },
       ],
-      startNodeId: 'entrance'
+      startNodeId: 'entrance',
     } : null;
 
     const hasParking = faker.datatype.boolean();

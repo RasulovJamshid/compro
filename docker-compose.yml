@@ -52,7 +52,9 @@ services:
     ports:
       - "3000:3000"
     environment:
+      # Browser + Next build: API & /uploads files live on backend :3001 (not Next :3000)
       NEXT_PUBLIC_API_URL: http://localhost:3001
+      BACKEND_INTERNAL_URL: http://backend:3001
       NEXT_PUBLIC_MAPBOX_TOKEN: your-mapbox-token
     depends_on:
       - backend
@@ -80,3 +82,4 @@ volumes:
 networks:
   realestate-network:
     driver: bridge
+
