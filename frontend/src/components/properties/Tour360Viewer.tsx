@@ -1,14 +1,17 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import {
   ChevronLeft, ChevronRight, Maximize2, Minimize2,
   RotateCcw, ZoomIn, ZoomOut, Navigation, Layers, Eye,
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { VirtualTourPlugin } from '@photo-sphere-viewer/virtual-tour-plugin'
+import { resolvePublicAssetUrl } from '@/lib/utils/resolvePublicAssetUrl'
 
 import 'react-photo-sphere-viewer/dist/index.css'
+import '@photo-sphere-viewer/virtual-tour-plugin/index.css'
 
 const ReactPhotoSphereViewer = dynamic(
   () => import('react-photo-sphere-viewer').then((mod) => mod.ReactPhotoSphereViewer),
@@ -22,12 +25,21 @@ const ReactPhotoSphereViewer = dynamic(
   }
 )
 
+/** Hotspot link to another tour node (angles in degrees, stored in API JSON). */
+export interface TourLink {
+  nodeId: string
+  yawDeg: number
+  pitchDeg: number
+}
+
 export interface TourNode {
   id: string
   /** Absolute or API-relative URL to the equirectangular panorama image */
   panorama: string
   name?: string
   caption?: string
+  /** In-scene navigation arrows (VirtualTourPlugin). */
+  links?: TourLink[]
 }
 
 export interface PanoramaTileConfig {
@@ -57,36 +69,76 @@ const getMockNodes = (t: any): TourNode[] => [
     id: 'node-1',
     panorama: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop',
     name: t('lobby'), caption: t('lobbyDesc'),
+    links: [{ nodeId: 'node-2', yawDeg: 35, pitchDeg: 0 }],
   },
   {
     id: 'node-2',
     panorama: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?q=80&w=2069&auto=format&fit=crop',
     name: t('openSpace'), caption: t('openSpaceDesc'),
+    links: [
+      { nodeId: 'node-1', yawDeg: -120, pitchDeg: 0 },
+      { nodeId: 'node-3', yawDeg: 55, pitchDeg: -5 },
+    ],
   },
   {
     id: 'node-3',
     panorama: 'https://images.unsplash.com/photo-1577412647305-991150c7d163?q=80&w=2069&auto=format&fit=crop',
     name: t('meetingRoom'), caption: t('meetingRoomDesc'),
+    links: [
+      { nodeId: 'node-2', yawDeg: -80, pitchDeg: 0 },
+      { nodeId: 'node-4', yawDeg: 40, pitchDeg: 0 },
+    ],
   },
   {
     id: 'node-4',
     panorama: 'https://images.unsplash.com/photo-1556761175-5973dc0f32b7?q=80&w=2069&auto=format&fit=crop',
     name: t('kitchen'), caption: t('kitchenDesc'),
+    links: [
+      { nodeId: 'node-3', yawDeg: -95, pitchDeg: 0 },
+      { nodeId: 'node-5', yawDeg: 70, pitchDeg: -8 },
+    ],
   },
   {
     id: 'node-5',
     panorama: 'https://images.unsplash.com/photo-1558442074-3c19857bc1dc?q=80&w=2069&auto=format&fit=crop',
     name: t('terrace'), caption: t('terraceDesc'),
+    links: [{ nodeId: 'node-4', yawDeg: -60, pitchDeg: 5 }],
   },
 ]
 
 const FALLBACK = 'https://cdn.jsdelivr.net/gh/mpetroff/pannellum@2.5.6/examples/examplepano.jpg'
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 const HIDE_DELAY = 4000
 
 function resolveUrl(path: string): string {
-  if (!path || path.startsWith('http')) return path
-  return `${API_URL}${path}`
+  return resolvePublicAssetUrl(path)
+}
+
+function degToRad(deg: number): number {
+  return (deg * Math.PI) / 180
+}
+
+/** PSV VirtualTour nodes with spherical link positions in radians. */
+function buildVirtualTourPluginNodes(nodes: TourNode[]) {
+  const ids = new Set(nodes.map((n) => n.id))
+  return nodes.map((n) => ({
+    id: n.id,
+    panorama: resolveUrl(n.panorama),
+    name: n.name,
+    caption: n.caption,
+    links: (n.links ?? [])
+      .filter((l) => ids.has(l.nodeId))
+      .map((l) => {
+        const yaw = degToRad(l.yawDeg)
+        const pitch = degToRad(l.pitchDeg)
+        return {
+          nodeId: l.nodeId,
+          /** Top-level + position — VirtualTourLink extends ExtendedPosition */
+          yaw,
+          pitch,
+          position: { yaw, pitch },
+        }
+      }),
+  }))
 }
 
 // ─── component ────────────────────────────────────────────────────────────────
@@ -106,6 +158,40 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
     : []
 
   const hasTour = nodes.length > 1
+  const vtPluginNodes = useMemo(() => buildVirtualTourPluginNodes(nodes), [nodes])
+  const useVirtualTourPlugin = hasTour
+
+  const viewerPlugins = useMemo(() => {
+    if (!useVirtualTourPlugin) return []
+    const startId =
+      tourConfig?.startNodeId && vtPluginNodes.some((n) => n.id === tourConfig.startNodeId)
+        ? tourConfig.startNodeId
+        : vtPluginNodes[0]!.id
+    return [
+      [
+        VirtualTourPlugin,
+        {
+          nodes: vtPluginNodes,
+          startNodeId: startId,
+          positionMode: 'manual',
+          renderMode: '3d',
+          /** Default minPitch (~17°) hides arrows placed near the horizon (e.g. pitch 10°). */
+          arrowsPosition: {
+            minPitch: 0,
+            maxPitch: Math.PI / 2 - 0.02,
+            linkOverlapAngle: Math.PI / 4,
+          },
+          showLinkTooltip: true,
+          transitionOptions: {
+            showLoader: false,
+            speed: '20rpm',
+            effect: 'fade',
+            rotation: true,
+          },
+        },
+      ],
+    ] as [typeof VirtualTourPlugin, Record<string, unknown>][]
+  }, [useVirtualTourPlugin, vtPluginNodes, tourConfig?.startNodeId])
 
   // ─── state ──────────────────────────────────────────────────────────────────
   const [mounted, setMounted] = useState(false)
@@ -166,8 +252,11 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
     let startId = ''
 
     if (hasTour) {
-      startId = tourConfig?.startNodeId || nodes[0]?.id || ''
-      src = resolveUrl(nodes.find(n => n.id === startId)?.panorama || nodes[0]?.panorama || FALLBACK)
+      startId =
+        tourConfig?.startNodeId && nodes.some((n) => n.id === tourConfig.startNodeId)
+          ? tourConfig.startNodeId
+          : nodes[0]?.id || ''
+      src = resolveUrl(nodes.find((n) => n.id === startId)?.panorama || nodes[0]?.panorama || FALLBACK)
     } else if (tileConfig) {
       src = resolveUrl(tileConfig.basePanorama)
     } else if (imageUrl) {
@@ -180,22 +269,33 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
     setCurrentNodeId(startId || nodes[0]?.id || '')
     setLoading(true)
     viewerReadyRef.current = false
-  }, [mounted, hasTour, tileConfig, imageUrl])
+  }, [mounted, hasTour, tileConfig, imageUrl, tourConfig?.startNodeId, nodes])
 
   // ─── navigation ─────────────────────────────────────────────────────────────
-  const navigateToNode = useCallback((nodeId: string) => {
-    const node = nodes.find(n => n.id === nodeId)
-    if (!node) return
-    setCurrentNodeId(nodeId)
-    setShowRoomList(false)
-    revealControls()
-    const url = resolveUrl(node.panorama)
-    if (viewerRef.current && viewerReadyRef.current) {
-      viewerRef.current.setPanorama(url, { showLoader: false, transition: 1500 }).catch(() => {})
-    } else {
-      setImageSrc(url)
-    }
-  }, [nodes, revealControls])
+  const navigateToNode = useCallback(
+    (nodeId: string) => {
+      const node = nodes.find((n) => n.id === nodeId)
+      if (!node) return
+      setCurrentNodeId(nodeId)
+      setShowRoomList(false)
+      revealControls()
+      const viewer = viewerRef.current
+      if (viewer && viewerReadyRef.current && useVirtualTourPlugin) {
+        const vt = viewer.getPlugin(VirtualTourPlugin) as InstanceType<typeof VirtualTourPlugin> | undefined
+        if (vt) {
+          void vt.setCurrentNode(nodeId, { showLoader: false })
+          return
+        }
+      }
+      const url = resolveUrl(node.panorama)
+      if (viewer && viewerReadyRef.current) {
+        viewer.setPanorama(url, { showLoader: false, transition: 1500 }).catch(() => {})
+      } else {
+        setImageSrc(url)
+      }
+    },
+    [nodes, revealControls, useVirtualTourPlugin],
+  )
 
   const currentIndex = nodes.findIndex(n => n.id === currentNodeId)
   const currentNode = nodes[currentIndex]
@@ -223,9 +323,13 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
     try { viewerRef.current?.toggleFullscreen() } catch {}
   }, [])
 
-  // ─── stable viewer key (never changes on navigation) ────────────────────────
-  // Only changes when the overall mode/source changes at the component level.
-  const viewerKey = hasTour ? 'tour' : (imageSrc || 'single')
+  // Remount when tour graph or panoramas change so VirtualTourPlugin picks up new nodes.
+  const viewerKey = useMemo(() => {
+    if (hasTour) {
+      return `tour-${vtPluginNodes.map((n) => `${n.id}:${n.panorama}:${JSON.stringify(n.links)}`).join('|')}`
+    }
+    return imageSrc || 'single'
+  }, [hasTour, vtPluginNodes, imageSrc])
 
   // ─── loading gate ────────────────────────────────────────────────────────────
   if (!mounted || !imageSrc) {
@@ -300,7 +404,7 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
         height="100%"
         width="100%"
         container=""
-        plugins={[]}
+        plugins={viewerPlugins}
         navbar={false}
         defaultZoomLvl={50}
         fisheye={false}
@@ -316,6 +420,12 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
           viewerReadyRef.current = true
           setLoading(false)
           scheduleHide()
+          if (useVirtualTourPlugin) {
+            const vt = instance.getPlugin(VirtualTourPlugin) as InstanceType<typeof VirtualTourPlugin> | undefined
+            vt?.addEventListener('node-changed', (e: { node: { id: string } }) => {
+              setCurrentNodeId(e.node.id)
+            })
+          }
         }}
       />
 

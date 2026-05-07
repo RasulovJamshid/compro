@@ -16,10 +16,47 @@ import { getProperty, saveProperty, unsaveProperty } from '@/lib/api/properties'
 import type { Property } from '@/lib/types'
 import ComparisonButton, { useComparison } from '@/components/comparison/ComparisonButton'
 import Tour360Viewer from '@/components/properties/Tour360Viewer'
-import type { PanoramaTileConfig, TourNode } from '@/components/properties/Tour360Viewer'
+import type { PanoramaTileConfig, TourLink, TourNode } from '@/components/properties/Tour360Viewer'
 import { getPanoramaTileConfig, getPanoramaTileConfigs } from '@/lib/api/panorama'
 import { useTranslations } from 'next-intl'
 import ApiErrorHandler from '@/components/common/ApiErrorHandler'
+
+function asFiniteNumber(v: unknown): number | null {
+  if (typeof v === 'number' && Number.isFinite(v)) return v
+  if (typeof v === 'string' && v.trim() !== '') {
+    const n = parseFloat(v.replace(',', '.'))
+    return Number.isFinite(n) ? n : null
+  }
+  return null
+}
+
+function normalizeVirtualTourLinks(raw: unknown, validIds: Set<string>): TourLink[] {
+  if (!Array.isArray(raw)) return []
+  const out: TourLink[] = []
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue
+    const l = item as Record<string, unknown>
+    const nodeId = (l.nodeId as string) || (l.targetNodeId as string)
+    if (!nodeId || !validIds.has(nodeId)) continue
+    const yDeg = asFiniteNumber(l.yawDeg)
+    const pDeg = asFiniteNumber(l.pitchDeg)
+    if (yDeg !== null && pDeg !== null) {
+      out.push({ nodeId, yawDeg: yDeg, pitchDeg: pDeg })
+      continue
+    }
+    const pos = l.position as { yaw?: number; pitch?: number } | undefined
+    if (pos && typeof pos.yaw === 'number') {
+      out.push({
+        nodeId,
+        yawDeg: (pos.yaw * 180) / Math.PI,
+        pitchDeg: ((pos.pitch ?? 0) * 180) / Math.PI,
+      })
+    } else {
+      out.push({ nodeId, yawDeg: 0, pitchDeg: 0 })
+    }
+  }
+  return out
+}
 
 export default function PropertyDetailPage() {
   const params = useParams()
@@ -90,7 +127,14 @@ export default function PropertyDetailPage() {
       // Build tour config (non-blocking)
       if (data.hasTour360) {
         const vtc = data.virtualTourConfig as {
-          nodes: { id: string; name?: string; panoramaId?: string; panoramaUrl?: string }[]
+          nodes: {
+            id: string
+            name?: string
+            panoramaId?: string
+            panoramaUrl?: string
+            panorama?: string
+            links?: unknown
+          }[]
           startNodeId?: string
         } | null
 
@@ -98,14 +142,33 @@ export default function PropertyDetailPage() {
           // Multi-room: fetch all tile configs in parallel then build nodes
           const panoramaIds = vtc.nodes.map(n => n.panoramaId).filter(Boolean) as string[]
           getPanoramaTileConfigs(panoramaIds).then((configs) => {
-            const nodes: TourNode[] = vtc.nodes
-              .map(n => {
+            type Row = {
+              id: string
+              name?: string
+              panorama: string
+              linksRaw?: unknown
+            }
+            const rows: Row[] = vtc.nodes
+              .map((n) => {
                 const cfg = n.panoramaId ? configs[n.panoramaId] : null
-                const panorama = cfg?.basePanorama || n.panoramaUrl || ''
+                const panorama =
+                  cfg?.basePanorama || n.panoramaUrl || n.panorama || ''
                 if (!panorama) return null
-                return { id: n.id, name: n.name, panorama } satisfies TourNode
+                return {
+                  id: n.id,
+                  name: n.name,
+                  panorama,
+                  linksRaw: n.links,
+                }
               })
-              .filter(Boolean) as TourNode[]
+              .filter(Boolean) as Row[]
+            const ids = new Set(rows.map((r) => r.id))
+            const nodes: TourNode[] = rows.map((r) => ({
+              id: r.id,
+              name: r.name,
+              panorama: r.panorama,
+              links: normalizeVirtualTourLinks(r.linksRaw, ids),
+            }))
             if (nodes.length > 0) {
               setTourConfig({ nodes, startNodeId: vtc.startNodeId })
             }
@@ -912,7 +975,11 @@ export default function PropertyDetailPage() {
               {/* Tour Viewer - Full Screen */}
               <div className="flex-1 relative w-full h-full overflow-hidden">
                 <Tour360Viewer
-                  imageUrl={property.tour360Url || undefined}
+                  imageUrl={
+                    !tourConfig && !tileConfig
+                      ? property.tour360Url || undefined
+                      : undefined
+                  }
                   title={property.title}
                   tourConfig={tourConfig || undefined}
                   tileConfig={!tourConfig ? (tileConfig || undefined) : undefined}

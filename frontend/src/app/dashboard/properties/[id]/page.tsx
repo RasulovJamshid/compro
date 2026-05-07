@@ -2,10 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Upload, X, Box, Loader2 } from 'lucide-react'
+import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { apiClient } from '@/lib/api/client'
 import type { Property } from '@/lib/types'
+import Tour360RoomsSection, {
+  buildVirtualTourPayload,
+  tourNodesFromProperty,
+  type TourRoomNode,
+} from '@/components/dashboard/Tour360RoomsSection'
 
 export default function EditPropertyPage() {
   const params = useParams()
@@ -13,7 +18,6 @@ export default function EditPropertyPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [uploadingPanorama, setUploadingPanorama] = useState(false)
   const [property, setProperty] = useState<Property | null>(null)
   
   const [formData, setFormData] = useState({
@@ -42,9 +46,8 @@ export default function EditPropertyPage() {
   const [imageFiles, setImageFiles] = useState<File[]>([])
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [existingImages, setExistingImages] = useState<any[]>([])
-  const [panoramaFile, setPanoramaFile] = useState<File | null>(null)
-  const [panoramaPreview, setPanoramaPreview] = useState<string | null>(null)
-  const [existingPanoramaId, setExistingPanoramaId] = useState<string | null>(null)
+  const [tourNodes, setTourNodes] = useState<TourRoomNode[]>([])
+  const [tour360Url, setTour360Url] = useState('')
 
   useEffect(() => {
     if (params.id) {
@@ -83,12 +86,8 @@ export default function EditPropertyPage() {
       })
       
       setExistingImages(data.images || [])
-      setExistingPanoramaId(data.panorama360Id || null)
-      
-      // Show existing panorama preview if available
-      if (data.tour360Url) {
-        setPanoramaPreview(data.tour360Url)
-      }
+      setTourNodes(tourNodesFromProperty(data))
+      setTour360Url(data.tour360Url || '')
     } catch (error) {
       console.error('Failed to fetch property:', error)
       setError('Не удалось загрузить объект')
@@ -127,52 +126,6 @@ export default function EditPropertyPage() {
     setExistingImages(prev => prev.filter((_, i) => i !== index))
   }
 
-  const handlePanoramaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    if (!file.type.startsWith('image/')) {
-      setError('Пожалуйста, загрузите изображение')
-      return
-    }
-
-    setPanoramaFile(file)
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setPanoramaPreview(reader.result as string)
-    }
-    reader.readAsDataURL(file)
-    setExistingPanoramaId(null) // Clear existing if uploading new
-  }
-
-  const removePanorama = () => {
-    setPanoramaFile(null)
-    setPanoramaPreview(null)
-    setExistingPanoramaId(null)
-  }
-
-  const uploadPanoramaToServer = async (): Promise<string | null> => {
-    if (!panoramaFile) return null
-
-    setUploadingPanorama(true)
-    try {
-      const formData = new FormData()
-      formData.append('file', panoramaFile)
-
-      const { data } = await apiClient.post('/panorama/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
-
-      return data.panoramaId
-    } catch (error) {
-      console.error('Failed to upload panorama:', error)
-      setError('Не удалось загрузить 360° панораму')
-      return null
-    } finally {
-      setUploadingPanorama(false)
-    }
-  }
-
   const uploadImagesToServer = async (): Promise<any[]> => {
     const uploadedImages = []
     
@@ -204,13 +157,9 @@ export default function EditPropertyPage() {
     setError(null)
 
     try {
-      // Upload 360° panorama if new file provided
-      let panoramaId = existingPanoramaId
-      if (panoramaFile) {
-        const uploadedPanoramaId = await uploadPanoramaToServer()
-        if (uploadedPanoramaId) {
-          panoramaId = uploadedPanoramaId
-        }
+      if (tourNodes.some((n) => n.uploading)) {
+        setError('Дождитесь окончания загрузки 360° панорам')
+        return
       }
 
       // Upload new images
@@ -218,6 +167,9 @@ export default function EditPropertyPage() {
       
       // Combine existing and new images
       const allImages = [...existingImages, ...newUploadedImages]
+
+      const tourPayload = buildVirtualTourPayload(tourNodes)
+      const urlTrim = tour360Url.trim()
 
       // Prepare property data
       const propertyData = {
@@ -230,8 +182,10 @@ export default function EditPropertyPage() {
         floor: formData.floor ? parseInt(formData.floor) : undefined,
         totalFloors: formData.totalFloors ? parseInt(formData.totalFloors) : undefined,
         parkingSpaces: formData.parkingSpaces ? parseInt(formData.parkingSpaces) : undefined,
-        panorama360Id: panoramaId || undefined,
-        hasTour360: !!panoramaId,
+        virtualTourConfig: tourPayload.virtualTourConfig,
+        panorama360Id: tourPayload.panorama360Id,
+        hasTour360: tourPayload.hasTour360FromUploads || !!urlTrim,
+        tour360Url: urlTrim || undefined,
         images: allImages,
         hasVideo: property?.hasVideo || false,
       }
@@ -356,64 +310,13 @@ export default function EditPropertyPage() {
           </div>
         </div>
 
-        {/* 360° Panorama Upload */}
-        <div className="bg-gradient-to-br from-primary-50 to-blue-50 rounded-xl shadow-sm border-2 border-primary-200 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-primary-600 rounded-lg">
-              <Box className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-secondary-900">360° Панорама</h2>
-              <p className="text-sm text-secondary-600">Загрузите equirectangular изображение для виртуального тура</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {!panoramaPreview ? (
-              <div>
-                <label className="block cursor-pointer">
-                  <div className="border-2 border-dashed border-primary-300 bg-white rounded-lg p-8 text-center hover:border-primary-500 hover:bg-primary-50 transition-all">
-                    <Upload className="w-16 h-16 text-primary-400 mx-auto mb-4" />
-                    <p className="text-lg font-semibold text-secondary-900 mb-2">
-                      Загрузить 360° панораму
-                    </p>
-                    <p className="text-sm text-secondary-600 mb-1">
-                      Нажмите или перетащите файл сюда
-                    </p>
-                    <p className="text-xs text-secondary-500">
-                      JPG, PNG или WEBP • Макс. 80MB • Equirectangular формат (2:1)
-                    </p>
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePanoramaUpload}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-            ) : (
-              <div className="relative group">
-                <img
-                  src={panoramaPreview}
-                  alt="360° Panorama Preview"
-                  className="w-full h-64 object-cover rounded-lg border-2 border-primary-300"
-                />
-                <button
-                  type="button"
-                  onClick={removePanorama}
-                  className="absolute top-3 right-3 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg opacity-0 group-hover:opacity-100"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-                <div className="absolute bottom-3 left-3 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-full flex items-center gap-2 shadow-lg">
-                  <Box className="w-4 h-4" />
-                  {existingPanoramaId ? 'Текущая панорама' : 'Новая панорама'}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <Tour360RoomsSection
+          nodes={tourNodes}
+          setNodes={setTourNodes}
+          tour360Url={tour360Url}
+          onTour360UrlChange={setTour360Url}
+          onUploadError={setError}
+        />
 
         {/* Existing Images */}
         {existingImages.length > 0 && (
@@ -493,11 +396,13 @@ export default function EditPropertyPage() {
           </Link>
           <button
             type="submit"
-            disabled={saving || uploadingPanorama}
+            disabled={saving || tourNodes.some((n) => n.uploading)}
             className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            {(saving || uploadingPanorama) && <Loader2 className="w-4 h-4 animate-spin" />}
-            {uploadingPanorama ? 'Загрузка панорамы...' : saving ? 'Сохранение...' : 'Сохранить изменения'}
+            {(saving || tourNodes.some((n) => n.uploading)) && (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            )}
+            {saving ? 'Сохранение...' : 'Сохранить изменения'}
           </button>
         </div>
       </form>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Upload, Image as ImageIcon, Video, Globe, Trash2, Plus, Loader2 } from 'lucide-react'
+import { X, Upload, Image as ImageIcon, Video, Globe, Trash2, Plus, Loader2, Link2 } from 'lucide-react'
 import { uploadApi } from '../lib/api'
 
 const PROPERTY_TYPES = [
@@ -25,6 +25,27 @@ const STATUSES = [
   { value: 'sold', label: 'Продано' },
   { value: 'rented', label: 'Сдано' },
 ]
+
+function normalizeTourLinksFromApi(links) {
+  if (!Array.isArray(links)) return []
+  return links
+    .map((l) => {
+      const nodeId = l?.nodeId || l?.targetNodeId
+      if (!nodeId) return null
+      if (typeof l.yawDeg === 'number' && typeof l.pitchDeg === 'number') {
+        return { nodeId, yawDeg: l.yawDeg, pitchDeg: l.pitchDeg }
+      }
+      if (l.position && typeof l.position.yaw === 'number') {
+        return {
+          nodeId,
+          yawDeg: Math.round((l.position.yaw * 180) / Math.PI * 100) / 100,
+          pitchDeg: Math.round(((l.position.pitch || 0) * 180) / Math.PI * 100) / 100,
+        }
+      }
+      return { nodeId, yawDeg: 0, pitchDeg: 0 }
+    })
+    .filter(Boolean)
+}
 
 export default function PropertyFormModal({ isOpen, onClose, onSubmit, property, isLoading }) {
   const [formData, setFormData] = useState({
@@ -139,6 +160,7 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
           panoramaId: n.panoramaId || null,
           previewUrl: null,
           uploading: false,
+          links: normalizeTourLinksFromApi(n.links),
         })))
       } else if (property.panorama360Id) {
         // Legacy single panorama → convert to one node
@@ -148,6 +170,7 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
           panoramaId: property.panorama360Id,
           previewUrl: null,
           uploading: false,
+          links: [],
         }])
       } else {
         setTourNodes([])
@@ -232,11 +255,49 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
 
   const addTourRoom = () => {
     const id = `node-${Date.now()}`
-    setTourNodes(prev => [...prev, { id, name: '', panoramaId: null, previewUrl: null, uploading: false, uploadProgress: 0 }])
+    setTourNodes(prev => [...prev, { id, name: '', panoramaId: null, previewUrl: null, uploading: false, uploadProgress: 0, links: [] }])
   }
 
   const removeTourRoom = (id) => {
-    setTourNodes(prev => prev.filter(n => n.id !== id))
+    setTourNodes(prev => {
+      const next = prev.filter(n => n.id !== id)
+      return next.map(n => ({
+        ...n,
+        links: (n.links || []).filter(l => l.nodeId !== id),
+      }))
+    })
+  }
+
+  const addTourLink = (nodeId) => {
+    setTourNodes(prev => {
+      const targets = prev.filter(n => n.panoramaId && n.id !== nodeId)
+      if (targets.length === 0) return prev
+      return prev.map(n => {
+        if (n.id !== nodeId) return n
+        const used = new Set((n.links || []).map(l => l.nodeId))
+        const pick = targets.find(t => !used.has(t.id)) || targets[0]
+        return { ...n, links: [...(n.links || []), { nodeId: pick.id, yawDeg: 0, pitchDeg: 0 }] }
+      })
+    })
+  }
+
+  const updateTourLink = (nodeId, index, patch) => {
+    setTourNodes(prev => prev.map(n => {
+      if (n.id !== nodeId) return n
+      const links = [...(n.links || [])]
+      if (!links[index]) return n
+      links[index] = { ...links[index], ...patch }
+      return { ...n, links }
+    }))
+  }
+
+  const removeTourLink = (nodeId, index) => {
+    setTourNodes(prev => prev.map(n => {
+      if (n.id !== nodeId) return n
+      const links = [...(n.links || [])]
+      links.splice(index, 1)
+      return { ...n, links }
+    }))
   }
 
   const updateTourRoomName = (id, name) => {
@@ -338,12 +399,23 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
       virtualTourConfig: tourNodes.length > 0 ? {
         nodes: tourNodes
           .filter(n => n.panoramaId)
-          .map((n, idx) => ({
-            id: n.id,
-            name: n.name || `Помещение ${idx + 1}`,
-            panoramaId: n.panoramaId,
-          })),
-        startNodeId: tourNodes[0]?.id,
+          .map((n, idx) => {
+            const withPano = new Set(tourNodes.filter(t => t.panoramaId).map(t => t.id))
+            const links = (n.links || [])
+              .filter(l => l.nodeId && withPano.has(l.nodeId) && l.nodeId !== n.id)
+              .map(l => ({
+                nodeId: l.nodeId,
+                yawDeg: Number(l.yawDeg) || 0,
+                pitchDeg: Number(l.pitchDeg) || 0,
+              }))
+            return {
+              id: n.id,
+              name: n.name || `Помещение ${idx + 1}`,
+              panoramaId: n.panoramaId,
+              links,
+            }
+          }),
+        startNodeId: tourNodes.filter(n => n.panoramaId)[0]?.id || tourNodes[0]?.id,
       } : null,
       // Keep single panorama ID for backward compat (first room)
       panorama360Id: tourNodes[0]?.panoramaId || undefined,
@@ -1140,6 +1212,87 @@ export default function PropertyFormModal({ isOpen, onClose, onSubmit, property,
                         </label>
                       )}
                     </div>
+
+                    {node.panoramaId && (
+                      <div className="px-3 py-2.5 border-t border-secondary-100 bg-secondary-50/50 space-y-2">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-secondary-800">
+                          <Link2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                          Переходы в панораме
+                        </div>
+                        {tourNodes.filter(t => t.panoramaId && t.id !== node.id).length === 0 ? (
+                          <p className="text-[11px] text-secondary-500">
+                            Загрузите ещё одно помещение, чтобы настроить стрелки между панорамами.
+                          </p>
+                        ) : (
+                          <>
+                            {(node.links || []).map((link, li) => {
+                              const validTargets = tourNodes.filter(t => t.panoramaId && t.id !== node.id)
+                              const selectValue = validTargets.some(t => t.id === link.nodeId) ? link.nodeId : ''
+                              return (
+                                <div
+                                  key={`${node.id}-link-${li}`}
+                                  className="flex flex-wrap items-end gap-2 bg-white rounded-lg p-2 border border-secondary-200"
+                                >
+                                  <div className="min-w-[140px] flex-1">
+                                    <label className="text-[10px] text-secondary-500 uppercase tracking-wide block">Куда</label>
+                                    <select
+                                      value={selectValue}
+                                      onChange={(e) => updateTourLink(node.id, li, { nodeId: e.target.value })}
+                                      className="mt-0.5 w-full text-sm border border-secondary-200 rounded-md px-2 py-1.5 bg-white"
+                                    >
+                                      <option value="" disabled>Выберите помещение</option>
+                                      {validTargets.map(t => (
+                                        <option key={t.id} value={t.id}>
+                                          {t.name?.trim() || t.id}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] text-secondary-500 uppercase tracking-wide block">Yaw °</label>
+                                    <input
+                                      type="number"
+                                      step="1"
+                                      value={link.yawDeg}
+                                      onChange={(e) => updateTourLink(node.id, li, { yawDeg: parseFloat(e.target.value) || 0 })}
+                                      className="mt-0.5 w-[4.5rem] text-sm border border-secondary-200 rounded-md px-2 py-1.5"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] text-secondary-500 uppercase tracking-wide block">Pitch °</label>
+                                    <input
+                                      type="number"
+                                      step="1"
+                                      value={link.pitchDeg}
+                                      onChange={(e) => updateTourLink(node.id, li, { pitchDeg: parseFloat(e.target.value) || 0 })}
+                                      className="mt-0.5 w-[4.5rem] text-sm border border-secondary-200 rounded-md px-2 py-1.5"
+                                    />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeTourLink(node.id, li)}
+                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg mb-0.5"
+                                    aria-label="Удалить переход"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              )
+                            })}
+                            <button
+                              type="button"
+                              onClick={() => addTourLink(node.id)}
+                              className="text-xs font-medium text-blue-600 hover:text-blue-800"
+                            >
+                              + Добавить переход
+                            </button>
+                            <p className="text-[10px] text-secondary-500 leading-snug">
+                              Yaw — поворот влево/вправо (−180…180°), Pitch — вверх/вниз. Стрелка появится в этой позиции на панораме.
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
