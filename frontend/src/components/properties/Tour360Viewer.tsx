@@ -482,7 +482,7 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
       {/* PSV viewer */}
       <ReactPhotoSphereViewer
         key={viewerKey}
-        src={imageSrc as any}
+        src={(useVirtualTourPlugin ? undefined : imageSrc) as any}
         height="100%"
         width="100%"
         container=""
