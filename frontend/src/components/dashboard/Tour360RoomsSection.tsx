@@ -247,19 +247,27 @@ export default function Tour360RoomsSection({
   }
 
   const addTourLink = (nodeId: string) => {
-    setNodes((prev) => {
-      const targets = prev.filter((n) => n.panoramaId && n.id !== nodeId)
-      if (targets.length === 0) return prev
-      return prev.map((n) => {
-        if (n.id !== nodeId) return n
-        const used = new Set((n.links || []).map((l) => l.nodeId))
-        const pick = targets.find((t) => !used.has(t.id)) || targets[0]!
-        return {
-          ...n,
-          links: [...(n.links || []), { nodeId: pick.id, yawDeg: 0, pitchDeg: 0 }],
-        }
-      })
-    })
+    const source = nodes.find((n) => n.id === nodeId)
+    const targets = nodes.filter((n) => n.panoramaId && n.id !== nodeId)
+    if (!source || targets.length === 0) return
+
+    const used = new Set((source.links || []).map((l) => l.nodeId))
+    const pick = targets.find((t) => !used.has(t.id)) || targets[0]!
+    const newLinkIndex = source.links?.length || 0
+
+    setNodes((prev) =>
+      prev.map((n) =>
+        n.id === nodeId
+          ? {
+              ...n,
+              links: [...(n.links || []), { nodeId: pick.id, yawDeg: 0, pitchDeg: 0 }],
+            }
+          : n,
+      ),
+    )
+
+    // Open the visual picker immediately so non-technical users never need yaw/pitch.
+    setPickLink({ sourceNodeId: nodeId, linkIndex: newLinkIndex })
   }
 
   const updateTourLink = (
@@ -431,11 +439,11 @@ export default function Tour360RoomsSection({
                 <div className="px-3 py-2.5 border-t border-secondary-100 bg-secondary-50/40 space-y-2">
                   <div className="flex items-center gap-2 text-xs font-semibold text-secondary-800">
                     <Link2 className="w-3.5 h-3.5 text-primary-600 flex-shrink-0" />
-                    Переходы в панораме
+                    Стрелки перехода
                   </div>
                   {nodes.filter((t) => t.panoramaId && t.id !== node.id).length === 0 ? (
                     <p className="text-[11px] text-secondary-500">
-                      Добавьте ещё одно помещение со своей панорамой, чтобы связать стрелками.
+                      Добавьте ещё одно помещение со своей панорамой, чтобы поставить стрелку перехода.
                     </p>
                   ) : (
                     <>
@@ -449,11 +457,11 @@ export default function Tour360RoomsSection({
                         return (
                           <div
                             key={`${node.id}-l-${li}`}
-                            className="flex flex-wrap items-end gap-2 bg-white rounded-lg p-2 border border-secondary-200"
+                            className="flex flex-wrap items-start gap-2 bg-white rounded-lg p-2 border border-secondary-200"
                           >
                             <div className="min-w-[140px] flex-1">
                               <label className="text-[10px] text-secondary-500 uppercase tracking-wide block">
-                                Куда
+                                Переход в
                               </label>
                               <select
                                 value={selectValue}
@@ -500,7 +508,7 @@ export default function Tour360RoomsSection({
                         onClick={() => addTourLink(node.id)}
                         className="text-xs font-medium text-primary-600 hover:text-primary-800"
                       >
-                        + Добавить переход
+                        + Поставить новую стрелку
                       </button>
                     </>
                   )}
