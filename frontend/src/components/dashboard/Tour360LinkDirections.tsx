@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { Crosshair, SlidersHorizontal, X } from 'lucide-react'
+import { Crosshair, X } from 'lucide-react'
 
 import 'react-photo-sphere-viewer/dist/index.css'
 
@@ -84,67 +84,69 @@ export function YawPitchSliders(props: {
         </div>
       </div>
 
-      <details className="rounded-lg border border-secondary-200 bg-white">
-        <summary className="cursor-pointer select-none px-2.5 py-2 text-xs font-medium text-secondary-700 flex items-center gap-1.5">
-          <SlidersHorizontal className="w-3.5 h-3.5 text-secondary-400" />
-          Точные настройки для администратора
-          <span className="ml-auto font-mono text-[10px] text-secondary-400">
-            {Math.round(yawDeg)}°, {Math.round(pitchDeg)}°
-          </span>
-        </summary>
-        <div className="px-2.5 pb-2.5 space-y-3 border-t border-secondary-100">
-          <div className="flex flex-wrap gap-1.5 pt-2.5">
-            {PRESETS.map((p) => (
-              <button
-                key={p.label}
-                type="button"
-                onClick={() => onChange({ yawDeg: p.yawDeg, pitchDeg: p.pitchDeg })}
-                className="px-2 py-1 text-[11px] font-medium rounded-md bg-secondary-100 text-secondary-800 hover:bg-primary-100 hover:text-primary-900 border border-secondary-200"
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
+      <div className="rounded-lg border border-secondary-200 bg-white p-2.5">
+        <p className="text-[11px] font-medium text-secondary-600 mb-2">
+          Быстро выбрать примерное направление
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+          {PRESETS.map((p) => (
+            <button
+              key={p.label}
+              type="button"
+              onClick={() => onChange({ yawDeg: p.yawDeg, pitchDeg: p.pitchDeg })}
+              className="px-2 py-1.5 text-[11px] font-medium rounded-md bg-secondary-50 text-secondary-800 hover:bg-primary-100 hover:text-primary-900 border border-secondary-200"
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <div className="flex justify-between text-[10px] text-secondary-500 uppercase tracking-wide mb-1">
-                <span>Поворот</span>
-                <span className="font-mono text-secondary-700">{Math.round(yawDeg)}°</span>
-              </div>
-              <input
-                type="range"
-                min={-180}
-                max={180}
-                step={1}
-                value={Math.max(-180, Math.min(180, yawDeg))}
-                onChange={(e) =>
-                  onChange({ yawDeg: parseFloat(e.target.value), pitchDeg })
-                }
-                className="w-full h-2 accent-primary-600"
-              />
-            </div>
-            <div>
-              <div className="flex justify-between text-[10px] text-secondary-500 uppercase tracking-wide mb-1">
-                <span>Высота</span>
-                <span className="font-mono text-secondary-700">{Math.round(pitchDeg)}°</span>
-              </div>
-              <input
-                type="range"
-                min={-90}
-                max={90}
-                step={1}
-                value={Math.max(-90, Math.min(90, pitchDeg))}
-                onChange={(e) =>
-                  onChange({ yawDeg, pitchDeg: parseFloat(e.target.value) })
-                }
-                className="w-full h-2 accent-primary-600"
-              />
-            </div>
-          </div>
+      <details className="rounded-lg border border-secondary-200 bg-white">
+        <summary className="cursor-pointer select-none px-2.5 py-2 text-xs font-medium text-secondary-700">
+          Ввести yaw / pitch вручную
+        </summary>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 px-2.5 pb-2.5 border-t border-secondary-100 pt-2.5">
+          <label className="block">
+            <span className="text-[10px] text-secondary-500 uppercase tracking-wide">
+              Yaw - поворот
+            </span>
+            <input
+              type="number"
+              min={-180}
+              max={180}
+              step={1}
+              value={Number.isFinite(yawDeg) ? yawDeg : 0}
+              onChange={(e) =>
+                onChange({ yawDeg: parseFloat(e.target.value) || 0, pitchDeg })
+              }
+              className="mt-1 w-full rounded-md border border-secondary-200 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
+            />
+            <span className="mt-1 block text-[10px] text-secondary-400">
+              -180 до 180
+            </span>
+          </label>
+          <label className="block">
+            <span className="text-[10px] text-secondary-500 uppercase tracking-wide">
+              Pitch - высота
+            </span>
+            <input
+              type="number"
+              min={-90}
+              max={90}
+              step={1}
+              value={Number.isFinite(pitchDeg) ? pitchDeg : 0}
+              onChange={(e) =>
+                onChange({ yawDeg, pitchDeg: parseFloat(e.target.value) || 0 })
+              }
+              className="mt-1 w-full rounded-md border border-secondary-200 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
+            />
+            <span className="mt-1 block text-[10px] text-secondary-400">
+              -90 до 90
+            </span>
+          </label>
         </div>
       </details>
-
     </div>
   )
 }
