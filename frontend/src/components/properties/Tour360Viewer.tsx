@@ -211,6 +211,7 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
   const viewerRef = useRef<any>(null)
   const viewerReadyRef = useRef(false)
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const psvLoadTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ─── controls auto-hide ─────────────────────────────────────────────────────
   const scheduleHide = useCallback(() => {
@@ -224,7 +225,10 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
   }, [scheduleHide])
 
   useEffect(() => {
-    return () => { if (hideTimer.current) clearTimeout(hideTimer.current) }
+    return () => {
+      if (hideTimer.current) clearTimeout(hideTimer.current)
+      if (psvLoadTimer.current) clearTimeout(psvLoadTimer.current)
+    }
   }, [])
 
   // ─── fullscreen ─────────────────────────────────────────────────────────────
@@ -284,7 +288,9 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
     if (!imageSrc || preflightStatus !== 'pending') return
     let cancelled = false
     const img = new Image()
-    img.crossOrigin = 'anonymous'
+    // No crossOrigin here — we only check reachability; PSV handles its own CORS loading.
+    // Setting crossOrigin on the preflight can cause false failures when the browser has a
+    // stale cache entry that lacks ACAO headers (e.g. cached before CORS was configured).
     img.onload = () => {
       if (!cancelled) {
         console.log('[Tour360] preflight OK:', imageSrc)
@@ -302,6 +308,24 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
     img.src = imageSrc
     return () => { cancelled = true }
   }, [imageSrc, preflightStatus])
+
+  // ─── PSV load timeout ────────────────────────────────────────────────────────
+  // If PSV never fires onReady (e.g. panorama fails to load), loading stays true
+  // forever because the panorama-error listener is only registered inside onReady.
+  // This timeout unblocks the UI after 30 s so the user can retry.
+  useEffect(() => {
+    if (preflightStatus !== 'ok') return
+    if (psvLoadTimer.current) clearTimeout(psvLoadTimer.current)
+    viewerReadyRef.current = false
+    psvLoadTimer.current = setTimeout(() => {
+      if (!viewerReadyRef.current) {
+        console.error('[Tour360] PSV did not become ready within timeout — showing error')
+        setLoading(false)
+        setLoadError(t('panoramaLoadFailed'))
+      }
+    }, 30_000)
+    return () => { if (psvLoadTimer.current) clearTimeout(psvLoadTimer.current) }
+  }, [preflightStatus, imageSrc, t])
 
   // ─── navigation ─────────────────────────────────────────────────────────────
   const navigateToNode = useCallback(
@@ -477,6 +501,7 @@ export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour
         onReady={(instance: any) => {
           viewerRef.current = instance
           viewerReadyRef.current = true
+          if (psvLoadTimer.current) { clearTimeout(psvLoadTimer.current); psvLoadTimer.current = null }
           console.log('[Tour360] PSV ready')
 
           setLoading(false)
