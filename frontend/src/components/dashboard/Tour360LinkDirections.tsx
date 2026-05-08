@@ -33,24 +33,59 @@ function yawPitchDegFromViewerClick(evt: unknown): {
   }
 }
 
-const PRESETS: { label: string; yawDeg: number; pitchDeg: number }[] = [
-  { label: 'Прямо', yawDeg: 0, pitchDeg: 0 },
-  { label: 'Левая сторона', yawDeg: -90, pitchDeg: 0 },
-  { label: 'Правая сторона', yawDeg: 90, pitchDeg: 0 },
-  { label: 'Назад', yawDeg: 180, pitchDeg: 0 },
-  { label: 'Выше', yawDeg: 0, pitchDeg: 35 },
-  { label: 'Ниже', yawDeg: 0, pitchDeg: -25 },
+const PRESETS: { label: string; emoji: string; yawDeg: number; pitchDeg: number }[] = [
+  { label: 'Прямо',  emoji: '⬆️', yawDeg: 0,   pitchDeg: 0   },
+  { label: 'Справа', emoji: '➡️', yawDeg: 90,  pitchDeg: 0   },
+  { label: 'Назад',  emoji: '⬇️', yawDeg: 180, pitchDeg: 0   },
+  { label: 'Слева',  emoji: '⬅️', yawDeg: -90, pitchDeg: 0   },
+  { label: 'Вверху', emoji: '🔼', yawDeg: 0,   pitchDeg: 35  },
+  { label: 'Внизу',  emoji: '🔽', yawDeg: 0,   pitchDeg: -25 },
 ]
 
-function describeDirection(yawDeg: number, pitchDeg: number): string {
-  if (pitchDeg >= 30) return 'выше центра'
-  if (pitchDeg <= -30) return 'ниже центра'
+/** Small SVG compass that shows where the arrow will appear */
+function DirectionCompass({ yawDeg, pitchDeg }: { yawDeg: number; pitchDeg: number }) {
+  const rad = (yawDeg * Math.PI) / 180
+  const cx = 36
+  const cy = 36
+  const r = 22
+  const dotX = cx + r * Math.sin(rad)
+  const dotY = cy - r * Math.cos(rad)
 
-  const yaw = ((yawDeg + 180) % 360) - 180
-  if (yaw >= -35 && yaw <= 35) return 'перед пользователем'
-  if (yaw > 35 && yaw < 135) return 'справа'
-  if (yaw < -35 && yaw > -135) return 'слева'
-  return 'позади'
+  const pitchLabel =
+    pitchDeg >= 25 ? '↑ высоко' : pitchDeg <= -25 ? '↓ низко' : '→ горизонталь'
+
+  return (
+    <div className="flex flex-col items-center gap-1 select-none">
+      <svg width="72" height="72" viewBox="0 0 72 72">
+        {/* background circle */}
+        <circle cx={cx} cy={cy} r={r + 6} fill="#f1f5f9" stroke="#e2e8f0" strokeWidth="1" />
+        {/* compass ring */}
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#cbd5e1" strokeWidth="1.5" />
+        {/* cardinal ticks */}
+        {[0, 90, 180, 270].map((a) => {
+          const rr = (a * Math.PI) / 180
+          const x1 = cx + (r - 4) * Math.sin(rr)
+          const y1 = cy - (r - 4) * Math.cos(rr)
+          const x2 = cx + r * Math.sin(rr)
+          const y2 = cy - r * Math.cos(rr)
+          return <line key={a} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#94a3b8" strokeWidth="1.5" />
+        })}
+        {/* N label */}
+        <text x={cx} y={cy - r - 8} textAnchor="middle" fontSize="7" fill="#64748b" fontWeight="600">С</text>
+        {/* direction arrow line */}
+        <line
+          x1={cx} y1={cy}
+          x2={dotX} y2={dotY}
+          stroke="#2563eb" strokeWidth="2" strokeLinecap="round"
+        />
+        {/* dot at tip */}
+        <circle cx={dotX} cy={dotY} r={4} fill="#2563eb" />
+        {/* center */}
+        <circle cx={cx} cy={cy} r={3} fill="#94a3b8" />
+      </svg>
+      <span className="text-[10px] text-secondary-500">{pitchLabel}</span>
+    </div>
+  )
 }
 
 export function YawPitchSliders(props: {
@@ -61,92 +96,111 @@ export function YawPitchSliders(props: {
 }) {
   const { yawDeg, pitchDeg, onChange, onOpenPicker } = props
 
+  const safeYaw = Number.isFinite(yawDeg) ? yawDeg : 0
+  const safePitch = Number.isFinite(pitchDeg) ? pitchDeg : 0
+
   return (
-    <div className="space-y-2 w-full min-w-0">
-      <div className="rounded-lg border border-primary-100 bg-primary-50 p-2.5">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-primary-900">
-              Стрелка появится: {describeDirection(yawDeg, pitchDeg)}
-            </p>
-            <p className="text-[11px] text-primary-700 mt-0.5">
-              Самый простой способ: нажмите кнопку и кликните место стрелки прямо на панораме.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onOpenPicker}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-primary-600 text-white hover:bg-primary-700 shadow-sm"
-          >
-            <Crosshair className="w-3.5 h-3.5" />
-            Поставить стрелку
-          </button>
-        </div>
-      </div>
+    <div className="space-y-2.5 w-full min-w-0">
 
+      {/* ── Primary action: visual click on panorama ── */}
+      <button
+        type="button"
+        onClick={onOpenPicker}
+        className="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold rounded-lg bg-primary-600 text-white hover:bg-primary-700 shadow-sm"
+      >
+        <Crosshair className="w-4 h-4" />
+        Кликнуть место стрелки на панораме
+      </button>
+
+      {/* ── Preset direction buttons ── */}
       <div className="rounded-lg border border-secondary-200 bg-white p-2.5">
-        <p className="text-[11px] font-medium text-secondary-600 mb-2">
-          Быстро выбрать примерное направление
+        <p className="text-[11px] font-medium text-secondary-500 mb-2 uppercase tracking-wide">
+          Быстрые направления
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-          {PRESETS.map((p) => (
-            <button
-              key={p.label}
-              type="button"
-              onClick={() => onChange({ yawDeg: p.yawDeg, pitchDeg: p.pitchDeg })}
-              className="px-2 py-1.5 text-[11px] font-medium rounded-md bg-secondary-50 text-secondary-800 hover:bg-primary-100 hover:text-primary-900 border border-secondary-200"
-            >
-              {p.label}
-            </button>
-          ))}
+        <div className="grid grid-cols-3 gap-1.5">
+          {PRESETS.map((p) => {
+            const active = Math.round(safeYaw) === p.yawDeg && Math.round(safePitch) === p.pitchDeg
+            return (
+              <button
+                key={p.label}
+                type="button"
+                onClick={() => onChange({ yawDeg: p.yawDeg, pitchDeg: p.pitchDeg })}
+                className={`flex flex-col items-center gap-0.5 px-2 py-2 text-[11px] font-medium rounded-lg border transition-colors ${
+                  active
+                    ? 'bg-primary-600 text-white border-primary-600'
+                    : 'bg-secondary-50 text-secondary-700 border-secondary-200 hover:bg-primary-50 hover:border-primary-300 hover:text-primary-800'
+                }`}
+              >
+                <span className="text-base leading-none">{p.emoji}</span>
+                {p.label}
+              </button>
+            )
+          })}
         </div>
       </div>
 
-      <details className="rounded-lg border border-secondary-200 bg-white">
-        <summary className="cursor-pointer select-none px-2.5 py-2 text-xs font-medium text-secondary-700">
-          Ввести yaw / pitch вручную
-        </summary>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 px-2.5 pb-2.5 border-t border-secondary-100 pt-2.5">
-          <label className="block">
-            <span className="text-[10px] text-secondary-500 uppercase tracking-wide">
-              Yaw - поворот
-            </span>
-            <input
-              type="number"
-              min={-180}
-              max={180}
-              step={1}
-              value={Number.isFinite(yawDeg) ? yawDeg : 0}
-              onChange={(e) =>
-                onChange({ yawDeg: parseFloat(e.target.value) || 0, pitchDeg })
-              }
-              className="mt-1 w-full rounded-md border border-secondary-200 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
-            />
-            <span className="mt-1 block text-[10px] text-secondary-400">
-              -180 до 180
-            </span>
-          </label>
-          <label className="block">
-            <span className="text-[10px] text-secondary-500 uppercase tracking-wide">
-              Pitch - высота
-            </span>
-            <input
-              type="number"
-              min={-90}
-              max={90}
-              step={1}
-              value={Number.isFinite(pitchDeg) ? pitchDeg : 0}
-              onChange={(e) =>
-                onChange({ yawDeg, pitchDeg: parseFloat(e.target.value) || 0 })
-              }
-              className="mt-1 w-full rounded-md border border-secondary-200 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-100"
-            />
-            <span className="mt-1 block text-[10px] text-secondary-400">
-              -90 до 90
-            </span>
-          </label>
+      {/* ── Fine-tune with sliders + compass ── */}
+      <div className="rounded-lg border border-secondary-200 bg-white p-2.5">
+        <p className="text-[11px] font-medium text-secondary-500 mb-3 uppercase tracking-wide">
+          Точная настройка
+        </p>
+        <div className="flex items-start gap-3">
+          {/* compass */}
+          <div className="flex-shrink-0">
+            <DirectionCompass yawDeg={safeYaw} pitchDeg={safePitch} />
+          </div>
+
+          {/* sliders */}
+          <div className="flex-1 min-w-0 space-y-3">
+            {/* yaw */}
+            <div>
+              <div className="flex justify-between items-baseline mb-1">
+                <span className="text-xs text-secondary-700 font-medium">Поворот (лево/право)</span>
+                <span className="text-xs font-mono font-semibold text-primary-700">
+                  {Math.round(safeYaw)}°
+                </span>
+              </div>
+              <input
+                type="range"
+                min={-180}
+                max={180}
+                step={1}
+                value={safeYaw}
+                onChange={(e) => onChange({ yawDeg: Number(e.target.value), pitchDeg: safePitch })}
+                className="w-full h-2 rounded-full appearance-none bg-secondary-200 accent-primary-600 cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-secondary-400 mt-0.5">
+                <span>← Лево</span>
+                <span>Право →</span>
+              </div>
+            </div>
+
+            {/* pitch */}
+            <div>
+              <div className="flex justify-between items-baseline mb-1">
+                <span className="text-xs text-secondary-700 font-medium">Высота (вверх/вниз)</span>
+                <span className="text-xs font-mono font-semibold text-primary-700">
+                  {Math.round(safePitch)}°
+                </span>
+              </div>
+              <input
+                type="range"
+                min={-90}
+                max={90}
+                step={1}
+                value={safePitch}
+                onChange={(e) => onChange({ yawDeg: safeYaw, pitchDeg: Number(e.target.value) })}
+                className="w-full h-2 rounded-full appearance-none bg-secondary-200 accent-primary-600 cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-secondary-400 mt-0.5">
+                <span>↓ Вниз</span>
+                <span>Вверх ↑</span>
+              </div>
+            </div>
+          </div>
         </div>
-      </details>
+      </div>
+
     </div>
   )
 }
@@ -197,10 +251,10 @@ export function DirectionPickModal(props: {
         <div className="flex items-start justify-between gap-3 px-4 py-3 border-b border-secondary-100 bg-secondary-50">
           <div>
             <h3 id="pick-direction-title" className="font-semibold text-secondary-900">
-              Где поставить стрелку перехода → {targetRoomLabel}
+              Где поставить стрелку → {targetRoomLabel}
             </h3>
             <p className="text-xs text-secondary-600 mt-0.5">
-              Найдите дверь, коридор или нужную сторону комнаты и кликните прямо туда. Числа вводить не нужно.
+              Найдите дверь, коридор или нужную сторону и кликните прямо туда. Числа вводить не нужно.
             </p>
           </div>
           <button
@@ -231,11 +285,11 @@ export function DirectionPickModal(props: {
           />
           <div className="pointer-events-none absolute top-3 left-3 right-3 flex justify-center">
             <div className="rounded-full bg-black/70 px-4 py-2 text-xs font-medium text-white shadow-lg">
-              Кликните в точку, где пользователь должен увидеть стрелку
+              Поверните панораму и кликните где нужна стрелка
             </div>
           </div>
-          <div className="pointer-events-none absolute bottom-3 left-3 right-3 text-center text-[11px] text-white/90 drop-shadow-md">
-            После клика направление сохранится автоматически
+          <div className="pointer-events-none absolute bottom-3 left-3 right-3 text-center text-[11px] text-white/70">
+            После клика окно закроется автоматически
           </div>
         </div>
       </div>
