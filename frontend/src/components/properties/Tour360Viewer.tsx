@@ -62,6 +62,26 @@ interface Tour360ViewerProps {
   tileConfig?: PanoramaTileConfig
 }
 
+/** Check if a URL is an external third-party tour (e.g., Kuula) that should be embedded in an iframe */
+function isExternalTourUrl(url: string): boolean {
+  if (!url) return false
+  try {
+    const parsed = new URL(url)
+    const hostname = parsed.hostname.toLowerCase()
+    // Detect common 360 tour platforms
+    return (
+      hostname.includes('kuula.co') ||
+      hostname.includes('matterport.com') ||
+      hostname.includes('my.matterport.com') ||
+      hostname.includes('360cities.net') ||
+      hostname.includes('roundme.com') ||
+      hostname.includes('momento360.com')
+    )
+  } catch {
+    return false
+  }
+}
+
 // ─── mock data ────────────────────────────────────────────────────────────────
 
 const getMockNodes = (t: any): TourNode[] => [
@@ -145,6 +165,24 @@ function buildVirtualTourPluginNodes(nodes: TourNode[]) {
 
 export default function Tour360Viewer({ imageUrl, tourConfig, tileConfig }: Tour360ViewerProps) {
   const t = useTranslations('Tour360')
+
+  // Check if imageUrl is an external tour platform (e.g., Kuula)
+  const isExternalTour = imageUrl && isExternalTourUrl(imageUrl)
+
+  // If it's an external tour, render iframe directly
+  if (isExternalTour) {
+    return (
+      <div className="relative w-full h-full min-h-[400px] bg-secondary-950">
+        <iframe
+          src={imageUrl}
+          className="w-full h-full border-0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; xr-spatial-tracking; fullscreen"
+          allowFullScreen
+          title={t('virtualTour')}
+        />
+      </div>
+    )
+  }
 
   // Resolve the active node list
   const hasRealTour = !!(tourConfig?.nodes && tourConfig.nodes.length > 0)
